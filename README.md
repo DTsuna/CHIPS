@@ -7,5 +7,7 @@ circumstellar matter profile and light curves of the interaction-powered
 supernovae, for a selected mass and metallicity of the progenitor star.
 
 References:
+
 Kuriyama, Shigeyama (2020), A&A, 635, 127
+
 Takei, Shigeyama (2020), PASJ 72, 67
