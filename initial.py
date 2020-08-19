@@ -12,8 +12,8 @@ m_sun = 1.9884e+33
 r_sun = 6.96e+10
 
 with open(path, mode = 'w') as f:
-        f.write('j =' + str(size) + '\n')
-        f.write('grid m_r(Msun) m_r(g)  dmass(g) radius(cm) density(g/cm^3) pressure(erg/cm^3) temperature(K) h1 he3 he4 c12 n14 o16 ne20 mg24 si28 s32 ar36 ca40 ti44 cr48 cr56 fe52 fe54 fe56 ni56\n')
+#        f.write('j =' + str(size) + '\n')
+#        f.write('grid m_r(Msun) m_r(g)  dmass(g) radius(cm) density(g/cm^3) pressure(erg/cm^3) temperature(K) h1 he3 he4 c12 n14 o16 ne20 mg24 si28 s32 ar36 ca40 ti44 cr48 cr56 fe52 fe54 fe56 ni56\n')
         for n in range(size, 0, -1):
                 temp_zone = size - h.zone[n-1] + 1
                 temp_mr = h.mass[n-1]
