@@ -26,7 +26,8 @@ options, filenames = parse_command_line()
 #								#
 #################################################################
 
-# manipulate the file with the given input zams mass and metallicity
+# edit the file with the given input zams mass and metallicity
+# FIXME this doesn't work for inlist file without these parameters set.
 for line in fileinput.input(options.inlist_file, inplace=1):
 	if 'initial_mass' in line:
 		print("      initial_mass = %f" % float(options.zams_m))
@@ -51,12 +52,11 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #								#
 #################################################################
 
-# find where to calculate the eruptive mass-loss
+# find when to calculate the eruptive mass-loss
 
 # decide energy injection timescale and luminosity
 
-# do eruptive mass-loss calculation
-
+# do eruptive mass-loss rad-hydro calculation
 
 
 #################################################################
@@ -65,7 +65,7 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #								#
 #################################################################
 
-# extract the time till core-collapse
+# obtain the time from end of rad-hydro calculation to core-collapse
 
 # read in CSM data
 
