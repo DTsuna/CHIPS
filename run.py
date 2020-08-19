@@ -1,7 +1,7 @@
+from __future__ import print_function
 import fileinput
 from optparse import OptionParser
 import subprocess
-import sys
 
 def parse_command_line():
 	parser = OptionParser(
@@ -17,20 +17,19 @@ def parse_command_line():
 # get command line arguments
 options, filenames = parse_command_line()
 
-# edit the file with given input zams and metallicity
+# manipulate the file with the given input zams mass and metallicity
 for line in fileinput.input(options.inlist_file, inplace=1):
 	if 'initial_mass' in line:
-		print "      initial_mass = %f\n" % options.zams_m,
+		print("      initial_mass = %f" % float(options.zams_m))
 	elif 'initial_z' in line:
-		print "      initial_z = %f\n" % options.zams_z,
+		print("      initial_z = %f" % float(options.zams_z))
 	elif 'Zbase' in line:
-		print "      Zbase = %f\n" % options.zams_z,
+		print("      Zbase = %f" % float(options.zams_z))
 	else:
-		print line,
+		print(line.rstrip())
 
 # compile mesa script
 #subprocess.call("./mk")
 # run mesa script
 #subprocess.call("./rn")
-
 
