@@ -3,7 +3,7 @@ import mesa_reader as mr
 import matplotlib.pyplot as plt
 pylab
 
-path = 'output.txt'
+path = 'hoge1.txt'
 
 h = mr.MesaData('profile54' + '.data')
 size = len(h.zone)
