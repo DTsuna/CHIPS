@@ -5,8 +5,8 @@ import subprocess
 
 def parse_command_line():
 	parser = OptionParser(
-		description = '''Execution script. The MESA calculation will be conducted by running the code with ZAMS mass/Z and inlist file as arguments, For example, to calculate the evolution of a 15Msun star with metallicity 0.02 (~ solar), with inlist file containing these parameters, run the following:\n
-		python run.py --zams-m 15 --zams-z 0.02 --inlist-file /path/to/inlist_file
+		description = '''Execution script. The MESA calculation will be conducted by running the code with ZAMS mass/Z and inlist file as arguments, For example, to calculate the evolution of a 15Msun star with metallicity 0.02 (~ solar), with inlist file containing these parameters in this_inlist_file, run the following:\n
+		python run.py --zams-m 15 --zams-z 0.02 --inlist-file this_inlist_file
 		'''
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass.")
@@ -39,10 +39,10 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 		print(line.rstrip())
 
 # compile mesa script
-#subprocess.call("./mk")
+subprocess.call("./mk")
 
 # run mesa script
-#subprocess.call("./rn")
+subprocess.call("./rn")
 
 
 

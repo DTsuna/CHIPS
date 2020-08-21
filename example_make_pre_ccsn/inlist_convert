@@ -1,0 +1,237 @@
+
+&star_job
+!   show_net_reactions_info = .true.
+!      list_net_reactions = .true.
+   
+      load_saved_model = .true.
+      saved_model_name = 'lgT_9.9.mod'
+
+      save_model_when_terminate = .true.
+      save_model_filename = 'converted.mod'
+      required_termination_code_string = 'max_model_number'
+
+      profile_starting_model = .true.
+
+      steps_to_take_before_terminate = 100 ! if nothing to do after remove
+      
+      eosDT_use_linear_interp_to_HELM = .true.
+
+      change_D_omega_flag = .true.
+      new_D_omega_flag = .false.
+
+      change_rotation_flag = .true.
+      new_rotation_flag = .false.
+
+      change_initial_u_flag = .true.
+      change_initial_v_flag = .true.
+      new_v_flag = .false.
+      new_u_flag = .true.
+
+      set_initial_age = .false.
+      set_initial_model_number = .false.
+
+      set_initial_dt = .true.
+      seconds_for_initial_dt = 1d-6
+
+      logT_for_conv_vel_flag = 8.5d0
+
+      !pgstar_flag = .true.
+
+/ ! end of star_job namelist
+
+
+&controls
+      
+      ! check for retries and backups as part of test_suite
+         max_number_backups = 10
+         max_number_retries = 40
+         
+      velocity_logT_lower_bound = 0
+      calculate_Brunt_N2 = .false.
+
+! eos controls
+      logQ_min_limit = -1d99
+      use_gold_tolerances = .true. 
+      use_eosDT2 = .true.
+      use_eosELM = .true.
+
+      ignore_too_large_correction = .true. ! for conv_vel's
+      
+! equation controls
+      use_ODE_var_eqn_pairing = .true.      
+      use_dvdt_form_of_momentum_eqn = .true.
+      use_dedt_form_of_energy_eqn = .true.
+      use_dPrad_dm_form_of_T_gradient_eqn = .true.
+      
+      !use_compression_outer_BC = .true.
+      use_momentum_outer_BC = .true.
+
+      sponge_max_q_full_on = 0.98d0
+      sponge_min_q_full_off = 0.97d0
+
+! mixing controls
+      mixing_length_alpha = 1.89
+      MLT_option = 'Henyey'
+      okay_to_reduce_gradT_excess = .false.
+
+! mesh controls
+      okay_to_remesh = .false
+      !okay_to_remesh = .true
+      use_split_merge_amr = .true.
+      split_merge_amr_log_zoning = .true.
+      split_merge_amr_nz_baseline = 2000
+      split_merge_amr_MaxLong = 2d0
+      split_merge_amr_MaxShort = 2d0
+      split_merge_amr_max_iters = 10
+      !trace_split_merge_amr = .true.
+
+
+! timestep controls
+
+!      delta_lgL_He_limit = 0.5
+!      delta_lgT_cntr_limit = 0.2
+!      delta_lgRho_cntr_limit = 0.5
+!      dX_nuc_drop_limit_at_high_T = 1d-2
+!      varcontrol_target = 1d-4
+
+      max_timestep = 1d-6
+
+      delta_lgL_He_limit = 0.5
+      delta_lgT_cntr_limit = 0.2
+      delta_lgRho_cntr_limit = 0.5
+
+      dX_nuc_drop_limit_at_high_T = 1d-2
+      
+      limit_for_abs_rel_E_err = 1d-6
+      hard_limit_for_abs_rel_E_err = 1d-4
+      
+      !dt_div_dt_explicit_limit = 0.5 
+
+      varcontrol_target = 1d-2
+
+! solver controls
+
+!      newton_iterations_limit = 28 ! timesteps
+!      max_tries = 29
+!      iter_for_resid_tol2 = 28
+!      tol_residual_norm1 = 1d-12
+!      tol_max_residual1 = 3d-10
+!      tiny_corr_coeff_limit = 999999
+!      newton_itermin_until_reduce_min_corr_coeff = 999999
+
+      newton_iterations_limit = 21 ! this is used for setting timesteps
+      max_tries = 21
+      iter_for_resid_tol2 = 20
+      tol_residual_norm1 = 1d-7
+      tol_max_residual1 = 1d-4
+      
+      xa_scale = 1d0
+
+      tiny_corr_coeff_limit = 999999
+      newton_itermin_until_reduce_min_corr_coeff = 999999
+      max_resid_jump_limit = 1d99 ! turn this off until fix residuals
+
+
+
+! output controls
+
+      center_avg_value_dq = 1d-2
+
+      he_core_boundary_h1_fraction = 0.5
+      c_core_boundary_he4_fraction = 0.5
+      o_core_boundary_c12_fraction = 0.5
+      si_core_boundary_o16_fraction = 0.5
+      fe_core_boundary_si28_fraction = 0.5
+
+      max_num_profile_models = 1000
+      terminal_show_age_in_years = .false.
+
+      num_trace_history_values = 2
+      trace_history_value_name(1) = 'rel_E_err'
+      trace_history_value_name(2) = 'log_rel_run_E_err'
+
+      !photo_interval = 1
+      !profile_interval = 1
+      !history_interval = 1
+      terminal_interval = 10
+      
+
+
+! FOR DEBUGGING
+
+      !report_hydro_solver_progress = .true. ! set true to see info about newton iterations
+      !report_ierr = .true. ! if true, produce terminal output when have some internal error
+      !hydro_show_correction_info = .true.
+      
+      !max_years_for_timestep = 3.67628942044319d-05
+
+      !report_why_dt_limits = .true.
+      !report_all_dt_limits = .true.
+      !report_hydro_dt_info = .true.
+      
+      !show_mesh_changes = .true.
+      !mesh_dump_call_number = 5189
+      !okay_to_remesh = .false.
+      
+      !trace_evolve = .true.
+            
+
+      ! hydro debugging
+      !hydro_check_everything = .true.
+      !hydro_inspectB_flag = .true.
+      !hydro_sizequ_flag = .true.
+      
+      !hydro_get_a_numerical_partial = 1d-4
+      !hydro_test_partials_k = 560
+      
+      !hydro_numerical_jacobian = .true.
+      !hydro_save_numjac_plot_data = .true.
+      !hydro_dump_call_number = 2
+      !hydro_dump_iter_number = 5
+      !hydro_epsder_struct = 1d-8
+      !hydro_epsder_chem = 1d-6
+
+      !trace_newton_bcyclic_solve_input = .true. ! input is "B" j k iter B(j,k)
+      !trace_newton_bcyclic_solve_output = .true. ! output is "X" j k iter X(j,k)
+
+      !trace_newton_bcyclic_matrix_input = .true.
+      !trace_newton_bcyclic_matrix_output = .true.
+      
+      !trace_newton_bcyclic_steplo = 1 ! 1st model number to trace
+      !trace_newton_bcyclic_stephi = 1 ! last model number to trace
+      
+      !trace_newton_bcyclic_iterlo = 2 ! 1st newton iter to trace
+      !trace_newton_bcyclic_iterhi = 2 ! last newton iter to trace
+      
+      !trace_newton_bcyclic_nzlo = 1 ! 1st cell to trace
+      !trace_newton_bcyclic_nzhi = 10000 ! last cell to trace; if < 0, then use nz as nzhi
+      
+      !trace_newton_bcyclic_jlo = 1 ! 1st var to trace
+      !trace_newton_bcyclic_jhi = 100 ! last var to trace; if < 0, then use nvar as jhi
+      
+      !trace_k = 0
+
+      !fill_arrays_with_NaNs = .true.
+      !stop_for_NaNs = .true.
+
+/ ! end of controls namelist
+
+&pgstar
+         
+!pause = .true.
+         
+!Profile_Panels1_xmax = 2.2 ! -101d0 ! only used if /= -101d0
+!Abundance_xmax = 2.2 ! -101 ! only used if /= -101d0
+
+!Profile_Panels1_xaxis_name = 'logR_cm'
+
+! file output
+!Grid2_file_flag = .true.
+   Grid2_file_dir = 'png'
+   Grid2_file_prefix = 'grid_'
+   Grid2_file_interval = 1 ! 1 ! output when mod(model_number,Grid2_file_interval)==0
+   Grid2_file_width = -1 ! negative means use same value as for window
+   Grid2_file_aspect_ratio = -1 ! negative means use same value as for window
+      
+
+/ ! end of pgstar namelist

@@ -1,0 +1,47 @@
+#!/bin/bash
+
+function check_okay {
+	if [ $? -ne 0 ]
+	then
+		exit 1
+	fi
+}
+
+function do_one {
+	cp $1 inlist
+	check_okay
+	rm -rf $2
+	echo 'run' $1
+	./rn1
+	check_okay
+  if [ ! -r $2 ]
+  then
+  	echo
+  	echo "******************************************************************"
+  	echo 'failed to create' $2 'when running' $1
+  	echo "******************************************************************"
+  	echo;  	exit 1
+  fi
+  echo;  echo 'finished' $1
+  rm -rf $3
+  mkdir $3
+  mv LOGS/* $3
+  echo;	echo '***';	echo '***';	echo '***';	echo '***';	echo
+}
+
+
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
+
+do_one inlist_to_zams_header near_zams.mod LOGS_to_zams
+do_one inlist_before_remove_header ready_to_remove.mod LOGS_before_remove
+do_one inlist_remove_header removed.mod LOGS_remove
+do_one inlist_after_remove_header ready.mod LOGS_after_remove
+do_one inlist_to_si_burn_header after_core_O_burn.mod LOGS_to_si_burn
+do_one inlist_to_lgT_9.9_header lgT_9.9.mod LOGS_to_lgT_9.9
+do_one inlist_convert_header converted.mod LOGS_convert
+do_one inlist_finish_header final.mod LOGS_finish
+
+date "+DATE: %Y-%m-%d%nTIME: %H:%M:%S"
+
+echo 'finished all inlists for make_pre_ccsn'
+
