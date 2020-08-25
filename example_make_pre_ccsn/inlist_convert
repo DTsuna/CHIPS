@@ -43,8 +43,8 @@
 &controls
       
       ! check for retries and backups as part of test_suite
-         max_number_backups = 10
-         max_number_retries = 40
+         max_number_backups = 200
+         max_number_retries = 1100
          
       velocity_logT_lower_bound = 0
       calculate_Brunt_N2 = .false.

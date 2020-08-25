@@ -29,7 +29,7 @@
 &controls
    
       ! check for retries and backups as part of test_suite
-         max_number_backups = 100
+         max_number_backups = 250
          max_number_retries = 2200
          max_model_number = 26100
 

@@ -34,7 +34,7 @@
       min_cell_energy_fraction_for_dedt_form = 0
       use_eps_correction_for_KE_plus_PE_in_dLdm_eqn = .true.
 
-      initial_mass = 20.010000
+      initial_mass = 11.000000
 
       initial_z = 0.020000
       Zbase = 0.020000
@@ -48,38 +48,38 @@
 
       !min_overshoot_q = 1d0      ! =1 TURNS OFF OVERSHOOTING
 
-      overshoot_f0_above_nonburn_core = 0.004
-      overshoot_f0_above_nonburn_shell = 0.004
-      overshoot_f0_below_nonburn_shell = 0.004
+      overshoot_f0_above_nonburn_core = 0.025
+      overshoot_f0_above_nonburn_shell = 0.025
+      overshoot_f0_below_nonburn_shell = 0.025
 
-      overshoot_f0_above_burn_h_core = 0.004
-      overshoot_f0_above_burn_h_shell = 0.004
-      overshoot_f0_below_burn_h_shell = 0.004
+      overshoot_f0_above_burn_h_core = 0.025
+      overshoot_f0_above_burn_h_shell = 0.025
+      overshoot_f0_below_burn_h_shell = 0.025
 
-      overshoot_f0_above_burn_he_core = 0.004
-      overshoot_f0_above_burn_he_shell = 0.004
-      overshoot_f0_below_burn_he_shell = 0.004
+      overshoot_f0_above_burn_he_core = 0.025
+      overshoot_f0_above_burn_he_shell = 0.025
+      overshoot_f0_below_burn_he_shell = 0.025
 
-      overshoot_f0_above_burn_z_core = 0.004
-      overshoot_f0_above_burn_z_shell = 0.004
-      overshoot_f0_below_burn_z_shell = 0.004
+      overshoot_f0_above_burn_z_core = 0.025
+      overshoot_f0_above_burn_z_shell = 0.025
+      overshoot_f0_below_burn_z_shell = 0.025
 
 
-      overshoot_f_above_nonburn_core = 0.010
-      overshoot_f_above_nonburn_shell = 0.010
-      overshoot_f_below_nonburn_shell = 0.010
+      overshoot_f_above_nonburn_core = 0.050
+      overshoot_f_above_nonburn_shell = 0.050
+      overshoot_f_below_nonburn_shell = 0.050
 
-      overshoot_f_above_burn_h_core = 0.010
-      overshoot_f_above_burn_h_shell = 0.010
-      overshoot_f_below_burn_h_shell = 0.010
+      overshoot_f_above_burn_h_core = 0.050
+      overshoot_f_above_burn_h_shell = 0.050
+      overshoot_f_below_burn_h_shell = 0.050
 
-      overshoot_f_above_burn_he_core = 0.010
-      overshoot_f_above_burn_he_shell = 0.010
-      overshoot_f_below_burn_he_shell = 0.010
+      overshoot_f_above_burn_he_core = 0.050
+      overshoot_f_above_burn_he_shell = 0.050
+      overshoot_f_below_burn_he_shell = 0.050
 
-      overshoot_f_above_burn_z_core = 0.010
-      overshoot_f_above_burn_z_shell = 0.010
-      overshoot_f_below_burn_z_shell = 0.010
+      overshoot_f_above_burn_z_core = 0.050
+      overshoot_f_above_burn_z_shell = 0.050
+      overshoot_f_below_burn_z_shell = 0.050
 
       ! helps with off center ignition in progenitor
       overshoot_D2_below_burn_z = 1d10
