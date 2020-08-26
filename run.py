@@ -3,6 +3,8 @@ import fileinput
 from optparse import OptionParser
 import subprocess
 
+import ejecta_utils
+
 def parse_command_line():
 	parser = OptionParser(
 		description = '''Execution script. The MESA calculation will be conducted by running the code with ZAMS mass/Z and inlist file as arguments, For example, to calculate the evolution of a 15Msun star with metallicity 0.02 (~ solar), with inlist file containing these parameters, run the following:\n
@@ -45,7 +47,6 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #subprocess.call("./rn")
 
 
-
 #################################################################
 #								#
 #		Eruptive mass loss model of KS20		#
@@ -80,6 +81,9 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #		IIn light curve model of TS20			#
 #								#
 #################################################################
+
+# extract the ejecta parameters
+Mej, n, delta = ejecta_utils.calculate_ej_from_mesa('pre_ccsn.data')
 
 # obtain the ejecta & CSM parameters
 
