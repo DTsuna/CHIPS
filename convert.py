@@ -217,14 +217,5 @@ with open(path, mode = 'w') as f:
                 for j in range(0,elemNum):
                         f.write(' ' + str(x[j][i]))
                 f.write('\n')
-
-
-
-
-
-
-
-
-
-
+                
 
