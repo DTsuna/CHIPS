@@ -57,8 +57,11 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 
 # decide energy injection timescale and luminosity
 
-# do eruptive mass-loss rad-hydro calculation
+# comiple eruptive mass-loss rad-hydro calculation
+#subprocess.call("make")
 
+# do eruptive mass-loss rad-hydro calculation
+#subprocess.call("./snhyd")
 
 #################################################################
 #								#
@@ -67,13 +70,11 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #################################################################
 
 # obtain the time from end of rad-hydro calculation to core-collapse
-
 # read in CSM data
-
 # orbit calculation w/ gravity of central star
-
 # record CSM data at core-collapse
-
+#subprocess.call(gcc -lm -o newton newton.c -std=c99)
+#subprocess.call(./newton)
 
 
 #################################################################
