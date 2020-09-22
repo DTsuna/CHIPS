@@ -57,11 +57,18 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 
 # decide energy injection timescale and luminosity
 
-# comiple eruptive mass-loss rad-hydro calculation
+# compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
+#subprocess.call(["make", "clean"])
+#compileEOS = "ifort -O3 -qopenmp -qopt-report-phase=all -parallel -zero -save -mcmodel=medium -ipo -xHost -qopt-report:5 -qopt-report-phase=par  -c -o snhyd/eos_helm.o snhyd/eos_helm.f90"
+#subprocess.call(compileEOS.split())
+#compileEOS = "ifort -O3 -qopenmp -qopt-report-phase=all -parallel -zero -save -mcmodel=medium -ipo -xHost -qopt-report:5 -qopt-report-phase=par  -c -o snhyd/eos_helm_e.o snhyd/eos_helm_e.f90"
+#subprocess.call(compileEOS.split())
+#compileEOS = "ifort -O3 -qopenmp -qopt-report-phase=all -parallel -zero -save -mcmodel=medium -ipo -xHost -qopt-report:5 -qopt-report-phase=par  -c -o snhyd/eos_helm_p.o snhyd/eos_helm_p.f90"
+#subprocess.call(compileEOS.split())
 #subprocess.call("make")
 
-# do eruptive mass-loss rad-hydro calculation
-#subprocess.call("./snhyd")
+# run eruptive mass-loss rad-hydro calculation
+#subprocess.call("./runsnhyd")
 
 #################################################################
 #								#
@@ -73,8 +80,9 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 # read in CSM data
 # orbit calculation w/ gravity of central star
 # record CSM data at core-collapse
-#subprocess.call(gcc -lm -o newton newton.c -std=c99)
-#subprocess.call(./newton)
+#compileNEWTON = "gcc -lm -o newton newton.c -std=c99"
+#subprocess.call(compileNEWTON.split())
+#subprocess.call("./newton")
 
 
 #################################################################
