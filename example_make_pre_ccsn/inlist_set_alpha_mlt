@@ -4,9 +4,15 @@
       !gradT_excess_lambda1 = -1 ! force MLT++
 
       use_other_alpha_mlt = .true.
-      x_ctrl(21) = 3.0 ! alpha_H
-      x_ctrl(22) = 1.5 ! alpha_other
-      x_ctrl(23) = 0.5 ! H_limit 
+
+      mixing_length_alpha = 1.8
+      !x_ctrl(21) = 3.0 ! alpha_H
+      !x_ctrl(22) = 1.5 ! alpha_other
+      !x_ctrl(23) = 0.5 ! H_limit 
+      !x_ctrl(21) = 2.0 ! alpha_H
+      !x_ctrl(22) = 2.0 ! alpha_other
+      !x_ctrl(23) = 2.0 ! H_limit 
+
          ! use alpha_H if cell X >= H_limit; else use alpha_other
 
 
