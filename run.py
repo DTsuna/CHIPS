@@ -46,6 +46,8 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 # run mesa script
 #subprocess.call("./rn")
 
+# find data file at core collapse
+file_cc = 'pre_ccsn.data' 
 
 #################################################################
 #								#
@@ -76,7 +78,8 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #								#
 #################################################################
 
-# obtain the time from end of rad-hydro calculation to core-collapse
+# obtain the time from end of rad-hydro calculation to core-collapse (in years)
+time_CSM = ejecta_utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
 # read in CSM data
 # orbit calculation w/ gravity of central star
 # record CSM data at core-collapse
@@ -92,9 +95,7 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #################################################################
 
 # extract the ejecta parameters
-Mej, n, delta = ejecta_utils.calculate_ej_from_mesa('pre_ccsn.data')
-
-# obtain the ejecta & CSM parameters
+Mej, n, delta = ejecta_utils.calculate_ej_from_mesa(file_cc)
 
 # do light curve calculation
 

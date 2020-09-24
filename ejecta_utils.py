@@ -48,3 +48,11 @@ def calculate_ej_from_mesa(data_file):
 	# set delta to 1 for now
 	delta = 1.0
 	return Mej, n, delta
+
+
+# obtain time from mass eruption till core-collapse
+def get_end_of_sim_to_core_collapse(data_file_at_mass_eruption, data_file_at_core_collapse):
+	data_me = mr.MesaData(data_file_at_mass_eruption)
+	data_cc = mr.MesaData(data_file_at_core_collapse)
+	# in years
+	return data_cc.star_age - data_me.star_age
