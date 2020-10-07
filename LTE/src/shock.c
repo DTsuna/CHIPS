@@ -11,7 +11,7 @@ extern pars pdt;
 extern double t_exp;
 extern char csm[256];
 
-double *calc_init_dist(double, double, double, double, double, const char*);
+double *calc_init_dist(double, double, double, double, double, double, const char*);
 double *calc_dist(double[], double, double, double, double, double, const char*);
 void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
@@ -51,7 +51,7 @@ int main(void)
 
 	pdt = setpars(10., 1., 1.e+51, 10.*M_SUN, 1.e+07, 86400., 1.e+12);	
 
-	array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t, file_csm);
+	array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t, 1.e+14, file_csm);
 //	printf("t = %f d, %e %e %e %e %e, L = %e erg/s\n", 
 //		array[0]/86400., array[1], array[2], array[3], array[4], array[5], 4.0*M_PI*array[4]*array[4]*array[5]);
 		printf("t = %f d, %e %e %e %e %e, L = %e erg/s, di = %e\n", 
@@ -71,13 +71,12 @@ int main(void)
 	return 0;
 }
 
-double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, const char *file_csm)
+double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, double r_ini, const char *file_csm)
 {
 	const int nsize = 4;
 	int i, j;
 	double dtau = 0.50;
 	double err, tol = 1.00e-09;
-	double r_ini = 1.10e+14;
 	double egn[4], degn[4], egnfd[4], p[4] = {};
 	double phys[8], physfd[4];
 	double J[16];

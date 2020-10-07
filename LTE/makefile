@@ -3,7 +3,7 @@ CC	:=	icc
 CFLAGS	:=	-Wall -ip -ipo -parallel -qopenmp -O3# -fbounds-check -fstack-check
 
 INC	:=	-I./include
-NOMAKE	:=	outp-data% inp-data% nomakedir% lnomp1% 200902% transfer%
+NOMAKE	:=	outp-data% inp-data% nomakedir% transfer%
 
 #You should not change the following
 OBJDIR	:=	obj

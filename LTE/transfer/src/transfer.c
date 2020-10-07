@@ -8,13 +8,14 @@
 #include "srctrm.h"
 #include "rhocsm.h"
 
-#define N 3000
+#define N 1000
 
 extern char csm[256];
 
+void rad_transfer_csm(double, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], const int);
 
-int main(void)
+void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp)
 {
 	FILE *fp, *fw, *fl;
 	double E[2*N], U[2*N], r[N+1], E_old[N], rho[N];
@@ -28,14 +29,18 @@ int main(void)
 	double dammy[7];
 	double dr;
 	double time1, cpu_time;
+	char *filename;
 
 
 	time1 = omp_get_wtime();
-	sprintf(csm, "./inp-data/%s.txt", "CSM_1.5");
 
-	fp = fopen("./inp-data/CSM_1.5_profile.txt", "r");
-	fw = fopen("distribution_1.5.txt", "w");
-	fl = fopen("luminosity_1.5.txt", "w");
+	sprintf(csm, "%s", file_csm);
+	sprintf(filename, "./inp-data/%s", file_inp);
+	fp = fopen(filename, "r");
+
+
+	sprintf(filename, "./outp-data/%s", file_inp);
+	fl = fopen(filename, "w");
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]) != EOF){
 		tf[i] = dammy[0]*86400.000;
 		rf[i] = dammy[4];
@@ -49,7 +54,7 @@ int main(void)
 	F_ini = Ff[0];
 
 
-	init_E_U(r_ini, 9.e+15, r, rho, E, U, N);
+	init_E_U(r_ini, r_out, r, rho, E, U, N);
 	dr = r[1]-r[0];
 
 /*
@@ -62,7 +67,11 @@ X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 	cpu_time /= 60.;
 	while(cpu_time < 300. && count < 10000 && t < tf[fsize-1]){
 		dt = t*0.001;
-		for(i = 0; i < fsize; i++){
+
+/*
+Identify the position of forward shock, and estimate by linear interpolation.
+*/
+		for(i = j; i < fsize; i++){
 			if(t >= tf[i] && t < tf[i+1]){
 				j = i;
 			}
@@ -81,7 +90,7 @@ X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 			}
 			r[n] = r[n+1];
 		}
-		printf("count = %d, %d %f %e %e %f\n", count, n, t/86400., r_ini, F_ini, cpu_time);
+//		printf("count = %d, %d %f %e %e %f\n", count, n, t/86400., r_ini, F_ini, cpu_time);
 	
 /*
 In the following, integrate radiative transfer equation and energy eqation using operator splitting.
@@ -112,6 +121,12 @@ Integrate energy equation impilicitly.
 Integrate 0th moment equation implicitly.
 Here, iteration is needed to complete the calculation.
 */
+
+
+
+/*
+E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimated.
+*/
 		for(i = 0; i < n; i++){
 			E_old[i] = E[2*i];
 		}
@@ -127,31 +142,30 @@ Here, iteration is needed to complete the calculation.
 			err = sqrt(err/(double)n);
 //		printf("err = %e\n", err);
 		}while(err > tol);
-	
+
+
+/*
 		for(i = 0; i < n; i++){
 			saha(rho[i], U[2*i+1], mu+i, T_g+i);
 			T_r[i] = pow(E[2*i+1]/(P_A), 0.25);
 		}
+*/
 	
 		t += dt;
-		count++;
+//		count++;
 		cpu_time = omp_get_wtime()-time1;
 		cpu_time /= 60.;
+
+
 		for(i = 0; i < n; i++){
-			if(count%100 == 0){
-				fprintf(fw, "%e %e %e %e %e\n", r[i], E[2*i+1], U[2*i+1], T_r[i], T_g[i]);
-			}
 			E[2*i] = E[2*i+1];
 			U[2*i] = U[2*i+1];
-		}
-		if(count%100 == 0){
-			fprintf(fw, "\n\n");
 		}
 	
 		fprintf(fl, "%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
-	
-		return 0;
+
+	printf("elapsed time = %f sec.\n", cpu_time/60.);
 }
 
 void init_E_U(double r_ini, double r_out, double r[], double rho[], double E[], double U[], const int nsize)

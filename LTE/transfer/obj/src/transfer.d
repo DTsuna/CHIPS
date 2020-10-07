@@ -1,7 +1,5 @@
-obj/src/opacity.o: src/opacity.c ./include/opacity.h ./include/dcht.h \
- ./include/constant.h
-
-./include/opacity.h:
+obj/src/transfer.o: src/transfer.c ./include/constant.h ./include/itgadvu.h \
+ ./include/itgadve.h ./include/srctrm.h ./include/rhocsm.h
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/stdio.h:
 
@@ -68,6 +66,24 @@ obj/src/opacity.o: src/opacity.c ./include/opacity.h ./include/dcht.h \
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/secure/_stdio.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/secure/_common.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/time.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/sys/_types/_clock_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/sys/_types/_time_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/sys/_types/_timespec.h:
+
+/opt/intel//compilers_and_libraries_2020.1.216/mac/compiler/include/math.h:
+
+/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/math.h:
+
+/opt/intel//compilers_and_libraries_2020.1.216/mac/compiler/include/math_common_define.h:
+
+/opt/intel//compilers_and_libraries_2020.1.216/mac/compiler/include/math_common_undefine.h:
+
+/opt/intel//compilers_and_libraries_2020.1.216/mac/compiler/include/omp.h:
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/stdlib.h:
 
@@ -147,26 +163,12 @@ obj/src/opacity.o: src/opacity.c ./include/opacity.h ./include/dcht.h \
 
 /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/sys/_types/_mode_t.h:
 
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/string.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/sys/_types/_rsize_t.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/sys/_types/_errno_t.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/strings.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/secure/_strings.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/secure/_string.h:
-
-/opt/intel//compilers_and_libraries_2020.1.216/mac/compiler/include/math.h:
-
-/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.15.sdk/usr/include/math.h:
-
-/opt/intel//compilers_and_libraries_2020.1.216/mac/compiler/include/math_common_define.h:
-
-/opt/intel//compilers_and_libraries_2020.1.216/mac/compiler/include/math_common_undefine.h:
-
-./include/dcht.h:
-
 ./include/constant.h:
+
+./include/itgadvu.h:
+
+./include/itgadve.h:
+
+./include/srctrm.h:
+
+./include/rhocsm.h:
