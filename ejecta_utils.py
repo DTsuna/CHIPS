@@ -56,3 +56,16 @@ def get_end_of_sim_to_core_collapse(data_file_at_mass_eruption, data_file_at_cor
 	data_cc = mr.MesaData(data_file_at_core_collapse)
 	# in years
 	return data_cc.star_age - data_me.star_age
+
+
+# extract peak luminosity and rise time, defined as the time from (frac*L_peak) to L_peak
+def extract_peak_and_rise_time(LC_file, frac):
+	if frac < 0.01:
+		return ValueError("Frac too small to give meaningful rise and decay times.")
+	time = np.loadtxt(LC_file)[:,0]
+	lum = np.loadtxt(LC_file)[:,1]
+	peaktime = time[np.argmax(lum)]
+	peakL = max(lum)
+	risetime = peaktime - time[np.argmin([abs(L-peak*frac) for i,L in enumerate(lum) if time[i]<peaktime])]
+	decaytime = time[np.argmin([abs(L-peak*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
+	return peakL, risetime, decaytime 

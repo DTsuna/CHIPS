@@ -101,4 +101,6 @@ Mej, n, delta = ejecta_utils.calculate_ej_from_mesa(file_cc)
 
 # record light curve
 
-# obtain peak luminosity and timescales
+# obtain peak luminosity and rise/decay time in days
+# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
+peakL, riset, decayt = ejecta_utils.extract_peak_and_rise_time(LC_output, frac=0.01)
