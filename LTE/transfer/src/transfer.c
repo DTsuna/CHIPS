@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <omp.h>
@@ -12,10 +14,22 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, const char*, const char*);
+void rad_transfer_csm(double, char*, char*);
 void init_E_U(double, double, double[], double[], double[], double[], const int);
 
-void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp)
+int main(void)
+{
+	double r_out = 9.9e+15;
+	char *file_csm = "./inp-data/CSM_1.5.txt";
+	char *file_inp = "./inp-data/CSM_1.5_profile.txt";
+
+
+	rad_transfer_csm(r_out, file_csm, file_inp);
+
+	return 0;
+}
+
+void rad_transfer_csm(double r_out, char *file_csm, char *file_inp)
 {
 	FILE *fp, *fw, *fl;
 	double E[2*N], U[2*N], r[N+1], E_old[N], rho[N];
@@ -29,17 +43,17 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp)
 	double dammy[7];
 	double dr;
 	double time1, cpu_time;
-	char *filename;
+	char filename[256];
 
 
 	time1 = omp_get_wtime();
 
 	sprintf(csm, "%s", file_csm);
-	sprintf(filename, "./inp-data/%s", file_inp);
+	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
 
 
-	sprintf(filename, "./outp-data/%s", file_inp);
+	sprintf(filename, "./outp-data/%s", "aaa.txt");
 	fl = fopen(filename, "w");
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]) != EOF){
 		tf[i] = dammy[0]*86400.000;
@@ -163,6 +177,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		}
 	
 		fprintf(fl, "%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
+		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 
 	printf("elapsed time = %f sec.\n", cpu_time/60.);
