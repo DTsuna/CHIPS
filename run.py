@@ -4,6 +4,8 @@ from optparse import OptionParser
 import subprocess
 
 import ejecta_utils
+import convert
+
 
 def parse_command_line():
 	parser = OptionParser(
@@ -48,6 +50,12 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 
 # find data file at core collapse
 file_cc = 'pre_ccsn.data' 
+
+# convert data for hydro in KS20
+
+file_hydro = 'InitForHydro.txt'
+hydroNumMesh = 10000
+convert.convertForHydro(file_cc, file_hydro, hydroNumMesh)
 
 #################################################################
 #								#
