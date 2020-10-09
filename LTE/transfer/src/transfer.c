@@ -40,7 +40,7 @@ void rad_transfer_csm(double r_out, char *file_csm, char *file_inp)
 	double rho_ed[2], v_w = 1.e+07;
 	double tf[2000], rf[2000], Ff[2000];
 	int i = 0, j = 0, n = N, fsize, count = 0;
-	double dammy[7];
+	double dummy[7];
 	double dr;
 	double time1, cpu_time;
 	char filename[256];
@@ -55,10 +55,10 @@ void rad_transfer_csm(double r_out, char *file_csm, char *file_inp)
 
 	sprintf(filename, "./outp-data/%s", "aaa.txt");
 	fl = fopen(filename, "w");
-	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]) != EOF){
-		tf[i] = dammy[0]*86400.000;
-		rf[i] = dammy[4];
-		Ff[i] = dammy[5];
+	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6]) != EOF){
+		tf[i] = dummy[0]*86400.000;
+		rf[i] = dummy[4];
+		Ff[i] = dummy[5];
 		i++;
 	}
 	fsize = i;
