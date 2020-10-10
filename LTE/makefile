@@ -4,12 +4,13 @@ CFLAGS	:=	-Wall -ip -ipo -parallel -qopenmp -O3# -fbounds-check -fstack-check
 
 INC	:=	-I./include
 NOMAKE	:=	outp-data% inp-data% nomakedir% transfer%
+NOFILE	:=	lcwrapper.c
 
 #You should not change the following
 OBJDIR	:=	obj
 
 CPPS	:=	$(shell find * -name '*.c')
-SRCS	:=	$(filter-out $(NOMAKE), $(CPPS))
+SRCS	:=	$(filter-out $(NOMAKE) $(NOFILE), $(CPPS))
 DIRS	:=	$(dir $(SRCS))
 BINDIRS	:=	$(addprefix $(OBJDIR)/, $(DIRS))
 

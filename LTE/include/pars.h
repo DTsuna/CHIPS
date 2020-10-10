@@ -7,11 +7,10 @@ typedef struct{
 	double E_ej;
 	double M_ej;
 	double v_w;
-	double t_ini;
 	double R_p;
 	double v_t;
 }pars;
 
-pars setpars(double, double, double, double, double, double, double);
+pars setpars(double, double, double, double, double, double);
 
 #endif

@@ -15,6 +15,17 @@ double *calc_init_dist(double, double, double, double, double, double, const cha
 double *calc_dist(double[], double, double, double, double, double, const char*);
 void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
+void shock_csm(double, double, double, double, double, const char*, const char*);
+
+int main(void)
+{
+	const char file_csm[] = "./inp-data/CSM_1.5.txt";
+	const char file_outp[] = "aaa.txt";
+
+	shock_csm(1.e+51, 10.*M_SUN, 10., 1., 1.e+14, file_csm, file_outp);
+
+	return 0;
+}
 
 void init_egn(double r_ini, double egn[])
 {
@@ -33,25 +44,22 @@ void forward_egn(double array[], double *r_ini, double egn[], double dt)
 	egn[3] = array[4]+egn[1]*dt;
 }
 
-int main(void)
+void shock_csm(double E_ej, double M_ej, double n, double delta, double r_ini, const char *file_csm, const char *file_outp)
 {
-	double int_phys[4], egn[4];
-	char file_csm[] = "./inp-data/CSM_1.5.txt";
 	double *array;
-	double t = 86400., dt = 8640.;
+	double dt = 8640.;
+	double t_ini;
 	int i;
 	FILE *fp;
-	fp = fopen("./outp-data/CSM_1.5.txt", "w");
 
-	t_exp = 86400.;
-	egn[0] = 1.e+9;
-	egn[1] = 1.1e+9;
-	egn[2] = 1.e+14;
-	egn[3] = 1.1e+14;
+	strcpy(csm, file_csm);
+	fp = fopen(file_outp, "w");
 
-	pdt = setpars(10., 1., 1.e+51, 10.*M_SUN, 1.e+07, 86400., 1.e+12);	
+	pdt = setpars(n, delta, E_ej, M_ej, 1.e+07, 1.e+12);	
+	t_ini = t_early(r_ini);
+	printf("t_ini = %e s\n", t_ini);
 
-	array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t, 1.e+14, file_csm);
+	array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm);
 //	printf("t = %f d, %e %e %e %e %e, L = %e erg/s\n", 
 //		array[0]/86400., array[1], array[2], array[3], array[4], array[5], 4.0*M_PI*array[4]*array[4]*array[5]);
 		printf("t = %f d, %e %e %e %e %e, L = %e erg/s, di = %e\n", 
@@ -59,16 +67,16 @@ int main(void)
 			4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[3])*pow(array[1], 3.));
 		fprintf(fp, "%f %e %e %e %e %e %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], rho_csm(array[3]));
-	for(i = 0; i < 1000; i++){
+	do{
+		dt = 0.005*t_exp;
 		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm);
 		printf("t = %f d, %e %e %e %e %e, L = %e erg/s, di = %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
 			4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[3])*pow(array[1], 3.));
 		fprintf(fp, "%f %e %e %e %e %e %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], rho_csm(array[3]));
-	}
+	}while(t_exp < 100.*86400.);
 	fclose(fp);
-	return 0;
 }
 
 double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, double r_ini, const char *file_csm)
@@ -83,8 +91,8 @@ double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double 
 	static double outp_egn[6];
 
 	t_exp = t_ini;
-	strcpy(csm, file_csm);
-	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, t_exp, 0.00);
+//	strcpy(csm, file_csm);
+	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, 0.00);
 	init_egn(r_ini, egn);
 
 	for(i = 0; i < 4; i++){
@@ -144,7 +152,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 
 	t_exp = array[0]+dt;
 	strcpy(csm, file_csm);
-	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, t_exp, 0.00);
+	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, 0.00);
 
 	forward_egn(array, &r_ini, egn, dt);
 

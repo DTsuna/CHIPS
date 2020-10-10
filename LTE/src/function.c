@@ -8,11 +8,12 @@
 char csm[256];
 extern pars pdt;
 
-double r_early(double t, double r_t[], double rho_t[])
+double r_early(double t)
 {
-	double A, B;
+	double A, B, C;
 	double n, s, delta, M_ej, E_ej, D;
-	double r = 5.0e+14;
+	double r_out = 1.5e+14, r_in = 9.0e+13;
+	double rho_out = rho_csm(r_out), rho_in = rho_csm(r_in);
 	int i, rho;
 
 	n = pdt.n;
@@ -20,17 +21,41 @@ double r_early(double t, double r_t[], double rho_t[])
 	M_ej = pdt.M_ej;
 	E_ej = pdt.E_ej;
 
-	s = (log(rho_t[1])-log(rho_t[0]))/(log(r_t[1])-log(r_t[0]));
-	D = rho_t[0]*pow(r_t[0], s);
+	s = -(log(rho_out)-log(rho_in))/(log(r_out)-log(r_in));
+	D = rho_out*pow(r_out, s);
+//	printf("%f %e\n", s, D);
 
 	A = pow(2.*(5.-delta)*(n-5.)*E_ej, (n-3.)/2.);
 	B = pow((3.-delta)*(n-3.)*M_ej, (n-5.)/2.);
-	return pow((3.-s)*(4.-s)/(4.*M_PI*D*(n-4.)*(n-3.)*(n-delta))*(A/B), 1./(n-s))*pow(t, (n-3.)/(n-s));
+	C = pow((3.-s)*(4.-s)/(4.*M_PI*D*(n-4.)*(n-3.)*(n-delta))*(A/B), 1./(n-s));
+	return C*pow(t, (n-3.)/(n-s));
+}
+
+double t_early(double r)
+{
+	double A, B, C;
+	double n, s, delta, M_ej, E_ej, D;
+	double r_out = 1.5e+14, r_in = 9.0e+13;
+	double rho_out = rho_csm(r_out), rho_in = rho_csm(r_in);
+	int i, rho;
+
+	n = pdt.n;
+	delta = pdt.delta;
+	M_ej = pdt.M_ej;
+	E_ej = pdt.E_ej;
+
+	s = -(log(rho_out)-log(rho_in))/(log(r_out)-log(r_in));
+	D = rho_out*pow(r_out, s);
+
+	A = pow(2.*(5.-delta)*(n-5.)*E_ej, (n-3.)/2.);
+	B = pow((3.-delta)*(n-3.)*M_ej, (n-5.)/2.);
+	C = pow((3.-s)*(4.-s)/(4.*M_PI*D*(n-4.)*(n-3.)*(n-delta))*(A/B), 1./(n-s));
+	return pow(r/C, (n-s)/(n-3.));
 }
 
 double rho_csm(double r)
 {
-	static double r_c[1000], rho_c[1000];
+	static double r_c[1000], rho_c[1000], s;
 	static int flag = 0, nsize;
 
 	int i = 0;
@@ -49,14 +74,20 @@ double rho_csm(double r)
 		nsize = i;
 		flag = 1;
 		fclose(fp);
+		s = (-(log10(rho_c[1])-log10(rho_c[0]))/(log10(r_c[1])-log10(r_c[0]))-(log10(rho_c[2])-log10(rho_c[1]))/(log10(r_c[2])-log10(r_c[1])))*0.5;
 	}
-	for(i = 0; i < nsize-1; i++){
-		if(r < r_c[i+1] && r >= r_c[i]){
-			break;
+	if(r <= r_c[0]){
+		rho = rho_c[0]*pow(r/r_c[0], -s);
+	}
+	else{
+		for(i = 0; i < nsize-1; i++){
+			if(r < r_c[i+1] && r >= r_c[i]){
+				break;
+			}
 		}
+		rho = (log(rho_c[i+1])-log(rho_c[i]))/(log(r_c[i+1])-log(r_c[i]))*(log(r)-log(r_c[i]))+log(rho_c[i]);
+		rho = exp(rho);
 	}
-	rho = (log(rho_c[i+1])-log(rho_c[i]))/(log(r_c[i+1])-log(r_c[i]))*(log(r)-log(r_c[i]))+log(rho_c[i]);
-	rho = exp(rho);
 
 	return rho;
 }
@@ -118,7 +149,7 @@ double func_M_csm(double r, double t)
 			fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]);
 		}
 		s = (-(log10(rho_c[1])-log10(rho_c[0]))/(log10(r_c[1])-log10(r_c[0]))-(log10(rho_c[2])-log10(rho_c[1]))/(log10(r_c[2])-log10(r_c[1])))*0.5;
-		printf("s = %f\n", s);
+//		printf("s = %f\n", s);
 		fclose(fp);
 		flag = 1;
 	}
