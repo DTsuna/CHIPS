@@ -10,36 +10,36 @@
 #include "srctrm.h"
 #include "rhocsm.h"
 
-#define N 1000
+#define NSIZE 1000
 
 extern char csm[256];
 
 void rad_transfer_csm(double, char*, char*);
 void init_E_U(double, double, double[], double[], double[], double[], const int);
 
-int main(void)
-{
-	double r_out = 9.9e+15;
-	char *file_csm = "./inp-data/CSM_1.5.txt";
-	char *file_inp = "./inp-data/CSM_1.5_profile.txt";
-
-
-	rad_transfer_csm(r_out, file_csm, file_inp);
-
-	return 0;
-}
+//int main(void)
+//{
+//	double r_out = 9.9e+15;
+//	char *file_csm = "./inp-data/CSM_1.5.txt";
+//	char *file_inp = "./inp-data/CSM_1.5_profile.txt";
+//
+//
+//	rad_transfer_csm(r_out, file_csm, file_inp);
+//
+//	return 0;
+//}
 
 void rad_transfer_csm(double r_out, char *file_csm, char *file_inp)
 {
 	FILE *fp, *fw, *fl;
-	double E[2*N], U[2*N], r[N+1], E_old[N], rho[N];
-	double T_g[N], T_r[N], mu[N];
+	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE];
+	double T_g[NSIZE], T_r[NSIZE], mu[NSIZE];
 	double r_ini, F_ini;
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2], v_w = 1.e+07;
 	double tf[2000], rf[2000], Ff[2000];
-	int i = 0, j = 0, n = N, fsize, count = 0;
+	int i = 0, j = 0, n = NSIZE, fsize, count = 0;
 	double dummy[7];
 	double dr;
 	double time1, cpu_time;
@@ -68,7 +68,7 @@ void rad_transfer_csm(double r_out, char *file_csm, char *file_inp)
 	F_ini = Ff[0];
 
 
-	init_E_U(r_ini, r_out, r, rho, E, U, N);
+	init_E_U(r_ini, r_out, r, rho, E, U, NSIZE);
 	dr = r[1]-r[0];
 
 /*
