@@ -49,36 +49,58 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 #subprocess.call("./rn")
 
 # find data file at core collapse
-file_cc = 'pre_ccsn.data' 
+file_cc = 'pre_ccsn.data'
+#file_cc = 'profile54.data'
+
+# obtain the time from end of rad-hydro calculation to core-collapse (in years)
+time_CSM = ejecta_utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
+
+#################################################################
+#                                                               #
+#               Eruptive mass loss model of KS20                #
+#                                                               #
+#################################################################
+
+
 
 # convert data for hydro in KS20
-
 file_hydro = 'InitForHydro.txt'
 hydroNumMesh = 10000
+
+subprocess.call(["rm", "snhyd/inclmn.f"])
+subprocess.call(["rm", "snhyd/eruptPara.d"])
+subprocess.call(["rm", "InitForHydro.txt"])
+
 convert.convertForHydro(file_cc, file_hydro, hydroNumMesh)
 
-#################################################################
-#								#
-#		Eruptive mass loss model of KS20		#
-#								#
-#################################################################
 
-# find when to calculate the eruptive mass-loss
 
 # decide energy injection timescale and luminosity
+# find when to calculate the eruptive mass-loss
+injectedEnergy = 1.5e47
+injectDuration = 1e3
+
+convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration)
+
+
 
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
-#subprocess.call(["make", "clean"])
-#compileEOS = "ifort -O3 -qopenmp -qopt-report-phase=all -parallel -zero -save -mcmodel=medium -ipo -xHost -qopt-report:5 -qopt-report-phase=par  -c -o snhyd/eos_helm.o snhyd/eos_helm.f90"
-#subprocess.call(compileEOS.split())
-#compileEOS = "ifort -O3 -qopenmp -qopt-report-phase=all -parallel -zero -save -mcmodel=medium -ipo -xHost -qopt-report:5 -qopt-report-phase=par  -c -o snhyd/eos_helm_e.o snhyd/eos_helm_e.f90"
-#subprocess.call(compileEOS.split())
-#compileEOS = "ifort -O3 -qopenmp -qopt-report-phase=all -parallel -zero -save -mcmodel=medium -ipo -xHost -qopt-report:5 -qopt-report-phase=par  -c -o snhyd/eos_helm_p.o snhyd/eos_helm_p.f90"
-#subprocess.call(compileEOS.split())
-#subprocess.call("make")
+subprocess.call(["mkdir", "snhydOutput"])
+subprocess.call(["make", "clean"])
+compileEOS = "gfortran -fno-automatic  -c -o snhyd/eos_helm.o snhyd/eos_helm.f90"
+subprocess.call(compileEOS.split())
+compileEOS = "gfortran -fno-automatic  -c -o snhyd/eos_helm_e.o snhyd/eos_helm_e.f90"
+subprocess.call(compileEOS.split())
+compileEOS = "gfortran -fno-automatic  -c -o snhyd/eos_helm_p.o snhyd/eos_helm_p.f90"
+subprocess.call(compileEOS.split())
+subprocess.call("make")
+
+
 
 # run eruptive mass-loss rad-hydro calculation
-#subprocess.call("./runsnhyd")
+subprocess.call("./runsnhyd")
+
+
 
 #################################################################
 #								#
@@ -86,15 +108,7 @@ convert.convertForHydro(file_cc, file_hydro, hydroNumMesh)
 #								#
 #################################################################
 
-# obtain the time from end of rad-hydro calculation to core-collapse (in years)
-time_CSM = ejecta_utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
-# read in CSM data
-# orbit calculation w/ gravity of central star
-# record CSM data at core-collapse
-#compileNEWTON = "gcc -lm -o newton newton.c -std=c99"
-#subprocess.call(compileNEWTON.split())
-#subprocess.call("./newton")
-
+# CSM distribution will be calculated by hydro until core-collapse
 
 #################################################################
 #								#

@@ -34,7 +34,7 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh):
         #################################################################
         #################################################################
         #################################################################
-
+        print('Remeshing process is proceeding ...')
 
         # read data from mesa
         originalMr = np.zeros(originalSize)
@@ -224,10 +224,13 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh):
                         f.write('\n')
 
 
-
-
-
-
+def setSnhydParam(hydroNumMesh,timeToCC,injectedEnergy,injectDuration):
+        with open('snhyd/inclmn.f', mode = 'w') as f:
+                f.write('      integer mn, nelem\n')
+                f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19 )\n')
+        with open('snhyd/eruptPara.d', mode = 'w') as f2:
+                f2.write('TimeToCC InjectedEnergy InjectDuration\n')
+                f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectedEnergy) + ' ' +  str(injectDuration) + '\n')
 
 
 
