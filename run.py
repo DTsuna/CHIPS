@@ -118,6 +118,7 @@ subprocess.call("./runsnhyd")
 
 # extract the ejecta parameters
 Mej, n, delta = ejecta_utils.calculate_ej_from_mesa(file_cc)
+explosionEnergy = 1e51
 
 # do light curve calculation
 
