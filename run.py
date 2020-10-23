@@ -3,8 +3,9 @@ import fileinput
 from optparse import OptionParser
 import subprocess
 
-import ejecta_utils
 import convert
+import ejecta_utils
+import lightcurve
 
 
 def parse_command_line():
@@ -101,15 +102,6 @@ subprocess.call("make")
 subprocess.call("./runsnhyd")
 
 
-
-#################################################################
-#								#
-#		Calculate CSM at core-collapse			#
-#								#
-#################################################################
-
-# CSM distribution will be calculated by hydro until core-collapse
-
 #################################################################
 #								#
 #		IIn light curve model of TS20			#
@@ -118,11 +110,20 @@ subprocess.call("./runsnhyd")
 
 # extract the ejecta parameters
 Mej, n, delta = ejecta_utils.calculate_ej_from_mesa(file_cc)
-explosionEnergy = 1e51
+Eexp = 1e51
 
-# do light curve calculation
+# luminosity at shock
+# FIXME obtain r_ini from the CSM file
+r_ini = 1e14
+CSM_file = 'inp-data/CSM_1.5.txt'
+shock_file = 'inp-data/shock_output.txt'
+lightcurve.shock(Eexp, Mej*1.99e33, n, delta, r_ini, CSM_file, shock_file)
 
-# record light curve
+# radiation transfer
+# FIXME obtain r_out from the CSM file
+# FIXME output file should be an argument 
+r_out = 9.9e15
+lightcurve.transfer(r_out, CSM_file, shock_file)
 
 # obtain peak luminosity and rise/decay time in days
 # the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
