@@ -1,5 +1,4 @@
 #include <math.h>
-#include <omp.h>
 #include "constant.h"
 #include "opacity.h"
 #include "itgadve.h"
