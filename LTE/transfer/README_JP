@@ -1,6 +1,0 @@
-forward shockからでたradiative fluxがCSMを通るのを計算するコード。
-流れとしてはsource termをimplicitに積分し、energy equationは移流項をこれまたimpilicitに積分する（オペレータスプリッティングを行う）。
-次に0次のモーメント方程式をこれまたimplicitに積分する。
-ここでは何回かiterationを行っているので少し時間がかかるが、explicitに解くより格段と速い。
-
-
