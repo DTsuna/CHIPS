@@ -2,6 +2,12 @@
 #include <math.h>
 #include <stdio.h>
 
+/******************************************************************
+For more details, please refer to:
+http://www-it.sci.waseda.ac.jp/teachers/w405201/CPR2/cprogram18.pdf
+These subroutines are extracted from the above URL.
+******************************************************************/
+
 
 void copy_mat(double *src, double *dest, int m, int n)
 {
