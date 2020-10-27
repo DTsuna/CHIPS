@@ -119,10 +119,8 @@ CSM_file = 'inp-data/CSM.txt'
 ejecta_utils.remesh_CSM(r_out, 'snhydOutput/result.txt', CSM_file, file_me)
 
 shock_file = 'inp-data/shock_output.txt'
-# FIXME obtain r_ini from the CSM file
-r_ini = 1e14
 # luminosity at shock
-lightcurve.shock(Eexp, Mej*1.99e33, n, delta, r_ini, CSM_file, shock_file)
+lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file)
 
 # radiation transfer
 lightcurve.transfer(r_out, CSM_file, shock_file)

@@ -10,7 +10,7 @@ static PyObject* lightcurve_shock(PyObject* self, PyObject* args, PyObject* kw)
 	const char* file_csm = NULL;
 	const char* file_output = NULL;
 	static char* argnames[] = {"E_ej", "M_ej", "n", "delta", "file_csm", "file_output", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "ddddd|ss", argnames, &E_ej, &M_ej, &n, &delta, &file_csm, &file_output))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "dddd|ss", argnames, &E_ej, &M_ej, &n, &delta, &file_csm, &file_output))
 		return NULL;
 	shock_csm(E_ej, M_ej, n, delta, file_csm, file_output);
 	return Py_BuildValue("");
