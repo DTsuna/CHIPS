@@ -22,6 +22,6 @@ evolution of a 15Msun star with metallicity 0.02 (~ solar), given an inlist file
 	`python run.py --zams-m 15 --zams-z 0.02 --inlist-file example_make_pre_ccsn/inlist_common`
 
 
-References:
+## References:
 1. Kuriyama, Shigeyama (2020), A&A, 635, 127
 2. Takei, Shigeyama (2020), PASJ 72, 67
