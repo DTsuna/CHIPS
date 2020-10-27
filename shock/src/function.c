@@ -92,6 +92,18 @@ double rho_csm(double r)
 	return rho;
 }
 
+double set_r_ini(const char *file_csm)
+{
+	FILE *fp;
+	char filename[256];
+	double dammy[7];
+	fp = fopen(file_csm, "r");
+	fgets(filename, 512, fp);
+	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]);
+
+	return dammy[2];
+}
+
 double rho_ej(double r, double t)
 {
 	double A, B;

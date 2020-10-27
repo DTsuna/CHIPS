@@ -29,11 +29,9 @@ endif
 default:
 	@[ -d  $(OBJDIR)   ] || mkdir -p $(OBJDIR)
 	@[ -d "$(BINDIRS)" ] || mkdir -p $(BINDIRS)
-	@make object --no-print-directory
+	@make $(OBJS) --no-print-directory
 
 all:	$(OBJS) $(PROG)
-
-object:	$(OBJS)
 
 $(PROG):	$(OBJS) $(LIBS)
 	$(CC) $(CFLAGS) $(INC) -o $@ $^ -lm

@@ -17,7 +17,7 @@ double *calc_init_dist(double, double, double, double, double, double, const cha
 double *calc_dist(double[], double, double, double, double, double, const char*);
 void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
-void shock_csm(double, double, double, double, double, const char*, const char*);
+void shock_csm(double, double, double, double, const char*, const char*);
 
 //int main(void)
 //{
@@ -47,11 +47,12 @@ void forward_egn(double array[], double *r_ini, double egn[], double dt)
 	egn[3] = array[4]+egn[1]*dt;
 }
 
-void shock_csm(double E_ej, double M_ej, double n, double delta, double r_ini, const char *file_csm, const char *file_outp)
+void shock_csm(double E_ej, double M_ej, double n, double delta, const char *file_csm, const char *file_outp)
 {
 	double *array;
 	double dt = 8640.;
 	double t_ini;
+	double r_ini;
 	int i;
 	FILE *fp;
 
@@ -59,6 +60,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, double r_ini, c
 	fp = fopen(file_outp, "w");
 
 	pdt = setpars(n, delta, E_ej, M_ej, 1.e+07, 1.e+10);	
+	r_ini = set_r_ini(file_csm);
 	t_ini = t_early(r_ini);
 	printf("t_ini = %e s\n", t_ini);
 
@@ -134,6 +136,7 @@ double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double 
 
 	return outp_egn;
 }
+
 
 /*
 array[0] = egn[0] = u_rs, array[1] = egn[1] = u_fs, array[2] = r_rs, array[3] = r_fs, array[4] = F_fs.
