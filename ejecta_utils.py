@@ -1,9 +1,14 @@
 # utilities for extracting ejecta parameters
 
+import math
 import mesa_reader as mr
 import numpy as np
 import warnings
 
+
+MSUN = 1.9884e+33
+RSUN = 6.96e+10
+G = 6.6743e-8
 
 # remnant mass from fitting formulae of Schneider+20, arXiv:2008.08599
 def remnant_from_CO(CO_core_mass):
@@ -57,6 +62,43 @@ def get_end_of_sim_to_core_collapse(data_file_at_mass_eruption, data_file_at_cor
 	# in years
 	return data_cc.star_age - data_me.star_age
 
+
+# remesh CSM for input to the light curve calculation
+def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
+	# copy first line
+	fout = open(CSM_out, 'w')
+	with open(CSM_in, 'r') as fin:
+		fout.write(fin.readline())
+	
+	# record values with edited mesh
+	data = mr.MesaData(data_file_at_mass_eruption)
+	CSM = np.loadtxt(CSM_in, skiprows=1)
+	r_in = CSM[:,2]
+	rmin = r_in[0]
+	X_edge = CSM[-1,5]
+	Y_edge = CSM[-1,6]
+	vwind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
+	wind_Mdot_vw = -data.star_mdot * MSUN / 3.15e7 / vwind 
+
+	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), 1000)
+	for i, r in enumerate(rs):
+		if r < r_in[-1]:
+			# obtain rho by log interpolation, Mr and v by linear. Mr is not used anyway
+			index = len([thisr for thisr in r_in if thisr < r])-1
+			fraction = (r - r_in[index]) / (r_in[index+1] - r_in[index])
+			rho = CSM[index, 4]**(1.-fraction) * CSM[index+1,4]**(fraction)
+			Mr = CSM[index, 1]*(1.-fraction) + CSM[index+1,1]*(fraction)
+			v = CSM[index, 3]*(1.-fraction) + CSM[index+1,3]*(fraction)
+			X = CSM[index, 5]*(1.-fraction) + CSM[index+1,5]*(fraction)
+			Y = CSM[index, 6]*(1.-fraction) + CSM[index+1,6]*(fraction)
+			print("%d %.4g %.4g %.4g %.4g %.4g %.4g" % (i, Mr, r, v, rho, X, Y), file=fout)
+		else:
+			# use the wind profile at that point
+			rho = wind_Mdot_vw / (4.*math.pi*r**2)
+			Mr += 4.*math.pi*r**2*rho*(r-rs[i-1])
+			# X, Y are the edge value
+			print("%d %.4g %.4g %.4g %.4g %.4g %.4g" % (i, Mr, r, vwind, rho, X_edge, Y_edge), file=fout)
+	fout.close()
 
 # extract peak luminosity and rise time, defined as the time from (frac*L_peak) to L_peak
 def extract_peak_and_rise_time(LC_file, frac):

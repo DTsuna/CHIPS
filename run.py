@@ -112,17 +112,19 @@ subprocess.call("./runsnhyd")
 Mej, n, delta = ejecta_utils.calculate_ej_from_mesa(file_cc)
 Eexp = 1e51
 
-# luminosity at shock
+# outer extent of the CSN to feed into the LC calculation
+r_out = 9.9e15
+CSM_file = 'inp-data/CSM.txt'
+# FIXME snhyd output correct?
+ejecta_utils.remesh_CSM(r_out, 'snhydOutput/result.txt', CSM_file, file_me)
+
+shock_file = 'inp-data/shock_output.txt'
 # FIXME obtain r_ini from the CSM file
 r_ini = 1e14
-CSM_file = 'inp-data/CSM_1.5.txt'
-shock_file = 'inp-data/shock_output.txt'
+# luminosity at shock
 lightcurve.shock(Eexp, Mej*1.99e33, n, delta, r_ini, CSM_file, shock_file)
 
 # radiation transfer
-# FIXME obtain r_out from the CSM file
-# FIXME output file should be an argument 
-r_out = 9.9e15
 lightcurve.transfer(r_out, CSM_file, shock_file)
 
 # obtain peak luminosity and rise/decay time in days
