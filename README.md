@@ -10,6 +10,7 @@ supernovae, for a selected mass and metallicity of the progenitor star.
 1. First install MESA
 2. git clone this repository in the mesa-rXXXXX
 3. Install the light curve script. (The mass eruption script will be compiled at runtime.)
+
 	`python lcsetup.py install`
 4. Execute the script run.py with initial mass and metallicity as arguments. For example, to calculate the
 evolution of a 15Msun star with metallicity 0.02 (~ solar), given an inlist file containing these parameters run
