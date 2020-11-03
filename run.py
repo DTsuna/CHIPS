@@ -4,7 +4,7 @@ from optparse import OptionParser
 import subprocess
 
 import convert
-import ejecta_utils
+import utils
 import lightcurve
 
 
@@ -54,7 +54,7 @@ file_cc = 'pre_ccsn.data'
 #file_cc = 'profile54.data'
 
 # obtain the time from end of rad-hydro calculation to core-collapse (in years)
-time_CSM = ejecta_utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
+time_CSM = utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
 
 #################################################################
 #                                                               #
@@ -109,14 +109,14 @@ subprocess.call("./runsnhyd")
 #################################################################
 
 # extract the ejecta parameters
-Mej, n, delta = ejecta_utils.calculate_ej_from_mesa(file_cc)
+Mej, n, delta = utils.calculate_ej_from_mesa(file_cc)
 Eexp = 1e51
 
 # outer extent of the CSN to feed into the LC calculation
 r_out = 9.9e15
 CSM_file = 'inp-data/CSM.txt'
 # FIXME snhyd output correct?
-ejecta_utils.remesh_CSM(r_out, 'snhydOutput/result.txt', CSM_file, file_me)
+utils.remesh_CSM(r_out, 'snhydOutput/result.txt', CSM_file, file_me)
 
 shock_file = 'inp-data/shock_output.txt'
 # luminosity at shock
@@ -127,4 +127,4 @@ lightcurve.transfer(r_out, CSM_file, shock_file)
 
 # obtain peak luminosity and rise/decay time in days
 # the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
-peakL, riset, decayt = ejecta_utils.extract_peak_and_rise_time(LC_output, frac=0.01)
+peakL, riset, decayt = utils.extract_peak_and_rise_time(LC_output, frac=0.01)

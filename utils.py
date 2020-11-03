@@ -1,4 +1,4 @@
-# utilities for extracting ejecta parameters
+# utilities functions for run.py 
 
 import math
 import mesa_reader as mr
