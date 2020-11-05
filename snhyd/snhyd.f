@@ -6,6 +6,7 @@ c---  initial data is required.
 
       integer idev, ni, ipass, jj, kk
       common/nickel/ni
+      common / neutrn / tmns
       real*8 msol, kh, eje, AU
       character*20 hyd, lightc
       character*128 filename 
@@ -27,6 +28,7 @@ c---  initial data is required.
       real*8 boundr
       integer output_do
       real*8 when_out(99)
+      integer output_init
 
 !      data when_out/1.d2,1.d6,2.d6,3.d6,4.d6
 !     $     ,5.d6,6.d6,6.2d6,6.4d6,6.6d6
@@ -109,7 +111,7 @@ c---  initial data is required.
       read(21,*)
       read(21,*)time_to_cc, e_charge_tot, injection_time
       close(21)
-
+      write(*,*)time_to_cc, e_charge_tot, injection_time
       open(66,file='snhydOutput/passage@0.1AU.txt',form='formatted')
       write(66,*)' no. time radius mass density velocity pressure'
      $     ,' temperature'
@@ -330,6 +332,22 @@ c$$$ 11   continue
 !      write(*,*)"e(110)eu(110)",e(110),eu(110),temp(110)
 !      write(*,*)"e(n)eu(n)",e(n),eu(n),temp(n)
 
+
+      if(time.gt.time_to_cc)then
+        output_init = 3
+        open(98,file='snhydOutput/atCCSN.txt',status='unknown'
+     $               ,form='formatted')
+        write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H X_He"
+        do jj = output_init, n 
+           write(98,'(i0, e18.10, e18.10, e18.10,
+     $                   e18.10, e18.10, e18.10)'),jj,
+     $encm(jj)-encm(output_init-1),rad(jj),u(jj),
+     $1.d0/tau(jj),x(jj,1),x(jj,3)
+        end do
+        close(98)
+        finish = .true.
+        go to 99
+      end if
 
 !      if(ihyd.eq.1)pause
       if(ihyd.gt.0)then

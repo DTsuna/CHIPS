@@ -78,8 +78,8 @@ convert.convertForHydro(file_cc, file_hydro, hydroNumMesh)
 
 # decide energy injection timescale and luminosity
 # find when to calculate the eruptive mass-loss
-injectedEnergy = 1.5e47
-injectDuration = 1e3
+injectedEnergy = 1.5e47 # unit in erg
+injectDuration = 1e3 # unit in second
 
 convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration)
 

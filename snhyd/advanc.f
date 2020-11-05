@@ -28,11 +28,6 @@
       nu(2) = vis*max(u(2)-u(3),0.d0)
 
 
-      amp = 0.d0
-      period = 1.d0
-      num_of_vib = 0
-
-
       e_in_cell = 10
 
       write(*,*)"injection time",e_charge_tot,injection_time
@@ -40,8 +35,7 @@
 !     rad(2) = orad(2)+dt*(us(2)+nu(2))-odt*onu(2)
       rad(2) = 1d-15
 
-      rad(3) = boundr + amp*sin((time*2.d0*pi)/period) !ここに値を入れておく
-      if(time.gt.period*num_of_vib)rad(3) = boundr
+      rad(3) = boundr
 
 c$$$      rad(2) = orad(2)+dt*us(2)
       do j = 4, n 		!from 3 to 4
@@ -77,10 +71,8 @@ c$$$      tau(n) = 4.d0*pi*aa1/((alpha+1.d0)*dmass(n))
          ar(j) = 4.*pi*(r2+r21+rad(j)*rad(j-1))/3.d0
  20   continue
 
-      u(3)  = amp*cos((time*2.d0*pi)/period)*2.d0*pi/period
-      us(3) = amp*cos((time*2.d0*pi)/period)*2.d0*pi/period
-      if(time.gt.period*num_of_vib)u(3)  = 0.d0
-      if(time.gt.period*num_of_vib)us(3) = 0.d0
+      u(3)  = 0.d0
+      us(3) = 0.d0
 !      ps(3) = (p(3)+p(4))/2	!riemntでのps(3)はそのまま使えないので
       !ps(3) = 1.097d+23	!riemntでのps(3)はそのまま使えないので
 !mesaでの値を時間変化を含めて

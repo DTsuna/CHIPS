@@ -1,11 +1,9 @@
 # include package
-import pylab
 import math
 import sys
 import gc
 import numpy as np
 import mesa_reader as mr
-import matplotlib.pyplot as plt
 
 
 
@@ -209,7 +207,7 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh):
         copiedPressure = np.zeros(size)
         for i in range(0,size):
                 copiedPressure[i] = pressure[i]
-        for i in xrange(1,size):
+        for i in range(1,size):
                 pressure[i] = math.sqrt(copiedPressure[i]*copiedPressure[i-1])
 
 
