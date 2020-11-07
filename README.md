@@ -21,6 +21,7 @@ The requirement for running CHIPS is quite minimal. One needs only the standard 
 4. Compile the scripts for the light curve.
 
 	`python lcsetup.py install`
+
 5-a. Execute the script run.py with initial mass and metallicity as arguments. For example, to calculate the history of a 15Msun star with metallicity 0.02 (~ solar) run
 
 	`python run.py --zams-m 15 --zams-z 0.02 --inlist-file /path/to/inlist_file`
