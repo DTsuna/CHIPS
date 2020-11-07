@@ -13,7 +13,7 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, char*, char*);
+void rad_transfer_csm(double, char*, char*, char*);
 void init_E_U(double, double, double[], double[], double[], double[], const int);
 
 //int main(void)
@@ -28,7 +28,7 @@ void init_E_U(double, double, double[], double[], double[], double[], const int)
 //	return 0;
 //}
 
-void rad_transfer_csm(double r_out, char *file_csm, char *file_inp)
+void rad_transfer_csm(double r_out, char *file_csm, char *file_inp, char *file_outp)
 {
 	FILE *fp, *fw, *fl;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE];
@@ -51,7 +51,7 @@ void rad_transfer_csm(double r_out, char *file_csm, char *file_inp)
 	fp = fopen(filename, "r");
 
 
-	sprintf(filename, "./outp-data/%s", "aaa.txt");
+	sprintf(filename, "%s", file_outp);
 	fl = fopen(filename, "w");
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6]) != EOF){
 		tf[i] = dummy[0]*86400.000;

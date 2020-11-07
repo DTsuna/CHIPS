@@ -123,7 +123,8 @@ shock_file = 'inp-data/shock_output.txt'
 lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file)
 
 # radiation transfer
-lightcurve.transfer(r_out, CSM_file, shock_file)
+lc_file = 'outp-data/lightcurve.txt'
+lightcurve.transfer(r_out, CSM_file, shock_file, lc_file)
 
 # obtain peak luminosity and rise/decay time in days
 # the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
