@@ -22,6 +22,7 @@ static PyObject* lightcurve_transfer(PyObject* self, PyObject* args, PyObject* k
 	double r_out;
 	const char* file_csm=NULL;
 	const char* file_shock=NULL;
+	const char* file_lc=NULL;
 	static char* argnames[] = {"r_out", "file_csm", "file_shock", "file_lc", NULL};
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "d|sss", argnames, &r_out, &file_csm, &file_shock, &file_lc))
 		return NULL;
