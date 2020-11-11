@@ -46,7 +46,8 @@ c---  initial data is required.
 
       real*8 e_charge_tot, injection_time, time_to_cc, dynamicalTime
       integer ejectaCut
-
+      integer fixedCell
+      real*8 fixedRad
       ! Calculate only ejecta after dynamcal time if true.
       logical EjectaOnly 
       EjectaOnly = .true.
@@ -54,6 +55,8 @@ c---  initial data is required.
 
       output_do = 1
       ejectaCut = 0
+      fixedCell = 0
+      fixedRad = 1.d13
 
       pn = 0.d0
       am(1) = 1.d0
@@ -106,7 +109,7 @@ c      time = 0.d0
         write(*,*),jj,when_out(jj)
       end do
 
-      dynamicalTime = 2.5d3
+      dynamicalTime = 1.d3
 
 
       boundr = (rad(3)+rad(4))/2.d0
@@ -192,12 +195,21 @@ cexpl  start the hydrodynamical calculation
 c$$$      do 10 ihyd = istart, ihydm
       do while(time.le.tp(ntp))
       print *,time,ihyd,dt
+      write(*,*)"fixedCell=",fixedCell
+
 
       if(EjectaOnly)then
         if(ejectaCut.eq.0)then
           if(time.gt.dynamicalTime*2.d0)then
-            pause
+            fixedCell = 5
+            do jj = 6, n
+              if(rad(jj).le.fixedRad)then
+                fixedCell = jj
+              end if
+            end do
             ejectaCut = 1
+            write(*,*)"fixedcell=",fixedCell,"at",rad(fixedCell)
+            pause
           end if
         end if
       end if
@@ -208,9 +220,17 @@ c$$$      do 10 ihyd = istart, ihydm
            write (filename, '("snhydOutput/result", i2.2, ".txt")')
      $         output_do
            open(91, file=filename,status='unknown',form='formatted')
-           write(91,93)n,time,dt,ihyd,(j,rad(j),encm(j),dmass(j),
+
+           if(ejectaCut.eq.0)then
+             write(91,93)n,time,dt,ihyd,(j,rad(j),encm(j),dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40, ye(j),
      $       j= 3, n)
+           end if
+           if(ejectaCut.eq.1)then
+             write(91,93)n,time,dt,ihyd,(j,rad(j),encm(j),dmass(j),
+     $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40, ye(j),
+     $       j= fixedCell, n)
+           end if
  93     format(i5,' time', 1pe12.4,' sec',' dt',e12.4,' sec  istep ',i8
      &  ,/,' no.',5x,'rad',10x,'encm',13x,'dm',12x,'rho',14x,'v'
      &         ,14x,'p',14x,'e',14x,'t',/,(i5,1p10e15.7))
@@ -219,7 +239,6 @@ c$$$      do 10 ihyd = istart, ihydm
         end if
       end if
  
-
       call cournt( n, dtcfac, time, dtc )
       dt = min(tp(kp)-time,dtc)
       if(dt.lt.dtc)kp = kp+1
@@ -271,6 +290,9 @@ c      call grow(n, finish, dt, time, encmg)
 
       if(time.gt.time_to_cc)then
         output_init = 3
+        if(ejectaCut.eq.1)then
+          output_init = fixedCell
+        end if
         open(98,file='snhydOutput/atCCSN.txt',status='unknown'
      $               ,form='formatted')
         write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H X_He"
