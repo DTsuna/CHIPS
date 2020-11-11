@@ -1,4 +1,5 @@
-      subroutine init(n,hyd,alpha,cut,istart,time,encmg,eje,nadd)
+      subroutine init(n,hyd,alpha,cut,istart,time,encmg,eje,nadd,
+     $                    dynamicalTime)
 
       include 'inclm1.f'
 
@@ -7,6 +8,7 @@
       integer nadd, na 
 
       real*8  encmg(*),  rho(mn), kdeg, solm, cv(mn), kap(mn), x1
+      real*8  dynamicalTime
 c      real*8 r1, r2, r3, r4, r5, r6
       parameter ( tau0 = 1d-2, solm = 1.989d33, pi = 3.1415926d0,
      $     as = 7.564d-15, r = 8.3147515d7, kdeg = 0.d0, x1=0.2 )
@@ -138,7 +140,8 @@ c$$$         enddo
             encmg(j+1) = 0.5d0*(encm(j)+encm(j+1))
          enddo
  
-
+         dynamicalTime = (3.141593*3.141593*
+     $           rad(n)*rad(n)*rad(n)/4.d0/6.67e-8/encm(n))**(0.5d0)
 
          write(*,*)"encm(3)=",encm(3)
          call grav(n,encmg)

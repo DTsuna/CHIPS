@@ -1,5 +1,5 @@
       subroutine advanc(n,alpha,nadd,dt,dmass,encmg,time,
-     $               boundr,injection_time,e_charge_tot)
+     $               boundr,e_charge_tot,injection_time)
 
       include 'inclm1.f'
       include 'inclold.f'
