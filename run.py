@@ -116,7 +116,7 @@ Eexp = 1e51
 r_out = 9.9e15
 CSM_file = 'inp-data/CSM.txt'
 # FIXME snhyd output correct?
-utils.remesh_CSM(r_out, 'snhydOutput/result.txt', CSM_file, file_me)
+utils.remesh_CSM(r_out, 'snhydOutput/atCCSN.txt', CSM_file, file_me)
 
 shock_file = 'inp-data/shock_output.txt'
 # luminosity at shock
