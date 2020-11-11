@@ -46,7 +46,7 @@ c---  initial data is required.
 
       real*8 e_charge_tot, injection_time, time_to_cc, dynamicalTime
       integer ejectaCut
-      integer fixedCell
+      integer fixedCell, innerCell
       real*8 fixedRad
       ! Calculate only ejecta after dynamcal time if true.
       logical EjectaOnly 
@@ -207,6 +207,7 @@ c$$$      do 10 ihyd = istart, ihydm
                 fixedCell = jj
               end if
             end do
+            boundr = rad(fixedCell)
             ejectaCut = 1
             write(*,*)"fixedcell=",fixedCell,"at",rad(fixedCell)
             pause
@@ -238,8 +239,12 @@ c$$$      do 10 ihyd = istart, ihydm
            output_do = output_do + 1
         end if
       end if
- 
-      call cournt( n, dtcfac, time, dtc )
+
+      innerCell = 3
+        if(ejectaCut.eq.1)then
+        innerCell = fixedCell
+      end if 
+      call cournt( n, dtcfac, time, dtc ,innerCell)
       dt = min(tp(kp)-time,dtc)
       if(dt.lt.dtc)kp = kp+1
       if(dt.le.0.d0)then
@@ -258,8 +263,14 @@ c$$$      do 10 ihyd = istart, ihydm
       write(*,*)"before advanc"
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
       write(*,*)"e_tot eu_tot",te,tet
+
+      innerCell = 3
+      if(ejectaCut.eq.1)then
+        innerCell = fixedCell
+      end if
       call advanc(n,alpha,nadd,dt,dmass,encmg,time,boundr,
-     $                e_charge_tot,injection_time)
+     $                e_charge_tot,injection_time,innerCell)
+
 c      call grow(n, finish, dt, time, encmg)
       time = time + dt
       write(*,*)"timetocc=",time_to_cc
@@ -279,9 +290,10 @@ c      call grow(n, finish, dt, time, encmg)
 
       write(*,*)"e_tot eu_tot",te,tet
 
-      call opac(n, kap,iphoto)
-      call radtra(n,ihyd,dt,time,cv,kap)
-
+      if(ejectaCut.eq.0)then
+        call opac(n, kap,iphoto)
+        call radtra(n,ihyd,dt,time,cv,kap)
+      end if
 
 
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
@@ -317,16 +329,27 @@ c$$$         jw = iphoto
      $        '(8h time = ,1pe12.4,4h sec,6h dt = ,e12.4,4h sec,
      $        6h ihyd ,i8)')
      $        time, dt, ihyd
-         write(*,'(5h no.  ,8h  mr    ,9hradius   9hdensity  ,
+         if(ejectaCut.eq.0)then
+           write(*,'(5h no.  ,8h  mr    ,9hradius   9hdensity  ,
      $        9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $        9h    u   ,/,(i5,1p8e9.2))')
      $        (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
      $        ,temp(j),u(j),j=max(1,jw-10),max(10,min(jw+10,n)))
+         end if
+         if(ejectaCut.eq.1)then
+           write(*,'(5h no.  ,8h  mr    ,9hradius   9hdensity  ,
+     $        9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
+     $        9h    u   ,/,(i5,1p8e9.2))')
+     $        (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
+     $        ,temp(j),u(j),
+     $        j=max(fixedCell,jw-10),max(20+fixedCell,min(jw+10,n)))
+         end if
+
 c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
       endif
       kp1 = max(kp-1,1)
       if(time.eq.tp(kp1)) then
-         open (11,file='snhydOutout/hyd.d',
+         open (11,file='snhydOutput/hyd.d',
      $           access='append',form='formatted')
 !         call output(n, alpha, ihyd, time, dt)
          close(11)

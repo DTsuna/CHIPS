@@ -1,5 +1,5 @@
       subroutine advanc(n,alpha,nadd,dt,dmass,encmg,time,
-     $               boundr,e_charge_tot,injection_time)
+     $               boundr,e_charge_tot,injection_time,innerCell)
 
       include 'inclm1.f'
       include 'inclold.f'
@@ -20,7 +20,7 @@
       integer e_in_cell
       real*8 injection_time
       integer kk
-
+      integer innerCell
       common /riem/ ps, us
       data vis, odt / 0.1d0, 0.d0 /
       ial1 = int(alpha+1.d0)
@@ -30,15 +30,15 @@
 
       e_in_cell = 10
 
-      write(*,*)"injection time",e_charge_tot,injection_time
+      write(*,*)"innerCell in advanc.f =",innerCell
 
 !     rad(2) = orad(2)+dt*(us(2)+nu(2))-odt*onu(2)
       rad(2) = 1d-15
 
-      rad(3) = boundr
+      rad(innerCell) = boundr
 
 c$$$      rad(2) = orad(2)+dt*us(2)
-      do j = 4, n 		!from 3 to 4
+      do j = innerCell+1, n 		!from 3 to 4
          nu(j) = vis*max(u(j)-u(j+1),0.d0)
          rad(j) = orad(j)+dt*(us(j)+nu(j))-odt*onu(j)
          radm = 0.5*(rad(j)+rad(j-1))
@@ -65,19 +65,19 @@ c$$$      aa1 = a-a1
 c$$$      tau(n) = 4.d0*pi*aa1/((alpha+1.d0)*dmass(n))
       
       call grav(n,encmg)
-      do 20 j = 4, n	!from 3 to 4
+      do 20 j = innerCell+1, n	!from 3 to 4
          r2 = rad(j)*rad(j)
          r21 = rad(j-1)*rad(j-1)
          ar(j) = 4.*pi*(r2+r21+rad(j)*rad(j-1))/3.d0
  20   continue
 
-      u(3)  = 0.d0
-      us(3) = 0.d0
+      u(innerCell)  = 0.d0
+      us(innerCell) = 0.d0
 !      ps(3) = (p(3)+p(4))/2	!riemntでのps(3)はそのまま使えないので
       !ps(3) = 1.097d+23	!riemntでのps(3)はそのまま使えないので
 !mesaでの値を時間変化を含めて
 
-      do 30 j = 4, n	!from 3 to 4
+      do 30 j = innerCell+1, n	!from 3 to 4
          r2 = rad(j)*rad(j)
          or2 = orad(j)*orad(j)
          r21 = rad(j-1)*rad(j-1)
