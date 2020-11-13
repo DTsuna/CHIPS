@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 size = 8
 
@@ -19,8 +20,8 @@ def gen_op_tbl(Y):
 		if Y >= array_Y[i] and Y < array_Y[i+1]:
 			break
 	
-	filename = './'+array_Y_dir_name[i]+'/'+array_Y_dir_name[i]+'.txt'
-	filename1 = './'+array_Y_dir_name[i+1]+'/'+array_Y_dir_name[i+1]+'.txt'
+	filename = os.path.dirname(__file__)+'/'+array_Y_dir_name[i]+'/'+array_Y_dir_name[i]+'.txt'
+	filename1 =os.path.dirname(__file__)+'/'+array_Y_dir_name[i+1]+'/'+array_Y_dir_name[i+1]+'.txt'
 	R, temp, kappa = fopen_op(filename)
 	R, temp, kappa1 = fopen_op(filename1)
 	kappa_outp = ((array_Y[i+1]-Y)*kappa+(Y-array_Y[i])*kappa1)/(array_Y[i+1]-array_Y[i])
