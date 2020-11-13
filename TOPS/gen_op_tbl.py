@@ -9,9 +9,7 @@ def fopen_op(filename):
 	a = np.loadtxt(filename, skiprows = 1)
 	temp = [r[0] for r in a]
 	kappa = np.delete(a, 0, 1)
-	rowlen = len(temp)
-	collen = len(kappa[0])
-	return R, np.array(temp), kappa, rowlen, collen
+	return R, np.array(temp), kappa
 
 
 def gen_op_tbl(Y):
@@ -23,8 +21,8 @@ def gen_op_tbl(Y):
 	
 	filename = './'+array_Y_dir_name[i]+'/'+array_Y_dir_name[i]+'.txt'
 	filename1 = './'+array_Y_dir_name[i+1]+'/'+array_Y_dir_name[i+1]+'.txt'
-	R, temp, kappa, rowlen, collen = fopen_op(filename)
-	R, temp, kappa1, rowlen, collen = fopen_op(filename1)
+	R, temp, kappa = fopen_op(filename)
+	R, temp, kappa1 = fopen_op(filename1)
 	kappa_outp = ((array_Y[i+1]-Y)*kappa+(Y-array_Y[i])*kappa1)/(array_Y[i+1]-array_Y[i])
 
 	temp = temp.reshape(-1, 1)
