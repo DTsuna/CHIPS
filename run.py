@@ -6,6 +6,7 @@ import subprocess
 import convert
 import utils
 import lightcurve
+from TOPS import gen_op_tbl 
 
 
 def parse_command_line():
@@ -115,11 +116,14 @@ Eexp = 1e51
 # outer extent of the CSN to feed into the LC calculation
 r_out = 9.9e15
 CSM_file = 'inp-data/CSM.txt'
-# FIXME snhyd output correct?
-utils.remesh_CSM(r_out, 'snhydOutput/atCCSN.txt', CSM_file, file_me)
+Y_He = utils.remesh_CSM(r_out, 'snhydOutput/atCCSN.txt', CSM_file, file_me)
 
-shock_file = 'inp-data/shock_output.txt'
+# obtain opacity 
+opacity_file = 'inp-data/opacity.txt'
+gen_op_tbl.gen_op_tbl(Y_He, opacity_file)
+
 # luminosity at shock
+shock_file = 'inp-data/shock_output.txt'
 lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file)
 
 # radiation transfer

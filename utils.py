@@ -79,6 +79,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 	Y_edge = CSM[-1,6]
 	vwind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
 	wind_Mdot_vw = -data.star_mdot * MSUN / 3.15e7 / vwind 
+	
+	last_Mr = 0.0
+	Y_avrg = 0.0
 
 	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), 1000)
 	for i, r in enumerate(rs):
@@ -91,14 +94,19 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 			v = CSM[index, 3]*(1.-fraction) + CSM[index+1,3]*(fraction)
 			X = CSM[index, 5]*(1.-fraction) + CSM[index+1,5]*(fraction)
 			Y = CSM[index, 6]*(1.-fraction) + CSM[index+1,6]*(fraction)
+			Y_avrg = (Y_avrg*last_Mr + Y*(Mr-last_Mr))/Mr
+			last_Mr = Mr
 			print("%d %.4g %.4g %.4g %.4g %.4g %.4g" % (i, Mr, r, v, rho, X, Y), file=fout)
 		else:
 			# use the wind profile at that point
 			rho = wind_Mdot_vw / (4.*math.pi*r**2)
 			Mr += 4.*math.pi*r**2*rho*(r-rs[i-1])
+			Y_avrg = (Y_avrg*last_Mr + Y_edge*(Mr-last_Mr))/Mr
+			last_Mr = Mr
 			# X, Y are the edge value
 			print("%d %.4g %.4g %.4g %.4g %.4g %.4g" % (i, Mr, r, vwind, rho, X_edge, Y_edge), file=fout)
 	fout.close()
+	return Y_avrg
 
 # extract peak luminosity and rise time, defined as the time from (frac*L_peak) to L_peak
 def extract_peak_and_rise_time(LC_file, frac):

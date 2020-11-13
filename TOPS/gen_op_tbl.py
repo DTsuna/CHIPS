@@ -13,7 +13,7 @@ def fopen_op(filename):
 	return R, np.array(temp), kappa
 
 
-def gen_op_tbl(Y):
+def gen_op_tbl(Y, opacity_file):
 	array_Y = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
 	array_Y_dir_name = ['Y{:1.1f}'.format(n) for n in array_Y]
 	for i in range(size):
@@ -31,6 +31,6 @@ def gen_op_tbl(Y):
 	X = np.append(temp, kappa_outp, axis = 1)
 
 	header = ' '.join(R)
-	np.savetxt('opacity.txt', X, header = header, comments = '', fmt = '%1.4f')
+	np.savetxt(opacity_file, X, header = header, comments = '', fmt = '%1.4f')
 
 gen_op_tbl(0.45)
