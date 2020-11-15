@@ -213,7 +213,7 @@
           temp_ar(k) = te
           p_ar(k) = p
           eu_ar(k) = e_th
-          e_ar(k) = eu_ar(k) + 0.5d0*u_ar(k)**2 +grv_ar(k)*rn
+          !e_ar(k) = eu_ar(k) + 0.5d0*u_ar(k)**2 +grv_ar(k)*rn
           beta = (1.0d0/abar + 0.5)*dkh*temp_ar(k)/(p_ar(k)*tau_ar(k))
           g_ar(k) = p_ar(k)*tau_ar(k)/eu_ar(k) + 1.0d0
           g1_ar(k) = (8.0d0 - 3.0d0*beta)/(6.0d0 - 3.0d0*beta)
@@ -223,6 +223,16 @@
 !          write(*,*)"gamma(",k,")=",g1_ar(k)
 !          write(*,*)"t(eoshelm)=",temp_ar(k),"t(eos)=",te,"p(eoshelm=)",p_ar(k),"p(eos)=",p
        end if
+       if(temp_ar(k).lt.100.d0)then
+         temp_ar(k) = 100.d0
+         p_ar(k) = dkh*muie*den_row(1)*temp_ar(k) + arad*(temp_ar(k)**4)/3.d0
+         beta = (1.0d0/abar + 0.5)*dkh*temp_ar(k)/(p_ar(k)*tau_ar(k))
+         g_ar(k) = p_ar(k)*tau_ar(k)/eu_ar(k) + 1.0d0
+         g1_ar(k) = (8.0d0 - 3.0d0*beta)/(6.0d0 -3.0d0*beta)
+         dedlt_ar(k) =1.5d0*dkh*(1.0d0/abar +0.5)*temp_ar(k)+4.0d0*(temp_ar(k)**4)*tau_ar(k)*arad
+         cs_ar(k) =sqrt(g1_ar(k)*p_ar(k)*tau_ar(k))
+       end if
+
 
 
 !引数に値を渡す!

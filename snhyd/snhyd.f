@@ -109,7 +109,7 @@ c      time = 0.d0
         write(*,*),jj,when_out(jj)
       end do
 
-      dynamicalTime = 1.d3
+!      dynamicalTime = 1.d3
 
 
       boundr = (rad(3)+rad(4))/2.d0
@@ -210,7 +210,7 @@ c$$$      do 10 ihyd = istart, ihydm
             boundr = rad(fixedCell)
             ejectaCut = 1
             write(*,*)"fixedcell=",fixedCell,"at",rad(fixedCell)
-            pause
+!            pause
           end if
         end if
       end if
@@ -300,7 +300,7 @@ c      call grow(n, finish, dt, time, encmg)
 
 
 
-      if(time.gt.time_to_cc)then
+      if(time-dt.gt.time_to_cc)then
         output_init = 3
         if(ejectaCut.eq.1)then
           output_init = fixedCell
