@@ -181,7 +181,7 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double E[], 
 	double dr = (r_out-r_ini)/((double)(nsize)+1./2.)/2.;
 	double T;
 
-	printf("r_ini = %e cm\n", r_ini);
+//	printf("r_ini = %e cm\n", r_ini);
 	for(i = 0; i < nsize; i++){
 		r[i] = r_ini-dr+2.*(double)(i+1)*dr;
 		E[2*i] = (P_A)*pow(1.e+03, 4.)*pow(r[0]/r[i], 2.);
@@ -190,8 +190,8 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double E[], 
 		rho[i] = rho_csm(r[i]);
 		U[2*i] = 1.5*rho[0]*(P_K)*T/(0.62*(MH))*pow(rho[i]/rho[0], 5./3.);
 		U[2*i+1] = U[2*i];
-		printf("r[%d] = %e cm, E = %e, U = %e, rho = %e\n", i, r[i], E[2*i], U[2*i], rho[i]);
+//		printf("r[%d] = %e cm, E = %e, U = %e, rho = %e\n", i, r[i], E[2*i], U[2*i], rho[i]);
 	}
 	r[nsize] = r[nsize-1]+2.*dr;
-	printf("r_out = %e cm\n", r[nsize]);
+//	printf("r_out = %e cm\n", r[nsize]);
 }
