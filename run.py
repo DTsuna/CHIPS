@@ -73,7 +73,7 @@ subprocess.call(["rm", "snhyd/inclmn.f"])
 subprocess.call(["rm", "snhyd/eruptPara.d"])
 subprocess.call(["rm", "InitForHydro.txt"])
 
-convert.convertForHydro(file_cc, file_hydro, hydroNumMesh)
+convert.convertForHydro(file_me, file_hydro, hydroNumMesh)
 
 
 
