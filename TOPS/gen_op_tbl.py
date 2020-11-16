@@ -1,8 +1,6 @@
 import numpy as np
 import os
 
-size = 8
-
 def fopen_op(filename):
 	with open(filename) as f:
 		R = f.readline().strip('\n').split(' ')
@@ -16,6 +14,7 @@ def fopen_op(filename):
 def gen_op_tbl(Y, opacity_file):
 	array_Y = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
 	array_Y_dir_name = ['Y{:1.1f}'.format(n) for n in array_Y]
+	size = len(array_Y)
 	for i in range(size):
 		if Y >= array_Y[i] and Y < array_Y[i+1]:
 			break
@@ -32,5 +31,3 @@ def gen_op_tbl(Y, opacity_file):
 
 	header = ' '.join(R)
 	np.savetxt(opacity_file, X, header = header, comments = '', fmt = '%1.4f')
-
-gen_op_tbl(0.45)
