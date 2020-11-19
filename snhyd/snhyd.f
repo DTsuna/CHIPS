@@ -304,6 +304,11 @@ c      call grow(n, finish, dt, time, encmg)
         output_init = 3
         if(ejectaCut.eq.1)then
           output_init = fixedCell
+          do jj = fixedCell, n
+            if(rad(jj).lt.1e14)then
+              output_init = output_init + 1
+            end if
+          end do
         end if
         open(98,file='snhydOutput/atCCSN.txt',status='unknown'
      $               ,form='formatted')
