@@ -10,6 +10,23 @@ MSUN = 1.9884e+33
 RSUN = 6.96e+10
 G = 6.6743e-8
 
+
+# find mesa model when mass eruption occurs
+def find_mass_eruption(data_files, data_file_at_core_collapse, time_till_collapse):
+	delta = np.zeros(len(data_files))
+	for i, data_file in enumerate(data_files):
+		delta[i] = abs(mr.MesaData(data_file_at_core_collapse) - mr.MesaData(data_file).star_age - time_till_collapse)
+	return data_files[np.argmin(delta)]
+
+
+# obtain time from mass eruption till core-collapse
+def get_end_of_sim_to_core_collapse(data_file_at_mass_eruption, data_file_at_core_collapse):
+	data_me = mr.MesaData(data_file_at_mass_eruption)
+	data_cc = mr.MesaData(data_file_at_core_collapse)
+	# in years
+	return data_cc.star_age - data_me.star_age
+
+
 # remnant mass from fitting formulae of Schneider+20, arXiv:2008.08599
 def remnant_from_CO(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
@@ -53,14 +70,6 @@ def calculate_ej_from_mesa(data_file):
 	# set delta to 1 for now
 	delta = 1.0
 	return Mej, n, delta
-
-
-# obtain time from mass eruption till core-collapse
-def get_end_of_sim_to_core_collapse(data_file_at_mass_eruption, data_file_at_core_collapse):
-	data_me = mr.MesaData(data_file_at_mass_eruption)
-	data_cc = mr.MesaData(data_file_at_core_collapse)
-	# in years
-	return data_cc.star_age - data_me.star_age
 
 
 # remesh CSM for input to the light curve calculation
