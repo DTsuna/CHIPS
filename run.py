@@ -87,7 +87,7 @@ convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration)
 
 
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
-subprocess.call(["mkdir", "snhydOutput"])
+subprocess.call(["mkdir", "-p", "snhydOutput"])
 subprocess.call(["make", "clean"])
 compileEOS = "gfortran -fno-automatic  -c -o snhyd/eos_helm.o snhyd/eos_helm.f90"
 subprocess.call(compileEOS.split())
