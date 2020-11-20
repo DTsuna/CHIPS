@@ -2,6 +2,8 @@ FC	:=	gfortran
 FFLAGS	:=	-fno-automatic -fno-range-check
 PROG	:=	runsnhyd
 
+TARGETS	:=	f f90
+
 CPPS	=	$(shell find * -name '*.o')
 
 OBJS	=	$(CPPS)
@@ -12,7 +14,12 @@ all:	$(OBJS) $(PROG)
 	$(FC) $(FFLAGS) $(OBJS) $(LIBS) -o $(PROG)
 
 $(PROG):
-	@cd f; make; cd ../f90; make; cd ..
+	@for target in $(TARGETS); do \
+	(\
+		cd $$target; \
+		make; \
+	)\
+	done
 
 clean:
 	rm -f $(PROG) $(OBJS)
