@@ -75,8 +75,8 @@ print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 file_hydro = 'InitForHydro.txt'
 hydroNumMesh = 10000
 
-subprocess.call(["rm", "snhyd/inclmn.f"])
-subprocess.call(["rm", "snhyd/eruptPara.d"])
+subprocess.call(["rm", "f/inclmn.f"])
+subprocess.call(["rm", "f/eruptPara.d"])
 subprocess.call(["rm", "InitForHydro.txt"])
 
 convert.convertForHydro(file_me, file_hydro, hydroNumMesh)
@@ -95,12 +95,6 @@ convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration)
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
 subprocess.call(["mkdir", "-p", "snhydOutput"])
 subprocess.call(["make", "clean"])
-compileEOS = "gfortran -fno-automatic  -c -o snhyd/eos_helm.o snhyd/eos_helm.f90"
-subprocess.call(compileEOS.split())
-compileEOS = "gfortran -fno-automatic  -c -o snhyd/eos_helm_e.o snhyd/eos_helm_e.f90"
-subprocess.call(compileEOS.split())
-compileEOS = "gfortran -fno-automatic  -c -o snhyd/eos_helm_p.o snhyd/eos_helm_p.f90"
-subprocess.call(compileEOS.split())
 subprocess.call("make")
 
 
