@@ -1,2 +1,6 @@
 build/
-snhyd/*.o
+f/obj/
+f90/obj/
+f/eruptPara.d
+f/inclmn.f
+snhydOutput/
