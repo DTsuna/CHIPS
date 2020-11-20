@@ -3,6 +3,7 @@ import fileinput
 import glob
 from optparse import OptionParser
 import subprocess
+import sys
 
 # our modules
 import convert
@@ -52,7 +53,8 @@ subprocess.call("./mk")
 # run mesa script
 subprocess.call("./rn")
 
-# find data file at mass eruption and core collapse. we set it to 5 years before collapse
+# find data file at mass eruption and core collapse. 
+# FIXME we set the mass eruption to 5 years before collapse
 file_cc = 'pre_ccsn.data'
 file_me = utils.find_mass_eruption(glob.glob('LOGS_to_si_burn/profile*.data'), file_cc, 5.0)
 #file_cc = 'profile54.data'
