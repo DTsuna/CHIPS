@@ -2,6 +2,7 @@ from __future__ import print_function
 import fileinput
 import glob
 from optparse import OptionParser
+import os
 import subprocess
 import sys
 
@@ -48,15 +49,18 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 		print(line.rstrip())
 
 # compile mesa script
-subprocess.call("./mk")
+mesa_dir = str(os.path.dirname(options.inlist_file))
+#os.chdir(mesa_dir)
+#subprocess.call("./mk")
 
 # run mesa script
-subprocess.call("./rn")
+#subprocess.call("./rn")
+#os.chdir("../")
 
 # find data file at mass eruption and core collapse. 
 # FIXME we set the mass eruption to 5 years before collapse
-file_cc = 'pre_ccsn.data'
-file_me = utils.find_mass_eruption(glob.glob('LOGS_to_si_burn/profile*.data'), file_cc, 5.0)
+file_cc = mesa_dir+'/pre_ccsn.data'
+file_me = utils.find_mass_eruption(glob.glob(mesa_dir+'/LOGS_to_si_burn/profile*.data'), file_cc, 5.0)
 #file_cc = 'profile54.data'
 
 # obtain the time from end of rad-hydro calculation to core-collapse (in years)

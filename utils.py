@@ -15,12 +15,12 @@ G = 6.6743e-8
 def find_mass_eruption(data_files, data_file_at_core_collapse, time_till_collapse):
 	delta = np.zeros(len(data_files))
 	for i, data_file in enumerate(data_files):
-		delta[i] = abs(mr.MesaData(data_file_at_core_collapse) - mr.MesaData(data_file).star_age - time_till_collapse)
+		delta[i] = abs(mr.MesaData(data_file_at_core_collapse).star_age - mr.MesaData(data_file).star_age - time_till_collapse)
 	return data_files[np.argmin(delta)]
 
 
 # obtain time from mass eruption till core-collapse
-def get_end_of_sim_to_core_collapse(data_file_at_mass_eruption, data_file_at_core_collapse):
+def get_mass_eruption_to_core_collapse(data_file_at_mass_eruption, data_file_at_core_collapse):
 	data_me = mr.MesaData(data_file_at_mass_eruption)
 	data_cc = mr.MesaData(data_file_at_core_collapse)
 	# in years
