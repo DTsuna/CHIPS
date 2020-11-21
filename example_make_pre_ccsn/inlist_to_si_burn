@@ -52,7 +52,8 @@
       xa_central_upper_limit(1) = 0.4d0
 
       !photo_interval = 10
-      !profile_interval = 10
+      ! record more frequently for accurately obtaining mass eruption
+      profile_interval = 10
       !history_interval = 1
       !terminal_interval = 1
       
