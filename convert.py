@@ -222,13 +222,17 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh):
                         f.write('\n')
 
 
-def setSnhydParam(hydroNumMesh,timeToCC,injectedEnergy,injectDuration):
+def setSnhydParam(hydroNumMesh,timeToCC,injectedEnergy,injectDuration, ScaledByEnvelopeEnergy, injectedEnergyRate):
+        if ScaledByEnvelopeEnergy == True:
+                flag = 1
+        else:
+                flag = 0
         with open('f/inclmn.f', mode = 'w') as f:
                 f.write('      integer mn, nelem\n')
                 f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19 )\n')
         with open('f/eruptPara.d', mode = 'w') as f2:
-                f2.write('TimeToCC InjectedEnergy InjectDuration\n')
-                f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectedEnergy) + ' ' +  str(injectDuration) + '\n')
+                f2.write('TimeToCC InjectedEnergy InjectDuration ScaledByEnvelopeEnergy injectedEnergyRate\n')
+                f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectedEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectedEnergyRate) + '\n')
 
 
 

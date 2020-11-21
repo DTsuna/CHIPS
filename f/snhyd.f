@@ -44,6 +44,10 @@ c---  initial data is required.
       common /massn/ am(14)
       data iarrv, finish/0, .false./
 
+      real*8  scaleDeposition
+      logical scaleDepositionFlag
+      real*8 scalingRate
+
       real*8 e_charge_tot, injection_time, time_to_cc, dynamicalTime
       integer ejectaCut
       integer fixedCell, innerCell
@@ -84,9 +88,13 @@ c---  initial data is required.
         
       open(21,file='f/eruptPara.d',status='old')
       read(21,*)
-      read(21,*)time_to_cc, e_charge_tot, injection_time
+      read(21,*)time_to_cc, e_charge_tot, injection_time,
+     $     scaleDeposition, scalingRate
       close(21)
-      write(*,*)time_to_cc, e_charge_tot, injection_time
+      if(scaleDeposition.eq.0)scaleDepositionFlag = .false.
+      if(scaleDeposition.eq.1)scaleDepositionFlag = .true.
+      write(*,*)time_to_cc, e_charge_tot, injection_time,
+     $          scaleDepositionFlag, scalingRate
       open(66,file='snhydOutput/passage@0.1AU.txt',form='formatted')
       write(66,*)' no. time radius mass density velocity pressure'
      $     ,' temperature'
@@ -125,9 +133,13 @@ c      time = 0.d0
       print *,e(3)
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
+
+
       write(*,'(''total energy ='',1pe12.4,''erg, etherm =''
      $     ,e12.4,'' erg'')')te, tet
 
+      if(scaleDepositionFlag)e_charge_tot = -1.d0*te*scalingRate
+      write(*,*)time_to_cc, e_charge_tot, injection_time
 c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
 !      call eos(n,1,cv,kap)

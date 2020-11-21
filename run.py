@@ -91,8 +91,10 @@ convert.convertForHydro(file_me, file_hydro, hydroNumMesh)
 injectedEnergy = 1.5e47 # unit in erg
 injectDuration = 1e3 # unit in second
 
-convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration)
+ScaledByEnvelopeEnergy = True # If enabled, (-1)*(injectedEnergyRate)*(total energy of the envelope) is deposited instead of injectedEnergy.
+injectedEnergyRate = 0.3 # around 0.3 is recommended
 
+convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration, ScaledByEnvelopeEnergy, injectedEnergyRate)
 
 
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))

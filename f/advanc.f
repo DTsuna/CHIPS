@@ -32,6 +32,7 @@
 
       write(*,*)"innerCell in advanc.f =",innerCell
 
+
 !     rad(2) = orad(2)+dt*(us(2)+nu(2))-odt*onu(2)
       rad(2) = 1d-15
 
