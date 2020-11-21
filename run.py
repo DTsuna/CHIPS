@@ -78,11 +78,14 @@ print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 file_hydro = 'InitForHydro.txt'
 hydroNumMesh = 10000
 
+massCutByHand = False # If true, massCutPoint is used. If false, helium core is cutted automatically.
+massCutPoint = 1.3 # unit in Msun
+
 subprocess.call(["rm", "f/inclmn.f"])
 subprocess.call(["rm", "f/eruptPara.d"])
 subprocess.call(["rm", "InitForHydro.txt"])
 
-convert.convertForHydro(file_me, file_hydro, hydroNumMesh)
+convert.convertForHydro(file_me, file_hydro, hydroNumMesh, massCutByHand, massCutPoint)
 
 
 

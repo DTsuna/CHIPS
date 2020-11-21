@@ -7,7 +7,7 @@ import mesa_reader as mr
 
 
 
-def convertForHydro(inputFile, outputFile, hydroNumMesh):
+def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutPoint):
 
         #################################################################
         ##################### Input Parameters ##########################
@@ -19,8 +19,12 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh):
         # output file for hydro
         path = outputFile
         size = hydroNumMesh # number of mesh
-        massCut = 4.0 # In solar mass unit
+        if massCutByHand == False:
+                massCut = h.he_core_mass + 0.2 # In solar mass unit
+        if massCutByHand == True:
+                massCut = massCutPoint
 
+        print('massCut =' + str(massCut))
 
         lowerLimX = 1.0e-40 # Lower limit on the value of composition X
         elemNum = 19 # number of element
