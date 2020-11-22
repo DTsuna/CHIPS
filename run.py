@@ -49,7 +49,7 @@ for line in fileinput.input(options.inlist_file, inplace=1):
 		print(line.rstrip())
 
 # compile mesa script
-mesa_dir = str(os.path.dirname(options.inlist_file))
+mesa_dir = os.path.dirname(options.inlist_file)
 os.chdir(mesa_dir)
 subprocess.call("./mk")
 
