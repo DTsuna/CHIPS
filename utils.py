@@ -3,6 +3,7 @@
 import math
 import mesa_reader as mr
 import numpy as np
+import sys
 import warnings
 
 
@@ -48,27 +49,28 @@ def cc_param_extractor(data_file):
 	# if hydrogen envelope significantly exists, the env should be the hydrogen envelope
 	if He_core_mass < 0.99*total_mass:
 		lgrhoenv = [lgrho for i, lgrho in enumerate(data.logRho) if data.mass[i] > He_core_mass]
-		lgpenv = [lgp for i, lgp in enumerate(data.logp) if data.mass[i] > He_core_mass]
+		lgpenv = [lgp for i, lgp in enumerate(data.logP) if data.mass[i] > He_core_mass]
 	# otherwise, it should be the helium envelope
 	else:
 		lgrhoenv = [lgrho for i, lgrho in enumerate(data.logRho) if data.mass[i] > CO_core_mass]
-		lgpenv = [lgp for i, lgp in enumerate(data.logp) if data.mass[i] > CO_core_mass]
-	return total_mass, CO_core_mass, lgrho_env, lgp_env
+		lgpenv = [lgp for i, lgp in enumerate(data.logP) if data.mass[i] > CO_core_mass]
+	return total_mass, CO_core_mass, lgrhoenv, lgpenv
 
 
 # ejecta calculation script
 def calculate_ej_from_mesa(data_file):
 	# remnant mass
-	total_mass, CO_core_mass, lgrho_env, lgp_env = cc_param_extractor(data_file)
+	total_mass, CO_core_mass, lgrhoenv, lgpenv = cc_param_extractor(data_file)
 	remnant_mass = remnant_from_CO(CO_core_mass)
 	Mej = total_mass - remnant_mass
-	# obtain n from fitting rho vs p at envelope. We fit with P = K*rho^N, where N is the polytripic index.
-	Npol = np.polyfit(lgrho_env, lgp_env)[0]
+	# obtain polytropic index from fitting rho vs p at envelope. We fit with P = K*rho^N, where N is the polytripic index.
+	Npol = np.polyfit(lgrhoenv, lgpenv, 1)[0]
 	# Determine n using Matzner & McKee 1999 eq 25
 	beta = 0.19
 	n = (Npol+1.+3.*beta*Npol)/(beta*Npol)
 	# set delta to 1 for now
 	delta = 1.0
+	print("Mej:%f, n:%f, delta:%f" % (Mej, n, delta), file=sys.stderr)
 	return Mej, n, delta
 
 
