@@ -4,13 +4,13 @@ PROG	:=	runsnhyd
 
 TARGETS	:=	f f90
 
-CPPS	=	$(shell find * -name '*.o')
+CPPS	=	$(shell find $(TARGETS) -name '*.o')
 
 OBJS	=	$(CPPS)
 
 
 all:	$(OBJS) $(PROG)
-	$(eval OBJS = $(shell find * -name '*.o'))
+	$(eval OBJS = $(shell find $(TARGETS) -name '*.o'))
 	$(FC) $(FFLAGS) $(OBJS) $(LIBS) -o $(PROG)
 
 $(PROG):
