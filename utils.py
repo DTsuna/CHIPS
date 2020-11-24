@@ -85,7 +85,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 	data = mr.MesaData(data_file_at_mass_eruption)
 	CSM = np.loadtxt(CSM_in, skiprows=1)
 	r_in = CSM[:,2]
+	rho_in = CSM[:,4]
 	rmin = r_in[0]
+	rmin = 1.1e14
 	X_edge = CSM[-1,5]
 	Y_edge = CSM[-1,6]
 	vwind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
@@ -107,15 +109,15 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 			Y = CSM[index, 6]*(1.-fraction) + CSM[index+1,6]*(fraction)
 			Y_avrg = (Y_avrg*last_Mr + Y*(Mr-last_Mr))/Mr
 			last_Mr = Mr
-			print("%d %.4g %.4g %.4g %.4g %.4g %.4g" % (i, Mr, r, v, rho, X, Y), file=fout)
+			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, v, rho, X, Y), file=fout)
 		else:
-			# use the wind profile at that point
-			rho = wind_Mdot_vw / (4.*math.pi*r**2)
+			# use a profile that connects to the wind profile with a Gaussian drop 
+			rho = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
 			Mr += 4.*math.pi*r**2*rho*(r-rs[i-1])
 			Y_avrg = (Y_avrg*last_Mr + Y_edge*(Mr-last_Mr))/Mr
 			last_Mr = Mr
 			# X, Y are the edge value
-			print("%d %.4g %.4g %.4g %.4g %.4g %.4g" % (i, Mr, r, vwind, rho, X_edge, Y_edge), file=fout)
+			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, vwind, rho, X_edge, Y_edge), file=fout)
 	fout.close()
 	return Y_avrg
 
