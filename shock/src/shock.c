@@ -51,7 +51,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 {
 	double *array;
 	double dt = 8640.;
-	double t_ini;
+	double t_ini, t_fin = 100.*86400.;
 	double r_ini;
 	int i;
 	FILE *fp;
@@ -74,13 +74,16 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], rho_csm(array[3]));
 	do{
 		dt = 0.005*t_exp;
+		if(t_exp+dt > t_fin){
+			dt = t_fin-t_exp;
+		}
 		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm);
 		printf("t = %f d, %e %e %e %e %e, L = %e erg/s, di = %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
 			4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[3])*pow(array[1], 3.));
 		fprintf(fp, "%f %e %e %e %e %e %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], rho_csm(array[3]));
-	}while(t_exp < 100.*86400.);
+	}while(t_exp < t_fin);
 	fclose(fp);
 }
 
