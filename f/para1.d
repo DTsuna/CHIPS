@@ -3,7 +3,7 @@ ISTART, IHYDM,  WINDOW, INTERVAL TO LOOK, idev
 MASS CUT    COURNT NUMBER   EEXPL       Nenv
 0.0           0.4D0      0     0
 TIME TO OUTPUT 2.3E5, 3E5, 4.32E5,
-4, 4.d5, 7.d5, 1.d6, 1.1d8
+4, 1.d12, 1.d13, 1.d14, 1.d15
 FILE NAMES TO OUTPUT
 snhydOutput/hyd.d
 snhydOutput/lc.d

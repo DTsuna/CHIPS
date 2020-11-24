@@ -28,7 +28,7 @@ c---  initial data is required.
       real*8 boundr
       integer output_do
       real*8 when_out(99)
-      integer output_init
+      integer output_init, dummyInt
 
 
       logical finish
@@ -55,7 +55,7 @@ c---  initial data is required.
       ! Calculate only ejecta after dynamcal time if true.
       logical EjectaOnly 
       EjectaOnly = .true.
-
+      dummyInt = 3
 
       output_do = 1
       ejectaCut = 0
@@ -144,7 +144,7 @@ c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
 !      call eos(n,1,cv,kap)
       call eoshelm(n,cv,temp,e,tau,p,x,
-     %        grv,rad,eu,g,g1,cs,u,mn,nelem,time)
+     %        grv,rad,eu,g,g1,cs,u,mn,nelem,time,dummyInt)
 
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
@@ -157,31 +157,6 @@ c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
      &       ,8x,'e',8x,'temp',/,(i4,1p7e9.2))
 
       call state(n,dt,psl,psr,usl,usr)
-!      do j= 2, n-1
-!         gl(j)=g(j)
-!         g1l(j)=g1(j)
-!         taup(j)=tau(j)
-!         psl(j)=p(j)
-!         usl(j)=u(j)
-!         gr(j)=g(j+1)
-!         g1r(j)=g1(j+1)
-!         psr(j)=p(j+1)
-!         taum(j)=tau(j+1)
-!         usr(j)=u(j+1)
-!      enddo
-!      j=n
-!      gl(j)=g(j)
-!      g1l(j)=g1(j)
-!      taup(j)=tau(j)
-!      psl(j)=p(j)
-!      usl(j)=u(j)
-!      gr(j)=g(j)
-!      g1r(j)=g1(j)
-!      psr(j)=p(j)
-!      taum(j)=tau(j)
-!      usr(j)=u(j)
-
-
 
 
       call riemnt( n,ihyd,gl,gr,g1l,g1r,psl,psr,taup,taum,usl,
@@ -295,12 +270,15 @@ c      call grow(n, finish, dt, time, encmg)
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
 
+      innerCell = 3
+      if(ejectaCut.eq.1)then
+        innerCell = fixedCell
+      end if      
       call eoshelm(n,cv,temp,e,tau,p,x,grv,rad,eu,g,g1,cs,u,mn,
-     $   nelem,time)
+     $   nelem,time,innerCell)
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
 
-      write(*,*)"e_tot eu_tot",te,tet
 
       if(ejectaCut.eq.0)then
         call opac(n, kap,iphoto)
@@ -359,6 +337,7 @@ c$$$         jw = iphoto
 
 c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
       endif
+
       kp1 = max(kp-1,1)
       if(time.eq.tp(kp1)) then
          open (11,file='snhydOutput/hyd.d',
@@ -375,67 +354,26 @@ c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
          iarrv = 1
          print *,"shock breaks out at t=",time
       end if
-!      if(rad(ipass).ge.0.1*AU.and.ipass.ge.3)then
-!         write(66,'(i6,1p7e15.7)')ipass,time,rad(ipass),dmass(ipass),
-!     $        1.0/tau(ipass),u(ipass),p(ipass),temp(ipass)
-!         if(ipass.eq.3)then
-!            close(66)
-!            write(*,*)"end in ipass"
-!            stop
-!         endif
-!        ipass=ipass-1
-!      endif
-
-c         writel = abs(olumn-time)/(0.5d0*(time+olumn))
-c         writel = abs(olumn-lum(iphoto))/(0.5d0*(lum(iphoto)+olumn))
-c$$$         writel = 1.d0
-c$$$         if(writel.gt.1d-2) then
-c$$$            ilum = iphoto
-c$$$            if(ilum.gt.ni)then
-c$$$               dtaui = (0.666666667d0-tauo(ilum))/(tauo(ilum+1)
-c$$$     $              -tauo(ilum))
-c$$$               write(12,'(1p3e15.7,i5,e15.7)')time/8.64d4,
-c$$$     $              (log10(temp(ilum+1))-log10(temp(ilum)))
-c$$$     $              *dtaui+log10(temp(ilum)),
-c$$$     $              (log10(lum(ilum+1)+1.d0)-log10(lum(ilum)+1.d0))
-c$$$     $              *dtaui+log10(lum(ilum)+1.d0), iphoto,rad(iphoto)
-c$$$               olumn = lum(iphoto)
-c$$$            else
-c$$$               write(12,'(1p3e15.7,i5,e15.7)')time/8.64d4,
-c$$$     $              log10(temp(ni)),log10(lum(ni)),iphoto,rad(iphoto) 
-c$$$               write(6,'(1p3e15.7,i5,e15.7)')time/8.64d4,
-c$$$     $              log10(temp(ni)),log10(lum(ni)),iphoto,rad(iphoto) 
-c$$$               olumn = time
-c$$$           endif
-c$$$         end if
-         if(kp1.eq.ntp)then
-            finish = .true.
-            call grow(n, finish, dt, time, encmg)
-            go to 99
-         end if
-         if(iarrv.eq.1)then
-            jn=n
-            do j = 3, n
-!               if(tau(j)/tau(j-1).lt.1d-7)then
-               if(u(j).gt.1.d9.or.1.d0/tau(j).lt.1e-17)then
-!                  jn=j-1
-                  jn=j-2
-                  print *,"jn=",jn
-                  exit
-               end if
-            enddo
-            if(jn.lt.n)then
-!               jw = jw+(jn-n)
-               n = jn
-               print *,"n changes to",n," rho(j)=",1.d0/tau(n+1),
-     $              " rho(j-1)=",1.d0/tau(n)
+      if(iarrv.eq.1)then
+         jn=n
+         do j = 3, n
+            if(u(j).gt.3.d9.or.1.d0/tau(j).lt.1e-20)then
+               jn=j-2
+               print *,"jn=",jn
+               exit
             end if
-         endif
-         ihyd = ihyd+1
+         enddo
+         if(jn.lt.n)then
+!               jw = jw+(jn-n)
+            n = jn
+            print *,"n changes to",n," rho(j)=",1.d0/tau(n+1),
+     $              " rho(j-1)=",1.d0/tau(n)
+         end if
+      endif
+      ihyd = ihyd+1
       enddo
 c$$$ 10   continue 
       finish = .true.
-      call grow(n, finish, dt, time, encmg)
       call output(n, alpha, ihyd, time, dt)
  99   close(12)
       close(11)

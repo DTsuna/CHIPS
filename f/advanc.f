@@ -99,12 +99,12 @@ c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
          e(j) = oe(j)+4.*pi*dt/dmass(j)*(ab1*us(j-1)*ps(j-1)
      $        -ab*us(j)*ps(j))
 
-         if(j.eq.10)then
-           write(*,*)"====== advanc report at 10 ====="
-           write(*,*)"u in first=", 2.*pi*(ab+ab1)*dt/dmass(j)*
-     $           (ps(j-1)-ps(j))
-           write(*,*)"u in second=",dt*grvm
-         end if
+!         if(j.eq.10)then
+!           write(*,*)"====== advanc report at 10 ====="
+!           write(*,*)"u in first=", 2.*pi*(ab+ab1)*dt/dmass(j)*
+!     $           (ps(j-1)-ps(j))
+!           write(*,*)"u in second=",dt*grvm
+!         end if
  30   continue
 
       if(time.lt.5.d1.and.time+dt.gt.5.d1)then

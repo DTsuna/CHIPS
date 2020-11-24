@@ -335,16 +335,16 @@ c        convergence test
 
 
 c$$$         print *,"test@",iter,"=",test,tesl
-         write(*,*)"*****************************"
-         write(*,*)"radtra iteration iter =",iter
-         write(*,*)"lum(n)=",lum(n)
-         write(*,*)"gam12lgam12atn",gam1(n),gam2(n),lgam1(n),lgam2(n)
-         write(*,*)"         k         temp(k)
-     $               dltemp(k)"
-         do j = n - 10 , n
-           write(*,*),j,temp(j),dltemp(j),kap(j)
-         end do
-         write(*,*)"*****************************"
+!         write(*,*)"*****************************"
+!         write(*,*)"radtra iteration iter =",iter
+!         write(*,*)"lum(n)=",lum(n)
+!         write(*,*)"gam12lgam12atn",gam1(n),gam2(n),lgam1(n),lgam2(n)
+!         write(*,*)"         k         temp(k)
+!     $               dltemp(k)"
+!         do j = n - 10 , n
+!           write(*,*),j,temp(j),dltemp(j),kap(j)
+!         end do
+!         write(*,*)"*****************************"
          if(tesm.lt.eps)goto 400
       enddo
  400  continue

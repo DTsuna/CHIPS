@@ -114,10 +114,10 @@ cexpl -------- for rarefaction wave
 
             ps(i) = psprev(i)+max(-0.9d0*ps(i),delps)
 
-            if(i.eq.499.and.it.eq.1)then
-              write(*,*)"error ps",wl(i),wr(i),vell(i),velr(i),
-     &                                 pl(i),pr(i)
-            end if
+!            if(i.eq.499.and.it.eq.1)then
+!              write(*,*)"error ps",wl(i),wr(i),vell(i),velr(i),
+!     &                                 pl(i),pr(i)
+!            end if
 
             error = abs(delps/ps(i))
             if(i.eq.n)then

@@ -14,18 +14,20 @@ c      real*8 r1, r2, r3, r4, r5, r6
      $     as = 7.564d-15, r = 8.3147515d7, kdeg = 0.d0, x1=0.2 )
 c     &            as = 7.564d-15, r = 8.3147515d7, kdeg = 2.384d14 )
       real*8 encm(mn),dmass(mn)
+      integer dummyInt
 
       common /mass/encm, dmass
       common /neutrn/ tmns
       alpha = 2.d0
       al1 = alpha+1.d0
+      dummyInt = 3
 
       if(istart.le.1)then
          time = 0.d0
-         open(15,file='InitForHydro.txt', status='old')		!名前変更
+         open(15,file='InitForHydro.txt', status='old')	
 c$$$         open(15,file='Heger/hyd.rezone',status='old')
          read(15,*)n
-         read(15,*)							!読み込み
+         read(15,*)	
          print *,n
 c$$$         read(15,*)
          if(n.ge.mn)write(*,*)'you should define larger matrices'
@@ -42,14 +44,13 @@ c$$$         end if
 c$$$            read(15,*)kk,r1,r2,r3,r4,r5,r6,r7
             read(15,*)kk,r1,r2,r3,r4,r5,r6,r7,r8,r9,r10,r11,
      $     r12,r13,r14,r15,r16,r17,r18,r19,r20,r21,r22,r23,
-     $     r24,r25,r26							!読み込み
+     $     r24,r25,r26	
 c$$$            print *,"grid#=",kk
 c$$$ These are for 15 Msun model by Heger              
 c$$$            if(j.eq.226)tmns = r2
 c$$$            if(j.ge.227)then
 c$$$ These are for 20 Msun model by Heger              
             if(j.eq.2)tmns = r2
-!            if(j.eq.3)temp(3)=r7					!ここだけは温度も読み込み
             if(j.ge.3)then
 c$$$ These are for 25 Msun model by Heger              
 c$$$            if(j.eq.172)tmns = r2
@@ -57,8 +58,8 @@ c$$$            if(j.ge.173)then
 c$$$            if(j.eq.1)tmns = r2
                dmass(i) = r3
                rho(i) = r5
-               p(i) = r6						!この辺も読み込みのために変更
-               temp(i) =r7                  !温度も読み込んでいいはずだよね
+               p(i) = r6
+               temp(i) =r7
                rad(i) = r4
                x(i,1)=max(1d-40,r8)
                x(i,2)=r9
@@ -154,19 +155,9 @@ c$$$         enddo
 !         enddo
          e(1) = e(4)
          e(2) = e(3)
-!         call eos(n,2,cv,kap) !実はこれいらないのでは?
-c$$$         call extend(n,nadd)
-
-!	print *,temp(3) !コメント
-!	print *,rad(4) !コメント
-!	print *,rho(3)	!コメント
-!	print *,(al1*dmass(3)*tau(3)/(4.d0*pi)+rad(2)**al1)
-!    $           **(1.d0/al1)!コメント
 
 
 !	print *,(al1*dmass(4)*tau(4)/(4.d0*pi)+rad(3)**al1)
-!     $           **(1.d0/al1)!コメント
-!	print *,rho(3) !コメント
          
          rad(1) = -rad(3)
 c     rad(1) = (al1*dmass(1)/(4*pi*rho(1)))**(1/al1)
@@ -181,9 +172,9 @@ c     rad(1) = (al1*dmass(1)/(4*pi*rho(1)))**(1/al1)
          call grav(n,encmg)
 !         call eos(n,1,cv,kap)
          call eoshelm(n,cv,temp,e,tau,p,x,grv,rad,eu,g,g1,cs,u,
-     $        mn,nelem,time)
+     $        mn,nelem,time,dummyInt)
 
-         print *,temp(3) !コメント
+         print *,temp(3) 
 
 !         do 30 j = 3, 8
 !            e(j) = e(j)+eje/(6*dmass(j))
@@ -198,7 +189,6 @@ c     ar(1) = 4*pi*rad(1)*rad(1)/3
          ar(2) = -ar(3)
 !         call grav(n,encmg)
 !         call eos(n,1,cv,kap)
-!         call eoshelm(n,cv,temp,e,tau,p,x,grv,rad,eu,g,g1,cs,u,mn,nelem)
 
 
       else

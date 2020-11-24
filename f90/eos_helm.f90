@@ -2,7 +2,8 @@
 !全ての値は引数渡し&返し
 
 
-      subroutine eoshelm(n,dedlt_ar,temp_ar,e_ar,tau_ar,p_ar,x_ar,grv_ar,rad_ar,eu_ar,g_ar,g1_ar,cs_ar,u_ar,mn,nelem,time)
+      subroutine eoshelm(n,dedlt_ar,temp_ar,e_ar,tau_ar,p_ar,x_ar, &
+                   grv_ar,rad_ar,eu_ar,g_ar,g1_ar,cs_ar,u_ar,mn,nelem,time,innerCell)
 !$ use omp_lib
       include 'implno.dek'
       include 'vector_eos.dek'
@@ -28,7 +29,7 @@
       double precision d_temp,time
       integer          i,error
 ! from snhyd
-      integer          n, thnegative, kk
+      integer          n, thnegative, kk, innerCell
       real*8           dedlt_ar(mn), temp_ar(mn), e_ar(mn), tau_ar(mn), p_ar(mn), x_ar(mn,nelem)
       real*8           grv_ar(mn), rad_ar(mn), eu_ar(mn), g_ar(mn), g1_ar(mn), cs_ar(mn), u_ar(mn)
       real*8           dkh, beta,rn
@@ -87,14 +88,14 @@
 !$OMP&                temp_trial,e_th,epsilon_temp,d_temp,beta,error,&
 !$OMP&                te, dt, pref, muie, p, arad)
 !$OMP DO
-
-      do k = 3, n
+      write(*,*)"innerCell in eoshelm", innerCell
+      do k = innerCell, n
        do j = 1, ionmax
         xmass(j) = x_ar(k,j)
 !        write(*,*) 'x', xmass(j)
        end do
 
-      arad = 7.56464e-15
+       arad = 7.56464e-15
 
 ! average atomic weight and charge
        abar   = 1.0d0/sum(xmass(1:ionmax)/aion(1:ionmax))
@@ -233,9 +234,6 @@
          cs_ar(k) =sqrt(g1_ar(k)*p_ar(k)*tau_ar(k))
        end if
 
-
-
-!引数に値を渡す!
 
 !       eu_ar(k) = etot_row(1)
 !       e_ar(k) = eu_ar(k) + 0.5d0*u_ar(k)**2 +grv_ar(k)*rn
