@@ -52,8 +52,9 @@ void set_opacity(const char *openfile, opacity *op)
 double kappa_r(double rho, double T)
 {
 	double a, b, c;
-	double R = rho/pow(T*1.e-06, 3.0);
-	double kappa = 0., sigma;
+	//double R = rho/pow(T*1.e-06, 3.0);
+	double R = rho/pow(T, 1.5);
+	double kappa = 0., sigma, sigma_at_R0;
 	int i, j;
 	static opacity op = {{0.}, {0.}, {0.}, 0, 0};
 
@@ -96,7 +97,8 @@ double kappa_r(double rho, double T)
 		i = dcht(log10(T), op.T, op.imax);
 		kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
 		sigma = sigma_sc(rho, T);
-		kappa = pow(10., kappa)-sigma; //absorption opacity at R=R0.
+		sigma_at_R0 = sigma_sc(pow(10,op.R[0])*pow(T, 1.5),T);
+		kappa = pow(10., kappa)-sigma_at_R0; //absorption opacity at R=R0.
 		kappa = kappa*R*pow(10., -op.R[0]);
 		return kappa+sigma;
 	}
