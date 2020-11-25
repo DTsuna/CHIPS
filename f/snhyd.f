@@ -210,16 +210,16 @@ c$$$      do 10 ihyd = istart, ihydm
            open(91, file=filename,status='unknown',form='formatted')
 
            if(ejectaCut.eq.0)then
-             write(91,93)n,time,dt,ihyd,(j,rad(j),encm(j),dmass(j),
+             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40, ye(j),
      $       j= 3, n)
            end if
            if(ejectaCut.eq.1)then
-             write(91,93)n,time,dt,ihyd,(j,rad(j),encm(j),dmass(j),
+             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40, ye(j),
      $       j= fixedCell, n)
            end if
- 93     format(i5,' time', 1pe12.4,' sec',' dt',e12.4,' sec  istep ',i8
+ 93     format(i5,' time', 1pe12.4,' sec',' te',e12.4,' erg  istep ',i8
      &  ,/,' no.',5x,'rad',10x,'encm',13x,'dm',12x,'rho',14x,'v'
      &         ,14x,'p',14x,'e',14x,'t',/,(i5,1p10e15.7))
            close(91)
@@ -309,7 +309,7 @@ c      call grow(n, finish, dt, time, encmg)
         go to 99
       end if
 
-      if(ihyd.gt.0)then
+      if(ihyd.ge.0)then
 !      if(ihyd/iout*iout.eq.ihyd)then
 c$$$         jw = iphoto
          call tote(n,nadd,e,dmass,rad,grv,u,te,tet)

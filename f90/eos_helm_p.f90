@@ -122,7 +122,7 @@
               radcons*(temp_row(1)**4.d0)/den_row(1)
          e_ar(k)  = eu_ar(k) + 0.5d0*u_ar(k)**2 + grv_ar(k)*rad_ar(k) 
          p_ar(k)  = muie*dkh*den_row(1)*temp_row(1) + &
-                      radcons*(temp_row(1))/3.d0
+                      radcons*(temp_row(1)**4.d0)/3.d0
          dedlt_ar(k) = 1.5d0*dkh*(1.0d0/abar + 0.5d0)* &
                    temp_ar(k)+4.0d0*(temp_ar(k)**4.d0)*tau_ar(k)*radcons
          

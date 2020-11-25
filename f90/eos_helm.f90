@@ -102,7 +102,7 @@
        zbar   = abar * sum(xmass(1:ionmax) * zion(1:ionmax)/aion(1:ionmax))
 
 ! set the input vector. pipeline is only 1 element long in this example
-       temp_trial = temp_ar(k) !試行値は前ステップでの温度
+       temp_trial = temp_ar(k)
 !       if(k.lt.n)then
 !         rn = sqrt(((rad_ar(k+1)**2.d0)+(rad_ar(k)**2.d0)+rad_ar(k)*rad_ar(k+1))/3.d0)
 !       end if
@@ -127,7 +127,6 @@
 ! set the how accurate answer we demand
        epsilon_temp = 1.0d-4
 
-!デバッグ用ブロック
 !       write(*,*) 'k=',k
 !       write(*,*) 'tenp_tiral=',temp_trial
 !       write(*,*) 'e_th=',e_th
@@ -175,7 +174,10 @@
           d_temp = (e_th - etot_row(1))/(det_row(1))
 !          write(*,*) 'trial =' ,i, 'temperature =' ,temp_row(1), 'e_th_tiral =' ,etot_row(1)
           i = i + 1
-          if(i.gt.100)stop
+          if(i.gt.100)then
+            write(*,*)"eoshelm failed to converge!"
+            stop
+          end if
        end do
 ! end of calculation
        temp_ar(k) = temp_row(1)
@@ -224,9 +226,12 @@
 !          write(*,*)"gamma(",k,")=",g1_ar(k)
 !          write(*,*)"t(eoshelm)=",temp_ar(k),"t(eos)=",te,"p(eoshelm=)",p_ar(k),"p(eos)=",p
        end if
-       if(temp_ar(k).lt.100.d0)then
+       if(temp_ar(k).lt.100.d0.or.thnegative.eq.1)then
          temp_ar(k) = 100.d0
          p_ar(k) = dkh*muie*den_row(1)*temp_ar(k) + arad*(temp_ar(k)**4)/3.d0
+         eu_ar(k) = 1.5d0*dkh*temp_ar(k)*muie + &
+                               arad*(temp_ar(k)**4.d0)/den_row(1)
+         e_ar(k) = eu_ar(k) + 0.5d0*u_ar(k)**2 + grv_ar(k)*rn
          beta = (1.0d0/abar + 0.5)*dkh*temp_ar(k)/(p_ar(k)*tau_ar(k))
          g_ar(k) = p_ar(k)*tau_ar(k)/eu_ar(k) + 1.0d0
          g1_ar(k) = (8.0d0 - 3.0d0*beta)/(6.0d0 -3.0d0*beta)
@@ -234,18 +239,6 @@
          cs_ar(k) =sqrt(g1_ar(k)*p_ar(k)*tau_ar(k))
        end if
 
-
-!       eu_ar(k) = etot_row(1)
-!       e_ar(k) = eu_ar(k) + 0.5d0*u_ar(k)**2 +grv_ar(k)*rn
-
-
-! write out the results
-!       call pretty_eos_out('helm:  ')
-!       write(*,*) '**********************result**********************'
-!       write(*,*) 'temperature =',temp_row(1)
-!       write(*,*) 'e_th        =',etot_row(1)
-!       write(*,*) 'pressure    =',ptot_row(1)
-!       write(*,*) '********************program end*******************'
 
       end do
 
