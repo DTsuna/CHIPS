@@ -85,9 +85,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 	data = mr.MesaData(data_file_at_mass_eruption)
 	CSM = np.loadtxt(CSM_in, skiprows=1)
 	r_in = CSM[:,2]
+	v_in = CSM[:,3]
 	rho_in = CSM[:,4]
-	rmin = r_in[0]
-	rmin = 1.1e14
+	rmin = max(r_in[0], 2.*data.photosphere_r*RSUN)
 	X_edge = CSM[-1,5]
 	Y_edge = CSM[-1,6]
 	vwind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
@@ -97,8 +97,29 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 	Y_avrg = 0.0
 
 	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), 1000)
+	# find outermost radius where the velocity transitions from positive to negative.
+	# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
+	# can be the boundary of the star and the CSM.
+	try:
+		istop = max([i for i in range(len(v_in)) if v_in[i-1]>0.0 and v_in[i]<0.0])
+		rstop = r_in[istop]
+	except:
+		istop = 0
+		rstop = 0.0
 	for i, r in enumerate(rs):
-		if r < r_in[-1]:
+		if r < rstop:
+			# we fix the density profile as rho\propto r^(-1.5) inside the radius where the CSM density become
+			# unreliable due to artificial shocks. this profile is merely a guess: but should be somewhat accurate
+			# well close to the stellar surface
+			rho = rho_in[istop] * (r/rstop)**(-1.5)
+			# use values at istop
+			# FIXME Mr is incorrect; fix or delete Mr
+			Mr = CSM[istop, 1]
+			v = CSM[istop, 3]
+			X = CSM[istop, 5]
+			Y = CSM[istop, 6]
+			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, v, rho, X, Y), file=fout)
+		elif r < r_in[-1]:
 			# obtain rho by log interpolation, Mr and v by linear. Mr is not used anyway
 			index = len([thisr for thisr in r_in if thisr < r])-1
 			fraction = (r - r_in[index]) / (r_in[index+1] - r_in[index])
