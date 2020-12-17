@@ -34,10 +34,10 @@
 !      min_cell_energy_fraction_for_dedt_form = 0
 !      use_eps_correction_for_KE_plus_PE_in_dLdm_eqn = .true.
 
-      initial_mass = 12.000000
+      initial_mass = 13.000000
 
-      initial_z = 0.020000
-      Zbase = 0.020000
+      initial_z = 0.014000
+      Zbase = 0.014000
 
       Dutch_scaling_factor = 0.8 ! EDIT THIS TO SET WIND
 
