@@ -36,9 +36,9 @@ def parse_command_line():
 options, filenames = parse_command_line()
 
 
-if skip_mesa:
+if options.skip_mesa:
 	file_cc = 'mesa_models/'+str(options.zams_m)+'Msun_Z'+str(options.zams_z)+'_preccsn.data'
-	file_me = 'mesa_models/'+str(options.zams_m)+'Msun_Z'+str(options.zams_z)+'_5yr_ccsn.data'
+	file_me = file_cc 
 else:
 	#################################################################
 	#								#
