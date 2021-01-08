@@ -52,9 +52,9 @@ else:
 		if 'initial_mass' in line:
 			print("      initial_mass = %f" % float(options.zams_m))
 		elif 'initial_z' in line:
-			print("      initial_z = %f" % 0.014*float(options.zams_z))
+			print("      initial_z = %f" % (0.014*float(options.zams_z)))
 		elif 'Zbase' in line:
-			print("      Zbase = %f" % 0.014*float(options.zams_z))
+			print("      Zbase = %f" % (0.014*float(options.zams_z)))
 		else:
 			print(line.rstrip())
 
