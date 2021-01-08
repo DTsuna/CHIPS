@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdlib.h>
 #include "boundary.h"
 #include "solver.h"
 #include "pars.h"
@@ -154,47 +155,61 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 	double dtau = 0.50;
 	double err, tol = 1.00e-08;
 	double r_ini;
-	double egn[4], degn[nsize], egnfd[4], p[4] = {};
+	double egn_old[4], egn[4], degn[nsize], egnfd[4], p[4] = {};
 	double phys[2*4], physfd[4];
 	double J[16];
 	static double outp_egn[6];
 
-	t_exp = array[0]+dt;
+	memcpy(egn_old, egn, sizeof(double)*4);
+
 	strcpy(csm, file_csm);
 	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, 0.00);
 
-	forward_egn(array, &r_ini, egn, dt);
-
-	for(i = 0; i < nsize; i++){
-		egnfd[i] = fabs(egn[i]);
-		degn[i] = 1.00e-04*egnfd[i];
-	}
-
-	physfd[0] = egn[1]; physfd[1] = rho_csm(egn[3])*egn[1]*egn[1];
-	physfd[2] = egn[2];
-
-	do{
-		err = 0.00;
-		solver(r_ini, phys, egn, 1);
+	while(1){
+		for(i = 0; i < 4; i++){
+			p[i] = 0.;
+			egn[i] = egn_old[i];
+		}
+		t_exp = array[0]+dt;
+		forward_egn(array, &r_ini, egn, dt);
+	
 		for(i = 0; i < nsize; i++){
-			egn[i] += degn[i];
-			solver(r_ini, phys+nsize, egn, 1);
-			for(j = 0; j < nsize; j++){
-				J[nsize*j+i] = (phys[nsize+j]-phys[j])/degn[i]*egnfd[i]/physfd[j];
+			egnfd[i] = fabs(egn[i]);
+			degn[i] = 1.00e-04*egnfd[i];
+		}
+	
+		physfd[0] = egn[1]; physfd[1] = rho_csm(egn[3])*egn[1]*egn[1];
+		physfd[2] = egn[2];
+	
+		do{
+			err = 0.00;
+			solver(r_ini, phys, egn, 1);
+			for(i = 0; i < nsize; i++){
+				egn[i] += degn[i];
+				solver(r_ini, phys+nsize, egn, 1);
+				for(j = 0; j < nsize; j++){
+					J[nsize*j+i] = (phys[nsize+j]-phys[j])/degn[i]*egnfd[i]/physfd[j];
+				}
+				egn[i] -= degn[i];
 			}
-			egn[i] -= degn[i];
+			for(i = 0; i < nsize; i++){
+				egn[i] /= egnfd[i];
+				phys[i] /= physfd[i];
+			}
+			get_itr_x(egn, p, J, phys, dtau, nsize);
+			for(i = 0; i < nsize; i++){
+				err += phys[i]*phys[i];
+				egn[i] *= egnfd[i];
+			}
+			err = sqrt(err/(double)nsize);
+		}while(err > tol);
+		if(isnan(egn[0]) || isnan(egn[1]) || isnan(egn[2]) || isnan(egn[3])){
+			dt *= 0.5;
 		}
-		for(i = 0; i < nsize; i++){
-			egn[i] /= egnfd[i];
-			phys[i] /= physfd[i];
+		else{
+			break;
 		}
-		get_itr_x(egn, p, J, phys, dtau, nsize);
-		for(i = 0; i < nsize; i++){
-			err += phys[i]*phys[i];
-			egn[i] *= egnfd[i];
-		}
-		err = sqrt(err/(double)nsize);
-	}while(err > tol);
+	}
 
 	outp_egn[0] = t_exp; outp_egn[1] = egn[0]; outp_egn[2] = egn[1];
 	outp_egn[3] = r_ini; outp_egn[4] = egn[3]; outp_egn[5] = egn[2];
