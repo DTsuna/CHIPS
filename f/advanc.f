@@ -110,7 +110,7 @@ c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
       if(time.lt.5.d1.and.time+dt.gt.5.d1)then
         e_charge = (e_charge_tot/injection_time)*(time+dt-5.d1)
         write(*,*)"e_charge=",e_charge
-        do kk = 10,9+e_in_cell
+        do kk = 3,2+e_in_cell
           e(kk) = e(kk) + (e_charge/e_in_cell)/dmass(kk)
         end do
       end if 
@@ -124,7 +124,7 @@ c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
      $    (5.d1+injection_time-time)
           write(*,*)"e_charge=",e_charge
         end if
-        do kk = 10,9+e_in_cell 
+        do kk = 3,2+e_in_cell 
           e(kk) = e(kk) + (e_charge/e_in_cell)/dmass(kk)
         end do
       end if
