@@ -54,7 +54,6 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	double dt = 8640.;
 	double t_ini, t_fin = 100.*86400.;
 	double r_ini;
-	int i;
 	FILE *fp;
 
 	strcpy(csm, file_csm);
