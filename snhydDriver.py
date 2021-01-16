@@ -1,9 +1,10 @@
 import convert
 import subprocess
 
-file_me = 'profile.data'
+file_me = 'profile54.data'
 file_hydro = 'InitForHydro.txt'
 hydroNumMesh = 10000
+logscaleRemesh = True
 
 massCutByHand = False # If true, massCutPoint is used. If false, helium core is cutted automatically.
 massCutPoint = 1.3 # unit in Msun
@@ -12,7 +13,7 @@ subprocess.call(["rm", "f/inclmn.f"])
 subprocess.call(["rm", "f/eruptPara.d"])
 subprocess.call(["rm", "InitForHydro.txt"])
 
-convert.convertForHydro(file_me, file_hydro, hydroNumMesh, massCutByHand, massCutPoint)
+convert.convertForHydro(file_me, file_hydro, hydroNumMesh, massCutByHand, massCutPoint, logscaleRemesh)
 
 
 injectedEnergy = 1.5e47

@@ -5,9 +5,41 @@ import gc
 import numpy as np
 import mesa_reader as mr
 
+def f(CommonR, FirstTerm, SumMass, NumOfTerms):
+        return np.power(CommonR,NumOfTerms) - SumMass*CommonR/FirstTerm + SumMass/FirstTerm - 1
+
+def fx(CommonR, FirstTerm, SumMass, NumOfTerms, DeltaDiff):
+        return ( f(CommonR+DeltaDiff, FirstTerm, SumMass, NumOfTerms) - f(CommonR, FirstTerm, SumMass, NumOfTerms) ) / DeltaDiff
 
 
-def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutPoint):
+def getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms):
+        print('get common ratio for logscale remeshing')
+        CommonR = CommonR_init
+        Error = 1.0
+        MaxError = 1e-8
+        DeltaDiff = 1e-10
+        i = 0
+        print('Trial='+str(i)+'  Common Ratio='+str(CommonR)+'  Error='+str(Error))
+
+        while Error > MaxError:
+                pref = f(CommonR, FirstTerm, SumMass, NumOfTerms)
+                CommonR = CommonR - (f(CommonR, FirstTerm, SumMass, NumOfTerms)/fx(CommonR, FirstTerm, SumMass, NumOfTerms, DeltaDiff))
+                Error = np.absolute( f(CommonR, FirstTerm, SumMass, NumOfTerms) - pref )
+                i = i + 1
+                print('Trial='+str(i)+'  Common Ratio='+str(CommonR)+'  Error='+str(Error))
+                if i > 1000:
+                        print('logscale remeshing does not converge')
+                        sys.exit(1)
+        print('========== Consistency check ==========')
+        print('Required total mass ='+str(SumMass))
+        result = ( np.power(CommonR,NumOfTerms)*FirstTerm - FirstTerm )/( CommonR - 1)
+        print('Computed total mass ='+str(result))
+        if np.absolute(result - SumMass) > 2e33 * 1e-6:
+                print('Total mass after remeshing is inconsistent with before remeshing!')
+                sys.exit(1)
+        return CommonR
+
+def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutPoint, logscaleRemesh):
 
         #################################################################
         ##################### Input Parameters ##########################
@@ -25,6 +57,10 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
                 massCut = massCutPoint
 
         print('massCut =' + str(massCut))
+        if logscaleRemesh == True:
+                print('use logscale remesh')
+        if logscaleRemesh == False:
+                print('use linear remesh')
 
         lowerLimX = 1.0e-40 # Lower limit on the value of composition X
         elemNum = 19 # number of element
@@ -152,14 +188,31 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
         temperature = np.zeros(size)
         x = np.zeros((elemNum, size))
 
-        fiducialDmass = (cuttedMrCgs[originalSize - cellCut - 1] - cuttedMrCgs[0])/(size - 1)
-        dmass[0] = cuttedMrCgs[0];
-        for i in range(1, size):
-                dmass[i] = ((-1.6/(size-2))*(i-1) + 1.8) * fiducialDmass
-        for i in range(0, size):
-                mrCgs[i] = 0
-                for j in range(0, i + 1):
-                        mrCgs[i] = mrCgs[i] + dmass[j]
+        if logscaleRemesh == False:
+                fiducialDmass = (cuttedMrCgs[originalSize - cellCut - 1] - cuttedMrCgs[0])/(size - 1)
+                dmass[0] = cuttedMrCgs[0];
+                for i in range(1, size):
+                        dmass[i] = ((-1.6/(size-2))*(i-1) + 1.8) * fiducialDmass
+                for i in range(0, size):
+                        mrCgs[i] = 0
+                        for j in range(0, i + 1):
+                                mrCgs[i] = mrCgs[i] + dmass[j]
+
+        if logscaleRemesh == True:
+                dmass[0] = cuttedMrCgs[0];
+                CommonR_init = 1.01
+                FirstTerm = 4.0*3.14*cuttedRadius[originalSize - cellCut - 1]*cuttedRadius[originalSize - cellCut - 1]*0.1
+                SumMass = cuttedMrCgs[originalSize - cellCut - 1] - cuttedMrCgs[0]
+                NumOfTerms = size-1
+                CommonR = getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms)
+                print('Frist term ='+str(FirstTerm)+'  Common ratio ='+str(CommonR))
+                dmass[size - 1] = FirstTerm
+                for i in range(2, size):
+                        dmass[size - i] = dmass[size - i + 1]*CommonR
+                for i in range(0, size):
+                        mrCgs[i] = 0
+                        for j in range(0, i + 1):
+                                mrCgs[i] = mrCgs[i] + dmass[j]
 
         #print(str(mrCgs[size - 1]))
         #print(str(cuttedMrCgs[originalSize - cellCut - 1]))
