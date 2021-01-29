@@ -143,9 +143,6 @@ cexpl -------- for rarefaction wave
 c$OMP END DO
 c$OMP END PARALLEL
 
-      if(ps(99).ne.ps(99).or.ps(100).ne.ps(100))then
-        write(*,*)"ps error in riemnt"
-      end if
 
       ps(2)=0.5d0*(pl(2)+pr(2))
       us(2) = 0.d0

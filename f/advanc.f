@@ -39,7 +39,7 @@
       rad(innerCell) = boundr
 
 c$$$      rad(2) = orad(2)+dt*us(2)
-      do j = innerCell+1, n 		!from 3 to 4
+      do j = innerCell+1, n 
          nu(j) = vis*max(u(j)-u(j+1),0.d0)
          rad(j) = orad(j)+dt*(us(j)+nu(j))-odt*onu(j)
          radm = 0.5*(rad(j)+rad(j-1))
@@ -66,7 +66,7 @@ c$$$      aa1 = a-a1
 c$$$      tau(n) = 4.d0*pi*aa1/((alpha+1.d0)*dmass(n))
       
       call grav(n,encmg)
-      do 20 j = innerCell+1, n	!from 3 to 4
+      do 20 j = innerCell+1, n
          r2 = rad(j)*rad(j)
          r21 = rad(j-1)*rad(j-1)
          ar(j) = 4.*pi*(r2+r21+rad(j)*rad(j-1))/3.d0
@@ -74,11 +74,10 @@ c$$$      tau(n) = 4.d0*pi*aa1/((alpha+1.d0)*dmass(n))
 
       u(innerCell)  = 0.d0
       us(innerCell) = 0.d0
-!      ps(3) = (p(3)+p(4))/2	!riemntでのps(3)はそのまま使えないので
-      !ps(3) = 1.097d+23	!riemntでのps(3)はそのまま使えないので
-!mesaでの値を時間変化を含めて
+!      ps(3) = (p(3)+p(4))/2	
+      !ps(3) = 1.097d+23	
 
-      do 30 j = innerCell+1, n	!from 3 to 4
+      do 30 j = innerCell+1, n
          r2 = rad(j)*rad(j)
          or2 = orad(j)*orad(j)
          r21 = rad(j-1)*rad(j-1)
@@ -99,12 +98,6 @@ c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
          e(j) = oe(j)+4.*pi*dt/dmass(j)*(ab1*us(j-1)*ps(j-1)
      $        -ab*us(j)*ps(j))
 
-!         if(j.eq.10)then
-!           write(*,*)"====== advanc report at 10 ====="
-!           write(*,*)"u in first=", 2.*pi*(ab+ab1)*dt/dmass(j)*
-!     $           (ps(j-1)-ps(j))
-!           write(*,*)"u in second=",dt*grvm
-!         end if
  30   continue
 
       if(time.lt.5.d1.and.time+dt.gt.5.d1)then
@@ -129,12 +122,6 @@ c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
         end do
       end if
 
-
-
-
-      !write(*,*)'u(4)e(4)'
-      !print *,ps(3)
-      !print *,ps(4)
 
 c$$$      u(n) = u(n-1)
 c$$$      e(n) = e(n-1)

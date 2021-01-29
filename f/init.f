@@ -279,7 +279,8 @@ c            encm(j) = encm(j)*solm
 c     ar(1) = 4*pi*rad(1)*rad(1)/3
          ar(1) = -ar(4)
          ar(2) = -ar(3)
-         call eos(n,1,cv,kap)
+         pause
+         !call eos(n,1,cv,kap)
 c$$$         do j = 3, 4
 c$$$            e(j) = e(j)+eje/(2*dmass(j))
 c$$$            temp(j) = sqrt(sqrt(e(j)/(as*tau(j))))
