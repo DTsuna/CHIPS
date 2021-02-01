@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <math.h>
+#include "function.h"
 #include "constant.h"
 #include "itgadvu.h"
 #include "itgadve.h"
@@ -13,8 +14,8 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, char*, char*, char*);
-void init_E_U(double, double, double[], double[], double[], double[], const int);
+void rad_transfer_csm(double, const char*, const char*, const char*);
+void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 
 //int main(void)
 //{
@@ -28,23 +29,20 @@ void init_E_U(double, double, double[], double[], double[], double[], const int)
 //	return 0;
 //}
 
-void rad_transfer_csm(double r_out, char *file_csm, char *file_inp, char *file_outp)
+void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, const char *file_outp)
 {
-	FILE *fp, *fw, *fl;
-	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE];
-	double T_g[NSIZE], T_r[NSIZE], mu[NSIZE];
+	FILE *fp, *fl;
+	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double r_ini, F_ini;
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
-	double rho_ed[2], v_w = 1.e+07;
+	double rho_ed[2];
 	double tf[2000], rf[2000], Ff[2000];
-	int i = 0, j = 0, n = NSIZE, fsize, count = 0;
+	int i = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
 	double dummy[7];
 	double dr;
-	double time1, cpu_time;
+	double CFL = 0.5;
 	char filename[256];
-
-
 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
@@ -66,7 +64,7 @@ void rad_transfer_csm(double r_out, char *file_csm, char *file_inp, char *file_o
 	F_ini = Ff[0];
 
 
-	init_E_U(r_ini, r_out, r, rho, E, U, NSIZE);
+	init_E_U(r_ini, r_out, r, rho, v_w, E, U, NSIZE);
 	dr = r[1]-r[0];
 
 /*
@@ -75,8 +73,18 @@ Here, dr = r[N]-r[N-1] must be fixed.
 for i = 0, 1, ..., n-1, 
 X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 */
-	while(count < 10000 && t < tf[fsize-1]){
-		dt = t*0.001;
+	while(t < tf[fsize-1]){
+
+/*
+dt does not necesarrily satisfy CFL condition.
+*/
+		if(flag == 0){
+//			dt = t*0.00001;
+			dt = CFL*dr/(P_C);
+		}
+		else{
+			flag = 0;
+		}
 
 /*
 Identify the position of forward shock, and estimate by linear interpolation.
@@ -86,8 +94,16 @@ Identify the position of forward shock, and estimate by linear interpolation.
 				j = i;
 			}
 		}
-		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-		F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+
+		if(Ff[j] > 0. && Ff[j+1] > 0.){
+			r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+		}
+		else{
+			r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+			F_ini = (Ff[j+1]-Ff[j])/(tf[j+1]-tf[j])*(t-tf[j])+Ff[j];
+		}
+
 		if(r_ini > r[0]-dr/4.){
 			n--;
 			for(i = 0; i < n; i++){
@@ -97,11 +113,15 @@ Identify the position of forward shock, and estimate by linear interpolation.
 				U[2*i+1] = U[2*(i+1)+1];
 				r[i] = r[i+1];
 				rho[i] = rho[i+1];
+				v_w[i] = v_w[i+1];
 			}
 			r[n] = r[n+1];
 		}
-//		printf("count = %d, %d %f %e %e %f\n", count, n, t/86400., r_ini, F_ini, cpu_time);
-	
+		for(i = 0; i < n; i++){
+			E0[i] = E[2*i];
+			U0[i] = U[2*i];
+//			printf("E = %e U = %e\n", E0[i], U0[i]);
+		}
 /*
 In the following, integrate radiative transfer equation and energy eqation using operator splitting.
 i)   Integrate source term dE/dt = kappa*rho*(acT^4-E), dU/dt = -kappa*rho(acT^4-E), by implicit Euler method.
@@ -116,9 +136,30 @@ iii) Integrate 0th moment equation implicitly. Iteration is needed to complete t
 At first, intergrate source term using implicit Euler method.
 */
 		for(i = 0; i < n; i++){
+//			printf("i = %d r[%d] = %e cm rho[%d] = %e\n", i, i, r[i], i, rho[i]);
 			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+			if(isnan(E[2*i+1]) != 0){
+				flag = 1;
+				break;
+			}
 		}
-	
+		
+		if(flag == 1){
+			for(k = 0; k <= i; k++){
+				E[2*k+1] = E[2*k];
+				U[2*k+1] = U[2*k];
+			}
+			dt *= 0.5;
+			fprintf(stderr, "iteration failure (source term). Too large time step.");
+			continue;
+		}
+		else{
+			for(i = 0; i < n; i++){
+				E[2*i] = E[2*i+1];
+				U[2*i] = U[2*i+1];
+			}
+			flag = 0;
+		}
 /*
 Integrate energy equation impilicitly.
 */
@@ -145,25 +186,40 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			err = 0.;
 			itg_adv_E(r_ini, F_ini, r, E, U, rho, dt, n);
 			for(i = 0; i < n; i++){
+				if(isnan(E[2*i+1])){
+					flag = 1;
+					break;
+				}
+			}
+			if(flag == 1){
+				fprintf(stderr, "iteration failure. time step is too large.\n");
+				break;
+			}
+			for(i = 0; i < n; i++){
 				err += pow(1.-E[2*i+1]/E_old[i], 2.);
 				E_old[i] = E[2*i+1];
 			}
 	
 			err = sqrt(err/(double)n);
-//		printf("err = %e\n", err);
+//			printf("err = %e\n", err);
 		}while(err > tol);
 
-
-/*
-		for(i = 0; i < n; i++){
-			saha(rho[i], U[2*i+1], mu+i, T_g+i);
-			T_r[i] = pow(E[2*i+1]/(P_A), 0.25);
+		if(flag == 1){
+			for(i = 0; i < n; i++){
+				E[2*i] = E0[i];
+				E[2*i+1] = E[2*i];
+				U[2*i] = U0[i];
+				U[2*i+1] = U[2*i];
+			}
+			dt *= 0.5;
+//			printf("back to (?)\n");
+			continue;
 		}
-*/
-	
-		t += dt;
-//		count++;
+		else{
+			flag = 0;
+		}
 
+		t += dt;
 
 		for(i = 0; i < n; i++){
 			E[2*i] = E[2*i+1];
@@ -175,23 +231,22 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 	}
 }
 
-void init_E_U(double r_ini, double r_out, double r[], double rho[], double E[], double U[], const int nsize)
+void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[], double E[], double U[], const int nsize)
 {
 	int i;
 	double dr = (r_out-r_ini)/((double)(nsize)+1./2.)/2.;
 	double T;
 
-//	printf("r_ini = %e cm\n", r_ini);
 	for(i = 0; i < nsize; i++){
 		r[i] = r_ini-dr+2.*(double)(i+1)*dr;
 		E[2*i] = (P_A)*pow(1.e+03, 4.)*pow(r[0]/r[i], 2.);
 		T = pow(E[2*i]/(P_A), 0.25);
 		E[2*i+1] = E[2*i];
 		rho[i] = rho_csm(r[i]);
-		U[2*i] = 1.5*rho[0]*(P_K)*T/(0.62*(MH))*pow(rho[i]/rho[0], 5./3.);
+		v_w[i] = v_wind(r[i]);
+//		U[2*i] = 1.5*rho[0]*(P_K)*T/(0.62*(MH))*pow(rho[i]/rho[0], 5./3.);
+		U[2*i] = 1.5*rho[i]*(P_K)*T/(1.3*(MH));
 		U[2*i+1] = U[2*i];
-//		printf("r[%d] = %e cm, E = %e, U = %e, rho = %e\n", i, r[i], E[2*i], U[2*i], rho[i]);
 	}
 	r[nsize] = r[nsize-1]+2.*dr;
-//	printf("r_out = %e cm\n", r[nsize]);
 }
