@@ -42,8 +42,11 @@ void itg_src(double E[], double U[], double rho, double dt, double tol)
 	double err;
 	double x[2], p[2] = {}, J[4], func[2];
 	double dtau = 0.5;
+	double mu, T, kappa;
 	int count = 0, count_max = 300;
 
+	saha(rho, U[0], &mu, &T);
+	kappa = kappa_p(rho, T);
 	do{
 		diff_eq_src(E, U, rho, dt, func);
 		jacob(E[1], U[1], rho, dt, J);
@@ -59,11 +62,16 @@ void itg_src(double E[], double U[], double rho, double dt, double tol)
 		E[1] = x[0]*E[0]; U[1] = x[1]*U[0];
 		err = func[0]*func[0]/E[1]/E[1]+func[1]*func[1]/U[1]/U[1];
 		err = sqrt(err/2.);
+//		printf("err = %e kappa = %e T = %e\n", err, kappa, T);
 		count++;
 		if(count == count_max){
-	//		printf("err = %e\n", err);
+//			printf("err = %e\n", err);
+			break;
+		}
+		if(isnan(E[1])){
+//			printf("count = %d\n", count);
+//			exit(EXIT_FAILURE);
 			break;
 		}
 	}while(err > tol);
-	E[0] = E[1]; U[0] = U[1];
 }

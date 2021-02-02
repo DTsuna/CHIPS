@@ -6,6 +6,7 @@
 /*
 Variable 'nsize' is the size of array.
 */
+
 void init_U(double U[], double func[], const int nsize)
 {
 	int i;
@@ -14,7 +15,8 @@ void init_U(double U[], double func[], const int nsize)
 	}
 }
 
-void matrix_U(double r[], double U[], double rho[], double rho_ed[], double v_w, double dt, 
+
+void matrix_U(double r[], double U[], double rho[], double rho_ed[], double v_w[], double dt, 
 	double a[], double b[], double c[], const int nsize)
 {
 	int i;
@@ -27,24 +29,24 @@ void matrix_U(double r[], double U[], double rho[], double rho_ed[], double v_w,
 
 	dlnrhodr = (log(rho[1])-log(rho_ed[0]))/(2.*dr[0]);
 	a[0] = 0.0;
-	b[0] = 1.-gamma/(gamma-1.)*v_w*dlnrhodr*dt-v_w/2.*dt/dr[0];
-	c[0] = v_w/2.*dt/dr[0];
+	b[0] = 1.-gamma/(gamma-1.)*v_w[0]*dlnrhodr*dt-v_w[0]/2.*dt/dr[0];
+	c[0] = v_w[0]/2.*dt/dr[0];
 
 	for(i = 1; i < nsize-1; i++){
 		dlnrhodr = (log(rho[i+1])-log(rho[i-1]))/(2.*dr[i]);
-		a[i] = -v_w/2.*dt/dr[i];
-		b[i] = 1.-gamma/(gamma-1.)*v_w*dlnrhodr*dt;
-		c[i] = v_w/2.*dt/dr[i];
+		a[i] = -v_w[i]/2.*dt/dr[i];
+		b[i] = 1.-gamma/(gamma-1.)*v_w[i]*dlnrhodr*dt;
+		c[i] = v_w[i]/2.*dt/dr[i];
 	}
 
 	/*matrix N-1行目*/
 	dlnrhodr = (log(rho_ed[1])-log(rho[nsize-2]))/(2.*dr[nsize-1]);
-	a[nsize-1] = -v_w/2.*dt/dr[nsize-1];
-	b[nsize-1] = 1.-gamma/(gamma-1.)*v_w*dlnrhodr*dt+v_w/2.*dt/dr[nsize-1];
+	a[nsize-1] = -v_w[nsize-1]/2.*dt/dr[nsize-1];
+	b[nsize-1] = 1.-gamma/(gamma-1.)*v_w[nsize-1]*dlnrhodr*dt+v_w[nsize-1]/2.*dt/dr[nsize-1];
 	c[nsize-1] = 0.;
 }
 
-void itg_adv_U(double r[], double U[], double rho[], double rho_ed[], double v_w, double dt, const int nsize)
+void itg_adv_U(double r[], double U[], double rho[], double rho_ed[], double v_w[], double dt, const int nsize)
 {
 	double func[nsize];
 	double a[nsize], b[nsize], c[nsize], x[nsize];
