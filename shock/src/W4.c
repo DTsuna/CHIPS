@@ -138,7 +138,6 @@ void get_itr_x(double *x, double *p, double *J, double *func, double dtau, int n
 void get_itr_x_tol(double *x, double *p, double *J, double *func, double dtau, double tol, int n)
 {
 	double U[n*n], L[n*n], U_inv[n*n], L_inv[n*n];
-	double x_new[n], p_new[n];
 	double dx[n], dp[n];
 	int i;
 

@@ -14,7 +14,6 @@ double r_early(double t)
 	double n, s, delta, M_ej, E_ej, D;
 	double r_out = 1.5e+14, r_in = 9.0e+13;
 	double rho_out = rho_csm(r_out), rho_in = rho_csm(r_in);
-	int i, rho;
 
 	n = pdt.n;
 	delta = pdt.delta;
@@ -37,7 +36,6 @@ double t_early(double r)
 	double n, s, delta, M_ej, E_ej, D;
 	double r_out = 1.5e+14, r_in = 9.0e+13;
 	double rho_out = rho_csm(r_out), rho_in = rho_csm(r_in);
-	int i, rho;
 
 	n = pdt.n;
 	delta = pdt.delta;
@@ -178,4 +176,40 @@ double p_tot(double y[])
 	Pr = 1.0/3.0*(P_A)*pow(y[2], 4.0);
 
 	return Pg+Pr;
+}
+
+double v_wind(double r)
+{
+	static double r_c[1000], v_c[1000], s;
+	static int flag = 0, nsize;
+
+	int i = 0;
+	double v;
+	double dammy[5];
+
+	if(flag == 0){
+		FILE *fp;
+		char filename[256];
+		fp = fopen(csm, "r");
+		fgets(filename, 512, fp);
+		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &v_c[i], &dammy[2], &dammy[3], &dammy[4]) != EOF){
+			i++;
+		}
+		nsize = i;
+		flag = 1;
+		fclose(fp);
+	}
+	if(r <= r_c[0]){
+		v = v_c[0];
+	}
+	else{
+		for(i = 0; i < nsize-1; i++){
+			if(r < r_c[i+1] && r >= r_c[i]){
+				break;
+			}
+		}
+		v = (v_c[i+1]-v_c[i])/(log(r_c[i+1])-log(r_c[i]))*(log(r)-log(r_c[i]))+v_c[i];
+	}
+
+	return v;
 }

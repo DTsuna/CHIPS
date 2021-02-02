@@ -8,7 +8,6 @@ void saha(double rho, double U, double *mu, double *T)
         double mu_tmp[2] = {};
         double x;
         double T_tmp = 2000.;
-        int i = 0;
         double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
         mu_tmp[0] = 0.5;
         mu_tmp[1] = 1.;

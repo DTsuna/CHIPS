@@ -9,5 +9,6 @@ double func_M_ej(double, double);
 double set_r_ini(const char*);
 double func_M_csm(double, double);
 double p_tot(double[]);
+double v_wind(double);
 
 #endif

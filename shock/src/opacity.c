@@ -184,8 +184,11 @@ double kappa_p(double rho, double T)
 		else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
 			j = dcht(log10(R), op.R, op.jmax);
 			kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
-			kappa = kappa-2.*op.T[0]+log10(R);
+			kappa = kappa-3.5*op.T[0]+log10(rho);
 			return pow(10., kappa);
+		}
+		else{
+			return pow(10., op.kappa[op.jmax-1]-2.*op.T[0]+op.R[op.jmax-1]);
 		}
 	}
 	else if(log10(R) > op.R[op.jmax-1]){
