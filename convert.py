@@ -154,7 +154,7 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
                     missing_elem.append('ni56')
 
         if len(missing_elem) > 0:
-                print('Warning: Attribute %s is not found and thus ignored...') % ', '.join(missing_elem) 
+                print('Warning: Attribute %s is not found and thus ignored...' % ', '.join(missing_elem)) 
 
         """########################### debug part ###########################
         with open(path, mode = 'w') as f:
