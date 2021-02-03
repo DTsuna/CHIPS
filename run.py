@@ -21,6 +21,7 @@ def parse_command_line():
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
+	parser.add_option("--delta-t", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years.")
 	parser.add_option("--inlist-file", metavar = "filename", help = "Inlist file with the ZAMS mass and metallicity information.")
 	parser.add_option("--skip-mesa", action = "store_true", help = "Use stellar models pre-computed for input to the mass eruption code.")
 
@@ -40,6 +41,7 @@ options, filenames = parse_command_line()
 if options.skip_mesa:
 	file_cc = 'mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
 	file_me = file_cc 
+	time_CSM = options.delta_t
 else:
 	#################################################################
 	#								#
@@ -71,10 +73,10 @@ else:
 	# find data file at mass eruption and core collapse. 
 	# FIXME we set the mass eruption to 5 years before collapse
 	file_cc = mesa_dir+'/pre_ccsn.data'
-	file_me = utils.find_mass_eruption(glob.glob(mesa_dir+'/LOGS_to_si_burn/profile*.data'), file_cc, 5.0)
+	file_me = utils.find_mass_eruption(glob.glob(mesa_dir+'/LOGS_to_si_burn/profile*.data'), file_cc, options.delta_t)
 
-# obtain the time from end of rad-hydro calculation to core-collapse (in years)
-time_CSM = utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
+	# obtain the time from end of rad-hydro calculation to core-collapse (in years)
+	time_CSM = utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
 print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 
 #################################################################
