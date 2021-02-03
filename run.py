@@ -25,7 +25,8 @@ def parse_command_line():
 	parser.add_option("--skip-mesa", action = "store_true", help = "Use stellar models pre-computed for input to the mass eruption code.")
 
 	options, filenames = parser.parse_args()
-	available_mesa_models = [(13., 1.)]
+	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
+	available_mesa_models = [(mass, 1.) for mass in available_masses]
 	if options.skip_mesa and (options.zams_m,options.zams_z) not in available_mesa_models:
 		print("(M, Z) = (%.1f Msun, %.1f Zsun) not available. Running mesa calculation instead..." % (options.zams_m,options.zams_z))
 		options.skip_mesa = False
@@ -37,7 +38,7 @@ options, filenames = parse_command_line()
 
 
 if options.skip_mesa:
-	file_cc = 'mesa_models/'+str(options.zams_m)+'Msun_Z'+str(options.zams_z)+'_preccsn.data'
+	file_cc = 'mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
 	file_me = file_cc 
 else:
 	#################################################################
