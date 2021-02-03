@@ -101,7 +101,8 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		}
 		else{
 			r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-			F_ini = (Ff[j+1]-Ff[j])/(tf[j+1]-tf[j])*(t-tf[j])+Ff[j];
+//			F_ini = (Ff[j+1]-Ff[j])/(tf[j+1]-tf[j])*(t-tf[j])+Ff[j];
+			F_ini = 1.e+04;
 		}
 
 		if(r_ini > r[0]-dr/4.){
