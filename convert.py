@@ -106,15 +106,51 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
                 originalX[7][i] = h.mg24[originalSize - i - 1]
                 originalX[8][i] = h.si28[originalSize - i - 1]
                 originalX[9][i] = h.s32[originalSize - i - 1]
-                originalX[10][i] = h.ar36[originalSize - i - 1]
-                originalX[11][i] = h.ca40[originalSize - i - 1]
-                originalX[12][i] = h.ti44[originalSize - i - 1]
-                originalX[13][i] = h.cr48[originalSize - i - 1]
-                originalX[14][i] = h.cr56[originalSize - i - 1]
-                originalX[15][i] = h.fe52[originalSize - i - 1]
-                originalX[16][i] = h.fe54[originalSize - i - 1]
-                originalX[17][i] = h.fe56[originalSize - i - 1]
-                originalX[18][i] = h.ni56[originalSize - i - 1]
+                try:
+                    originalX[10][i] = h.ar36[originalSize - i - 1]
+                except AttributeError:
+                    originalX[10][i] = lowerLimX
+                    print('Warning: Attribute ar36 is not found and thus ignored')
+                try:
+                    originalX[11][i] = h.ca40[originalSize - i - 1]
+                except AttributeError:
+                    originalX[11][i] = lowerLimX
+                    print('Warning: Attribute ca40 is not found and thus ignored')
+                try:
+                    originalX[12][i] = h.ti44[originalSize - i - 1]
+                except AttributeError:
+                    originalX[12][i] = lowerLimX
+                    print('Warning: Attribute ti44 is not found and thus ignored')
+                try:                    
+                    originalX[13][i] = h.cr48[originalSize - i - 1]
+                except AttributeError:
+                    originalX[13][i] = lowerLimX
+                    print('Warning: Attribute cr48 is not found and thus ignored')
+                try:
+                    originalX[14][i] = h.cr56[originalSize - i - 1]
+                except AttributeError:
+                    originalX[14][i] = lowerLimX
+                    print('Warning: Attribute cr56 is not found and thus ignored')
+                try:
+                    originalX[15][i] = h.fe52[originalSize - i - 1]
+                except AttributeError:
+                    originalX[15][i] = lowerLimX
+                    print('Warning: Attribute fe52 is not found and thus ignored')
+                try:
+                    originalX[16][i] = h.fe54[originalSize - i - 1]
+                except AttributeError:
+                    originalX[16][i] = lowerLimX
+                    print('Warning: Attribute fe54 is not found and thus ignored')
+                try:
+                    originalX[17][i] = h.fe56[originalSize - i - 1]
+                except AttributeError:
+                    originalX[17][i] = lowerLimX
+                    print('Warning: Attribute fe56 is not found and thus ignored')
+                try:
+                    originalX[18][i] = h.ni56[originalSize - i - 1]
+                except AttributeError:
+                    originalX[18][i] = lowerLimX
+                    print('Warning: Attribute ni56 is not found and thus ignored')
 
         """########################### debug part ###########################
         with open(path, mode = 'w') as f:
