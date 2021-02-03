@@ -96,7 +96,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 	last_Mr = 0.0
 	Y_avrg = 0.0
 
-	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), 1000)
+	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 	# find outermost radius where the velocity transitions from positive to negative.
 	# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
 	# can be the boundary of the star and the CSM.
