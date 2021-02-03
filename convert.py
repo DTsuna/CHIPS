@@ -111,47 +111,47 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
                     originalX[10][i] = h.ar36[originalSize - i - 1]
                 except AttributeError:
                     originalX[10][i] = lowerLimX
-                    missing_elem.append('ar36') if 'ar36' not in missing_elem
+                    missing_elem.append('ar36') if 'ar36' not in missing_elem else None
                 try:
                     originalX[11][i] = h.ca40[originalSize - i - 1]
                 except AttributeError:
                     originalX[11][i] = lowerLimX
-                    missing_elem.append('ca40') if 'ca40' not in missing_elem
+                    missing_elem.append('ca40') if 'ca40' not in missing_elem else None
                 try:
                     originalX[12][i] = h.ti44[originalSize - i - 1]
                 except AttributeError:
                     originalX[12][i] = lowerLimX
-                    missing_elem.append('ti44') if 'ti44' not in missing_elem
+                    missing_elem.append('ti44') if 'ti44' not in missing_elem else None
                 try:                    
                     originalX[13][i] = h.cr48[originalSize - i - 1]
                 except AttributeError:
                     originalX[13][i] = lowerLimX
-                    missing_elem.append('cr48') if 'cr48' not in missing_elem
+                    missing_elem.append('cr48') if 'cr48' not in missing_elem else None
                 try:
                     originalX[14][i] = h.cr56[originalSize - i - 1]
                 except AttributeError:
                     originalX[14][i] = lowerLimX
-                    missing_elem.append('cr56') if 'cr56' not in missing_elem
+                    missing_elem.append('cr56') if 'cr56' not in missing_elem else None
                 try:
                     originalX[15][i] = h.fe52[originalSize - i - 1]
                 except AttributeError:
                     originalX[15][i] = lowerLimX
-                    missing_elem.append('fe52') if 'fe52' not in missing_elem
+                    missing_elem.append('fe52') if 'fe52' not in missing_elem else None
                 try:
                     originalX[16][i] = h.fe54[originalSize - i - 1]
                 except AttributeError:
                     originalX[16][i] = lowerLimX
-                    missing_elem.append('fe54') if 'fe54' not in missing_elem
+                    missing_elem.append('fe54') if 'fe54' not in missing_elem else None
                 try:
                     originalX[17][i] = h.fe56[originalSize - i - 1]
                 except AttributeError:
                     originalX[17][i] = lowerLimX
-                    missing_elem.append('fe56') if 'fe56' not in missing_elem
+                    missing_elem.append('fe56') if 'fe56' not in missing_elem else None
                 try:
                     originalX[18][i] = h.ni56[originalSize - i - 1]
                 except AttributeError:
                     originalX[18][i] = lowerLimX
-                    missing_elem.append('ni56') if 'ni56' not in missing_elem
+                    missing_elem.append('ni56') if 'ni56' not in missing_elem else None
 
         if len(missing_elem) > 0:
                 print('Warning: Attribute %s is not found and thus ignored...' % ', '.join(missing_elem)) 
