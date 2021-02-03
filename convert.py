@@ -83,6 +83,7 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
         originalPressure = np.zeros(originalSize)
         originalTemperature = np.zeros(originalSize)
         originalX = np.zeros((elemNum, originalSize))
+        missing_elem = []
 
         for i in range(0, originalSize):
                 originalMr[i] = h.mass[originalSize - i - 1]
@@ -110,47 +111,50 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
                     originalX[10][i] = h.ar36[originalSize - i - 1]
                 except AttributeError:
                     originalX[10][i] = lowerLimX
-                    print('Warning: Attribute ar36 is not found and thus ignored')
+                    missing_elem.append('ar36')
                 try:
                     originalX[11][i] = h.ca40[originalSize - i - 1]
                 except AttributeError:
                     originalX[11][i] = lowerLimX
-                    print('Warning: Attribute ca40 is not found and thus ignored')
+                    missing_elem.append('ca40')
                 try:
                     originalX[12][i] = h.ti44[originalSize - i - 1]
                 except AttributeError:
                     originalX[12][i] = lowerLimX
-                    print('Warning: Attribute ti44 is not found and thus ignored')
+                    missing_elem.append('ti44')
                 try:                    
                     originalX[13][i] = h.cr48[originalSize - i - 1]
                 except AttributeError:
                     originalX[13][i] = lowerLimX
-                    print('Warning: Attribute cr48 is not found and thus ignored')
+                    missing_elem.append('cr48')
                 try:
                     originalX[14][i] = h.cr56[originalSize - i - 1]
                 except AttributeError:
                     originalX[14][i] = lowerLimX
-                    print('Warning: Attribute cr56 is not found and thus ignored')
+                    missing_elem.append('cr56')
                 try:
                     originalX[15][i] = h.fe52[originalSize - i - 1]
                 except AttributeError:
                     originalX[15][i] = lowerLimX
-                    print('Warning: Attribute fe52 is not found and thus ignored')
+                    missing_elem.append('fe52')
                 try:
                     originalX[16][i] = h.fe54[originalSize - i - 1]
                 except AttributeError:
                     originalX[16][i] = lowerLimX
-                    print('Warning: Attribute fe54 is not found and thus ignored')
+                    missing_elem.append('fe54')
                 try:
                     originalX[17][i] = h.fe56[originalSize - i - 1]
                 except AttributeError:
                     originalX[17][i] = lowerLimX
-                    print('Warning: Attribute fe56 is not found and thus ignored')
+                    missing_elem.append('fe56')
                 try:
                     originalX[18][i] = h.ni56[originalSize - i - 1]
                 except AttributeError:
                     originalX[18][i] = lowerLimX
-                    print('Warning: Attribute ni56 is not found and thus ignored')
+                    missing_elem.append('ni56')
+
+        if len(missing_elem > 0):
+                print('Warning: Attribute %s is not found and thus ignored...') % ', '.join(missing_elem) 
 
         """########################### debug part ###########################
         with open(path, mode = 'w') as f:
