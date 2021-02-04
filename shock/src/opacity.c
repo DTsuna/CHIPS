@@ -1,6 +1,8 @@
 #include "opacity.h"
 #include "constant.h"
 
+#define SWITCH_OP_FREE_FREE 0
+
 void set_opacity(const char *openfile, opacity *op)
 {
 	FILE *fp;
@@ -177,6 +179,7 @@ double kappa_p(double rho, double T)
 	}
 //	printf("p, R = %f, T = %f\n", log10(R), log10(T));
 
+#if SWITCH_OP_FREE_FREE == 0
 	if(log10(T) < op.T[0]){
 		if(log10(R) < op.R[0]){
 			return pow(10., op.kappa[0]-2.*op.T[0]+op.R[0]);
@@ -224,6 +227,13 @@ double kappa_p(double rho, double T)
 		kappa = kappa-2.*log10(T)+log10(R);
 		return pow(10., kappa);
 	}
+
+#else
+	return j_ff(rho, T)/((P_A)*(P_C)*pow(T, 4.));
+
+#endif
+
+
 }
 
 double mmw(double rho, double T)
