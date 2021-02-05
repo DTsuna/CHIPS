@@ -1,7 +1,7 @@
 #include "opacity.h"
 #include "constant.h"
 
-#define SWITCH_OP_FREE_FREE 0
+#define SWITCH_OP_FREE_FREE 1
 
 void set_opacity(const char *openfile, opacity *op)
 {
