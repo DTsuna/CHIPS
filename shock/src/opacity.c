@@ -1,7 +1,7 @@
 #include "opacity.h"
 #include "constant.h"
 
-#define SWITCH_OP_FREE_FREE 1
+#define SWITCH_OP_FREE_FREE 2
 
 void set_opacity(const char *openfile, opacity *op)
 {
@@ -228,8 +228,11 @@ double kappa_p(double rho, double T)
 		return pow(10., kappa);
 	}
 
-#else
+#elif SWITCH_OP_FREE_FREE == 1
 	return j_ff(rho, T)/((P_A)*(P_C)*pow(T, 4.));
+
+#else
+	return 0.;
 
 #endif
 
