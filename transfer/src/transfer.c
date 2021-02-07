@@ -39,6 +39,7 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	double rho_ed[2];
 	double tf[2000], rf[2000], Ff[2000];
 	int i = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
+	int F_neg_flag = 0;
 	double dummy[7];
 	double dr;
 	double CFL = 0.5;
@@ -54,7 +55,11 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6]) != EOF){
 		tf[i] = dummy[0]*86400.000;
 		rf[i] = dummy[4];
-		Ff[i] = dummy[5];
+		if (F_neg_flag==0 && dummy[5]>0.0) {
+			Ff[i] = dummy[5];
+		} else {
+			Ff[i] = 0.0;
+		}
 		i++;
 	}
 	fsize = i;
