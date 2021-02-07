@@ -41,7 +41,7 @@ void matrix_E(double r_ini, double r[], double E[], double U[], double rho[], do
 		dr3 = pow(r_h[i+1], 3.)-pow(r_h[i], 3.);
 		x[i] = r_h[i+1]*r_h[i+1]*3.*dt/dr3;
 		y[i] = r_h[i]*r_h[i]*3.*dt/dr3;
-		kappa[i] = kappa_r(rho_h[i], T_h[i]);
+		kappa[i] = kappa_p(rho_h[i], T_h[i]);
 		dEdr = (E[2*i+1]-E[2*(i-1)+1])/dr[i];
 		R = fabs(dEdr)/(kappa[i]*rho_h[i]*(E[2*i+1]+E[2*(i-1)+1])/2.);
 		lambda[i] = func_lambda(R);
