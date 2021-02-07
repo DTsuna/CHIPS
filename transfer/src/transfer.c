@@ -58,6 +58,7 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 		if (F_neg_flag==0 && dummy[5]>0.0) {
 			Ff[i] = dummy[5];
 		} else {
+			F_neg_flag == 1;
 			Ff[i] = 0.0;
 		}
 		i++;
