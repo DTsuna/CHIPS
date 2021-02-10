@@ -25,7 +25,7 @@ def parse_command_line():
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
 	available_mesa_models = [(mass, 1.) for mass in available_masses]
-	if options.skip_mesa and (options.zams_m,options.zams_z) not in available_mesa_models:
+	if (options.zams_m,options.zams_z) not in available_mesa_models:
 		raise ValueError('stellar model not available')
 
 	return options, filenames
