@@ -91,17 +91,22 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 	X_edge = CSM[-1,5]
 	Y_edge = CSM[-1,6]
 	vwind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
-	wind_Mdot_vw = -data.star_mdot * MSUN / 3.15e7 / vwind 
+	if data.star_mdot > 0.0:
+		wind_Mdot_vw = -data.star_mdot * MSUN / 3.15e7 / vwind 
+	else:
+		# FIXME input random mass loss rate of 10^(-5)Msun/yr for now
+		wind_Mdot_vw = 1e-5 * MSUN / 3.15e7 / vwind 
 	
 	last_Mr = 0.0
 	Y_avrg = 0.0
 
 	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
-	# find outermost radius where the velocity transitions from positive to negative.
+	# find outermost radius where the velocity suddenly decreases. 
 	# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
 	# can be the boundary of the star and the CSM.
 	try:
-		istop = max([i for i in range(len(v_in)) if v_in[i-1]>0.0 and v_in[i]<0.0])
+		# ignore the outermost cell
+		istop = max([i for i in range(len(v_in)-1) if v_in[i]-v_in[i-1]<-5e5])
 		rstop = r_in[istop]
 	except:
 		istop = 0
