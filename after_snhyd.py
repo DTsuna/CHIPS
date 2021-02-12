@@ -1,13 +1,8 @@
 from __future__ import print_function
-import fileinput
-import glob
 from optparse import OptionParser
-import os
-import subprocess
 import sys
 
 # our modules
-import convert
 import utils
 import lightcurve
 from TOPS import gen_op_tbl 
@@ -66,4 +61,4 @@ lightcurve.transfer(r_out, CSM_file, shock_file, lc_file)
 
 # obtain peak luminosity and rise/decay time in days
 # the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
-peakL, riset, decayt = utils.extract_peak_and_rise_time(LC_output, frac=0.01)
+utils.extract_peak_and_rise_time(LC_output, frac=0.01)
