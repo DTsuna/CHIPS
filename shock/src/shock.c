@@ -105,7 +105,7 @@ double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double 
 
 	for(i = 0; i < 4; i++){
 		egnfd[i] = fabs(egn[i]);
-		degn[i] = 1.00e-04*egnfd[i];
+		degn[i] = 1.00e-05*egnfd[i];
 	}
 
 	physfd[0] = egn[1]; physfd[1] = rho_csm(egn[3])*egn[1]*egn[1];
