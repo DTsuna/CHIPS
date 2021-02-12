@@ -157,6 +157,6 @@ def extract_peak_and_rise_time(LC_file, frac):
 	lum = np.loadtxt(LC_file)[:,1]
 	peaktime = time[np.argmax(lum)]
 	peakL = max(lum)
-	risetime = peaktime - time[np.argmin([abs(L-peak*frac) for i,L in enumerate(lum) if time[i]<peaktime])]
-	decaytime = time[np.argmin([abs(L-peak*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
+	risetime = peaktime - time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]<peaktime])]
+	decaytime = time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
 	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
