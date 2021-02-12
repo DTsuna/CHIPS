@@ -138,7 +138,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, v, rho, X, Y), file=fout)
 		else:
 			# use a profile that connects to the wind profile with a Gaussian drop 
-			rho = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
+			#rho = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
+			# or connect a wind profile to the edge of the erupted CSM profile
+			rho = rho_in[-1] * (r_in[-1]/r)**2
 			Mr += 4.*math.pi*r**2*rho*(r-rs[i-1])
 			Y_avrg = (Y_avrg*last_Mr + Y_edge*(Mr-last_Mr))/Mr
 			last_Mr = Mr
@@ -157,4 +159,4 @@ def extract_peak_and_rise_time(LC_file, frac):
 	peakL = max(lum)
 	risetime = peaktime - time[np.argmin([abs(L-peak*frac) for i,L in enumerate(lum) if time[i]<peaktime])]
 	decaytime = time[np.argmin([abs(L-peak*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
-	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime) file=sys.stderr)
+	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
