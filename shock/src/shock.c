@@ -167,7 +167,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 	while(1){
 		for(i = 0; i < 4; i++){
 			p[i] = 0.;
-			egn[i] = egn_old[i];
+			egn[i] = (i==2) ? 0.9*egn_old[i] : egn_old[i];
 		}
 		t_exp = array[0]+dt;
 		forward_egn(array, &r_ini, egn, dt);
