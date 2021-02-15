@@ -149,8 +149,8 @@ r_rs = r_rs + u_rs*dt, r_fs = r_fs + r_fs*dt.
 
 double *calc_dist(double array[], double E_ej, double M_ej, double n, double delta, double dt, const char *file_csm)
 {
-	const int nsize = 3;
-	int i, j;
+	const int nsize = 3, cmax = 100;
+	int i, j, c = 0;
 	double dtau = 0.50;
 	double err, tol = 1.00e-08;
 	double r_ini;
@@ -174,7 +174,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 	
 		for(i = 0; i < nsize; i++){
 			egnfd[i] = fabs(egn[i]);
-			degn[i] = 1.00e-04*egnfd[i];
+			degn[i] = 1.00e-06*egnfd[i];
 		}
 	
 		physfd[0] = egn[1]; physfd[1] = rho_csm(egn[3])*egn[1]*egn[1];
@@ -201,6 +201,11 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 				egn[i] *= egnfd[i];
 			}
 			err = sqrt(err/(double)nsize);
+			c++;
+			if(c == cmax){
+				printf("count max\n");
+				break;
+			}
 		}while(err > tol);
 		if(isnan(egn[0]) || isnan(egn[1]) || isnan(egn[2]) || isnan(egn[3])){
 			dt *= 0.5;
