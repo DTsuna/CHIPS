@@ -8,7 +8,7 @@ supernovae, for a selected mass and metallicity of the progenitor star.
 
 ## What can CHIPS do?
 
-CHIPS can generate a realistic CSM from a model-agnostic mass eruption calculation, which can serve as a reference for observers to compare with various observations of the CSM. It can also generate bolometric light curves from CSM interaction, which can also be compared with observed light curves.
+CHIPS can generate a realistic CSM from a model-agnostic mass eruption calculation, which can serve as a reference for observers to compare with various observations of the CSM. It can also generate bolometric light curves from CSM interaction, which can also be compared with observed light curves. The calculation of mass eruption and light curve takes from several hours to half a day on modern CPUs.
 
 ## Pre-reqs
 
