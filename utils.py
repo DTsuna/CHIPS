@@ -162,7 +162,7 @@ def extract_peak_and_rise_time(LC_file, frac):
 	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
 
 # calculate the lightcurve of mass eruption
-def mass_eruption_lightcurve(outputFile):
+def get_mass_eruption_lightcurve(outputFile):
         print('Calculate mass eruption lightcurve')
         maxFileSize = 99
         time = np.zeros(maxFileSize)
