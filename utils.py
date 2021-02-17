@@ -182,7 +182,7 @@ def get_mass_eruption_lightcurve(outputFile):
                 Y = temp[len(temp)-1,6]
                 Z = 1 - X - Y
         print('X='+str(X)+' Y='+str(Y)+' Z='+str(Z))
-	print('time(day) luminosity(erg/s) temperature(K)')
+        print('time(day) luminosity(erg/s) temperature(K)')
 
         for i in range(1,maxFileSize):
                 # Get the hydrodynamical result
@@ -226,8 +226,8 @@ def get_mass_eruption_lightcurve(outputFile):
                 temperature[i] = data[photosphere][8]
                 if photosphere == 0:
                         luminosity[i] = 0
-		print('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i]))
-	with open(outputFile, mode = 'w') as f:
-                for i in range (0,len(time)):
+                print('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i]))
+        with open(outputFile, mode = 'w') as f:
+                for i in range (1,len(time)):
                         f.write('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i])+'\n')
         f.close()
