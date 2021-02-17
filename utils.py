@@ -160,3 +160,67 @@ def extract_peak_and_rise_time(LC_file, frac):
 	risetime = peaktime - time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]<peaktime])]
 	decaytime = time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
 	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
+
+# calculate the lightcurve of mass eruption
+def mass_eruption_lightcurve(outputFile):
+        print('Calculate mass eruption lightcurve')
+        maxFileSize = 99
+        time = np.zeros(maxFileSize)
+        luminosity = np.zeros(maxFileSize)
+        temperature = np.zeros(maxFileSize)
+
+        # Get the abundance
+        fileName = 'snhydOutput/atCCSN.txt'
+        if os.path.exists(fileName) == False:
+                X = 0.7
+                Y = 0.28
+                Z = 1 - X - Y
+        if os.path.exists(fileName) == True:
+                temp = np.loadtxt(fileName, skiprows=1)
+                X = temp[len(temp)-1,5]
+                Y = temp[len(temp)-1,6]
+                Z = 1 - X - Y
+        print('X='+str(X)+' Y='+str(Y)+' Z='+str(Z))
+
+        for i in range(1,maxFileSize+1):
+                # Get the hydrodynamical result
+                fileName='snhydOutput/result%s.txt' % str(i).zfill(2)
+                if os.path.exists(fileName) == False:
+                        break
+                #print(str(fileName))
+                data = np.loadtxt(fileName, skiprows=2)
+                #print(str(data[0,:]))
+                #print(len(data))
+
+                # Get the time
+                f = open(fileName, 'r')
+                data2 = f.readline()
+                f.close()
+                regex = re.compile('[+-]?(?:\d+\.?\d*|\.\d+)(?:(?:[eE][+-]?\d+)|(?:\*10\^[+-]?\d+))?')
+                match = regex.findall(data2)
+                time[i] = match[1]
+                #print('t='+str(time[i]))
+
+                # Calculate luminosity and effective temperautre
+                opacity = np.zeros(len(data))
+                for j in range(0,len(data)):
+                        scatter = 0.20*(1+X)/((1+2.7e11*data[j][4]/(data[j][8]*data[j][8]))*(1+np.power(data[j][8]/4.5e8,0.86)))
+                        molecular = 0.1*Z
+                        negH = 1.1e-25*np.power(Z*data[j][4],0.5)*np.power(data[j][8],7.7)
+                        kramers = 4e25*(1+X)*(Z+0.001)*data[j][4]*np.power(data[j][8],-3.5)
+                        opacity[j] = molecular + 1/((1/negH)+(1/(kramers+scatter)))
+
+                photosphere = 1
+                for j in reversed(range(1,len(data))):
+                        tau = 0
+                        for k in range(j,len(data)):
+                                tau = tau + data[k][4]*(data[k][1] - data[k-1][1])*opacity[k]
+                        if tau < 0.666666667:
+                                photosphere = j
+                        if tau > 0.666666667:
+                                break
+                photosphere = photosphere - 1
+                luminosity[i] = data[photosphere][9]*1e40
+                temperature[i] = data[photosphere][8]
+                if photosphere == 0:
+                        luminosity[i] = 0
