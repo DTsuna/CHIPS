@@ -111,6 +111,7 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			F_ini = 1.e+04;
 		}
 
+#if 0
 		if(r_ini > r[0]-dr/4.){
 			n--;
 			for(i = 0; i < n; i++){
@@ -124,6 +125,12 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			}
 			r[n] = r[n+1];
 		}
+#endif
+
+		F_ini = F_ini*(r_ini*r_ini/r[0]/r[0]);
+		r_ini = r[0];
+
+
 		for(i = 0; i < n; i++){
 			E0[i] = E[2*i];
 			U0[i] = U[2*i];
