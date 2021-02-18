@@ -149,9 +149,13 @@ shock_file = 'inp-data/shock_output.txt'
 lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file)
 
 # radiation transfer
-lc_file = 'outp-data/lightcurve.txt'
-lightcurve.transfer(r_out, CSM_file, shock_file, lc_file)
+IIn_lc_file = 'outp-data/IIn_lightcurve.txt'
+lightcurve.transfer(r_out, CSM_file, shock_file, IIn_lc_file)
 
 # obtain peak luminosity and rise/decay time in days
 # the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
-utils.extract_peak_and_rise_time(lc_file, frac=0.01)
+utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
+
+# obtain light curve at mass eruption
+mass_eruption_lc_file = 'outp-data/mass_eruption_lightcurve.txt'
+utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
