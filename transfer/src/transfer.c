@@ -33,7 +33,7 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	FILE *fp, *fl;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double r_ini, F_ini;
-	double F_add;
+	double F_add = 0.;
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
