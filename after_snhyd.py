@@ -17,7 +17,7 @@ def parse_command_line():
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
-	parser.add_option("--profile-at-cc", metavar = "filename", type = "filename", help = "The file with the profile at core collapse.")
+	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
 
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]

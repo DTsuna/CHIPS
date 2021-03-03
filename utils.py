@@ -51,8 +51,8 @@ def cc_param_extractor(data_file):
 # ejecta calculation script
 # r_edge is the edge of the ejecta, i.e. start of the CSM
 def calculate_ejecta(data_file, file_at_cc, r_edge):
-	renv = np.loadtxt(file_at_cc, skiprows=2)[:,2]
-	Mrenv = np.loadtxt(file_at_cc, skiprows=2)[:,3]
+	renv = np.loadtxt(file_at_cc, skiprows=2)[:,1]
+	Mrenv = np.loadtxt(file_at_cc, skiprows=2)[:,2]
 	rhoenv = np.loadtxt(file_at_cc, skiprows=2)[:,4]
 	penv =  np.loadtxt(file_at_cc, skiprows=2)[:,6]
 	lgrhoenv = [math.log(rho) for i, rho in enumerate(rhoenv) if renv[i]<r_edge]
