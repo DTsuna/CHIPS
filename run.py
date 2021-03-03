@@ -131,14 +131,14 @@ subprocess.call("./runsnhyd")
 #								#
 #################################################################
 
-# extract the ejecta parameters
-Mej, n, delta = utils.calculate_ej_from_mesa(file_cc)
-Eexp = 1e51
-
 # outer extent of the CSN to feed into the LC calculation
 r_out = 9.9e15
 CSM_file = 'inp-data/CSM.txt'
-Y_He = utils.remesh_CSM(r_out, 'snhydOutput/atCCSN.txt', CSM_file, file_me)
+Y_He, r_edge = utils.remesh_CSM(r_out, 'snhydOutput/atCCSN.txt', CSM_file, file_me)
+
+# extract the ejecta parameters
+Mej, n, delta = utils.calculate_ejecta(file_cc, 'snhydOutput/result99.txt', r_edge)
+Eexp = 1e51
 
 # obtain opacity 
 opacity_file = 'inp-data/opacity.txt'

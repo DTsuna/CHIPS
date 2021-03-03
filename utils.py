@@ -34,7 +34,7 @@ def remnant_from_CO(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
 		Mrem = 0.03357 * CO_core_mass + 1.31780
 	else:
-		# FIXME currently extrapolating the NS value to BH mass range, with maximum at 2.1Msun.
+		# NOTE currently extrapolating the NS value to BH mass range, with maximum at 2.1Msun.
 		warnings.warn("This CO core mass is predicted to lead to BH formation. Extrapolating the NS relation up to 2.1Msun...")
 		Mrem = max(2.1, 0.03357 * CO_core_mass + 1.31780)
 	return Mrem
@@ -44,34 +44,34 @@ def remnant_from_CO(CO_core_mass):
 def cc_param_extractor(data_file):
 	data = mr.MesaData(data_file)
 	total_mass = data.star_mass
-	He_core_mass = data.he_core_mass
 	CO_core_mass = data.c_core_mass
-	# FIXME this criterion should be revisited
-	# if hydrogen envelope significantly exists, the env should be the hydrogen envelope
-	if He_core_mass < 0.99*total_mass:
-		lgrhoenv = [lgrho for i, lgrho in enumerate(data.logRho) if data.mass[i] > He_core_mass]
-		lgpenv = [lgp for i, lgp in enumerate(data.logP) if data.mass[i] > He_core_mass]
-	# otherwise, it should be the helium envelope
-	else:
-		lgrhoenv = [lgrho for i, lgrho in enumerate(data.logRho) if data.mass[i] > CO_core_mass]
-		lgpenv = [lgp for i, lgp in enumerate(data.logP) if data.mass[i] > CO_core_mass]
-	return total_mass, CO_core_mass, lgrhoenv, lgpenv
+	return total_mass, CO_core_mass
 
 
 # ejecta calculation script
-def calculate_ej_from_mesa(data_file):
-	# remnant mass
-	total_mass, CO_core_mass, lgrhoenv, lgpenv = cc_param_extractor(data_file)
-	remnant_mass = remnant_from_CO(CO_core_mass)
-	Mej = total_mass - remnant_mass
-	# obtain polytropic index from fitting rho vs p at envelope. We fit with P = K*rho^N, where N is the polytripic index.
-	Npol = np.polyfit(lgrhoenv, lgpenv, 1)[0]
+# r_edge is the edge of the ejecta, i.e. start of the CSM
+def calculate_ejecta(data_file, file_at_cc, r_edge):
+	renv = np.loadtxt(file_at_cc, skiprows=2)[:,2]
+	Mrenv = np.loadtxt(file_at_cc, skiprows=2)[:,3]
+	rhoenv = np.loadtxt(file_at_cc, skiprows=2)[:,4]
+	penv =  np.loadtxt(file_at_cc, skiprows=2)[:,6]
+	lgrhoenv = [math.log(rho) for i, rho in enumerate(rhoenv) if renv[i]<r_edge]
+	lgpenv = [math.log(p) for i, p in enumerate(penv) if renv[i]<r_edge]
+	# obtain polytropic index from fitting rho vs p at envelope. We fit with P = K*rho^(1+1/N), where N is the polytripic index.
+	gamma = np.polyfit(lgrhoenv, lgpenv, 1)[0]
+	Npol = 1./(gamma-1.)
 	# Determine n using Matzner & McKee 1999 eq 25
 	beta = 0.19
 	n = (Npol+1.+3.*beta*Npol)/(beta*Npol)
+	assert n>5, "Ejecta index should be >5, now %e" % n
 	# set delta to 1 for now
 	delta = 1.0
-	print("Mej:%f, n:%f, delta:%f" % (Mej, n, delta), file=sys.stderr)
+	# ejecta mass
+	total_mass, CO_core_mass = cc_param_extractor(data_file)
+	remnant_mass = remnant_from_CO(CO_core_mass)
+	CSM_mass = (Mrenv[-1] - min([Mr for i, Mr in enumerate(Mrenv) if renv[i]>=r_edge]) ) / MSUN 
+	Mej = total_mass - remnant_mass - CSM_mass
+	print("Mej:%f Msun, n:%f, delta:%f" % (Mej, n, delta), file=sys.stderr)
 	return Mej, n, delta
 
 
@@ -148,7 +148,8 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000):
 			# X, Y are the edge value
 			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, vwind, rho, X_edge, Y_edge), file=fout)
 	fout.close()
-	return Y_avrg
+	# extract Y_avrg, needed for opacity calculation, and start of CSM, needed to set end of ejecta for ejecta calculation
+	return Y_avrg, max(rs[0], rstop)
 
 # extract peak luminosity and rise time, defined as the time from (frac*L_peak) to L_peak
 def extract_peak_and_rise_time(LC_file, frac):

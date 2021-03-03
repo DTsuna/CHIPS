@@ -1,4 +1,5 @@
 from __future__ import print_function
+import glob
 from optparse import OptionParser
 import sys
 
@@ -11,11 +12,12 @@ from TOPS import gen_op_tbl
 def parse_command_line():
 	parser = OptionParser(
 		description = '''Execution script. e.g.,\n
-		python run.py --zams-m 15 --zams-z 1 
+		python run.py --zams-m 15 --zams-z 1 --profile-at-cc snhydOutput/result??.txt
 		'''
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
+	parser.add_option("--profile-at-cc", metavar = "filename", type = "filename", help = "The file with the profile at core collapse.")
 
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
@@ -38,14 +40,14 @@ file_me = file_cc
 #								#
 #################################################################
 
-# extract the ejecta parameters
-Mej, n, delta = utils.calculate_ej_from_mesa(file_cc)
-Eexp = 1e51
-
 # outer extent of the CSN to feed into the LC calculation
 r_out = 9.9e15
 CSM_file = 'inp-data/CSM.txt'
-Y_He = utils.remesh_CSM(r_out, 'snhydOutput/atCCSN.txt', CSM_file, file_me)
+Y_He, r_edge = utils.remesh_CSM(r_out, 'snhydOutput/atCCSN.txt', CSM_file, file_me)
+
+# extract the ejecta parameters
+Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, r_edge)
+Eexp = 1e51
 
 # obtain opacity 
 opacity_file = 'inp-data/opacity.txt'
