@@ -9,8 +9,7 @@
 #include "itgadve.h"
 #include "srctrm.h"
 #include "rhocsm.h"
-
-#define NSIZE 1000
+#include "flux.h"
 
 extern char csm[256];
 
@@ -34,6 +33,7 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	FILE *fp, *fl;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double r_ini, F_ini;
+	double F_add;
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
@@ -111,8 +111,9 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			F_ini = 1.e+04;
 		}
 
-#if 0
+#if 1
 		if(r_ini > r[0]-dr/4.){
+			F_add = calc_flux_i(r_ini, r, E, U, rho, dt, 1, n);
 			n--;
 			for(i = 0; i < n; i++){
 				E[2*i] = E[2*(i+1)];
@@ -125,11 +126,8 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			}
 			r[n] = r[n+1];
 		}
+		F_ini += F_add;
 #endif
-
-		F_ini = F_ini*(r_ini*r_ini/r[0]/r[0]);
-		r_ini = r[0];
-
 
 		for(i = 0; i < n; i++){
 			E0[i] = E[2*i];
