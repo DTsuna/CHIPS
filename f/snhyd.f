@@ -52,10 +52,12 @@ c---  initial data is required.
       integer ejectaCut
       integer fixedCell, innerCell
       real*8 fixedRad
+      integer year
       ! Calculate only ejecta after dynamcal time if true.
       logical EjectaOnly 
       EjectaOnly = .true.
       dummyInt = 3
+      year = 1
 
       output_do = 1
       ejectaCut = 0
@@ -289,6 +291,25 @@ c      call grow(n, finish, dt, time, encmg)
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
 
+      if(time-dt.gt.year*86400.d0*365.25d0)then
+        write (filename, '("snhydOutput/intermediate", i2.2, "yr.txt")')
+     $         year
+        year = year + 1
+        output_init = 3
+        if(ejectaCut.eq.1)then
+          output_init = fixedCell
+        end if
+        open(98, file=filename,status='unknown',form='formatted')
+        write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H X_H
+     $t=",time
+        do jj = output_init, n
+           write(98,'(i0, e18.10, e18.10, e18.10,
+     $                   e18.10, e18.10, e18.10)'),jj,
+     $encm(jj)-encm(output_init-1),rad(jj),u(jj),
+     $1.d0/tau(jj),x(jj,1),x(jj,3)
+        end do
+        close(98)
+      end if
 
       if(time-dt.gt.time_to_cc)then
         output_init = 3
