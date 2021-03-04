@@ -1,5 +1,3 @@
-!以下をeos.f90としてsnhydに移す
-!全ての値は引数渡し&返し
       subroutine eoshelm_e(n,dedlt_ar,temp_ar,e_ar,tau_ar,p_ar,x_ar,grv_ar,rad_ar,eu_ar,g_ar,g1_ar,cs_ar,u_ar,mn,nelem,time)
       include 'implno.dek'
       include 'vector_eos.dek'
@@ -47,26 +45,16 @@
       xmass(7) = 0.0d0 ; aion(7)  = 20.0d0 ; zion(7)  = 10.0d0  !Ne20
       xmass(8) = 0.0d0 ; aion(8)  = 24.0d0  ; zion(8)  = 12.0d0 !Mg24
       xmass(9) = 0.0d0 ; aion(9)  = 28.0d0  ; zion(9)  = 14.0d0 !Si28
-      xmass(10) = 0.0d0 ; aion(10)  = 32.0d0 ; zion(10)  = 16.0d0
-!S32
-      xmass(11) = 0.0d0 ; aion(11)  = 36.0d0  ; zion(11)  = 18.0d0
-!Ar36
-      xmass(12) = 0.0d0 ; aion(12)  = 40.0d0  ; zion(12)  = 20.0d0
-!Ca40
-      xmass(13) = 0.0d0 ; aion(13)  = 44.0d0 ; zion(13)  = 22.0d0
-!Ti44
-      xmass(14) = 0.0d0 ; aion(14)  = 48.0d0  ; zion(14)  = 24.0d0
-!Cr48
-      xmass(15) = 0.0d0 ; aion(15)  = 56.0d0  ; zion(15)  = 24.0d0
-!Cr56
-      xmass(16) = 0.0d0 ; aion(16)  = 52.0d0 ; zion(16)  = 26.0d0
-!Fe52
-      xmass(17) = 0.0d0 ; aion(17)  = 54.0d0  ; zion(17)  = 26.0d0
-!Fe54
-      xmass(18) = 0.0d0 ; aion(18)  = 56.0d0  ; zion(18)  = 26.0d0
-!Fe56
-      xmass(19) = 0.0d0 ; aion(19)  = 56.0d0 ; zion(19)  = 28.0d0
-!Ni5
+      xmass(10) = 0.0d0 ; aion(10)  = 32.0d0 ; zion(10)  = 16.0d0 !S32
+      xmass(11) = 0.0d0 ; aion(11)  = 36.0d0  ; zion(11)  = 18.0d0 !Ar36
+      xmass(12) = 0.0d0 ; aion(12)  = 40.0d0  ; zion(12)  = 20.0d0 !Ca40
+      xmass(13) = 0.0d0 ; aion(13)  = 44.0d0 ; zion(13)  = 22.0d0 !Ti44
+      xmass(14) = 0.0d0 ; aion(14)  = 48.0d0  ; zion(14)  = 24.0d0 !Cr48
+      xmass(15) = 0.0d0 ; aion(15)  = 56.0d0  ; zion(15)  = 24.0d0 !Cr56
+      xmass(16) = 0.0d0 ; aion(16)  = 52.0d0 ; zion(16)  = 26.0d0 !Fe52
+      xmass(17) = 0.0d0 ; aion(17)  = 54.0d0  ; zion(17)  = 26.0d0 !Fe54
+      xmass(18) = 0.0d0 ; aion(18)  = 56.0d0  ; zion(18)  = 26.0d0 !Fe56
+      xmass(19) = 0.0d0 ; aion(19)  = 56.0d0 ; zion(19)  = 28.0d0 !Ni5
 
 
       if(done.eq.0)then
