@@ -51,10 +51,10 @@ def cc_param_extractor(data_file):
 # ejecta calculation script
 # r_edge is the edge of the ejecta, i.e. start of the CSM
 def calculate_ejecta(data_file, file_at_cc, r_edge):
-	renv = np.loadtxt(file_at_cc, skiprows=2)[:,1]
-	Mrenv = np.loadtxt(file_at_cc, skiprows=2)[:,2]
-	rhoenv = np.loadtxt(file_at_cc, skiprows=2)[:,4]
-	penv =  np.loadtxt(file_at_cc, skiprows=2)[:,6]
+	Mrenv = np.loadtxt(file_at_cc, skiprows=1)[:,1]
+	renv = np.loadtxt(file_at_cc, skiprows=1)[:,2]
+	rhoenv = np.loadtxt(file_at_cc, skiprows=1)[:,4]
+	penv =  np.loadtxt(file_at_cc, skiprows=1)[:,7]
 	lgrhoenv = [math.log(rho) for i, rho in enumerate(rhoenv) if renv[i]<r_edge]
 	lgpenv = [math.log(p) for i, p in enumerate(penv) if renv[i]<r_edge]
 	# obtain polytropic index from fitting rho vs p at envelope. We fit with P = K*rho^(1+1/N), where N is the polytripic index.
