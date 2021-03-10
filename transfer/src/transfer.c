@@ -109,7 +109,9 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		u_ini = uf[j]*exp(log(uf[j+1]/uf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		if(Ff[j] > 0. && Ff[j+1] > 0.){
 			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+#ifdef EADD
 			F_ini += E_ini*u_ini;
+#endif
 		}
 		else{
 			F_ini = 1.e+04;
