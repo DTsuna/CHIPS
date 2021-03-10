@@ -48,6 +48,13 @@ void forward_egn(double array[], double *r_ini, double egn[], double dt)
 	egn[3] = array[4]+egn[1]*dt;
 }
 
+
+
+/*
+array[0] = t_exp.
+array[1] = egn[0] = u_rs, array[2] = egn[1] = u_fs, array[3] = r_rs, array[4] = r_fs, array[5] = F_fs.
+*/
+
 void shock_csm(double E_ej, double M_ej, double n, double delta, const char *file_csm, const char *file_outp)
 {
 	double *array;
@@ -55,6 +62,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	double t_ini, t_fin = 100.*86400.;
 	double r_ini;
 	FILE *fp;
+	double egn[4], y[4]; //These arrays are used to get E_fs.
 
 	strcpy(csm, file_csm);
 	fp = fopen(file_outp, "w");
@@ -64,25 +72,38 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	t_ini = t_early(r_ini);
 	printf("t_ini = %e s\n", t_ini);
 
+
+
+/****************1 step****************/
 	array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm);
-//	printf("t = %f d, %e %e %e %e %e, L = %e erg/s\n", 
-//		array[0]/86400., array[1], array[2], array[3], array[4], array[5], 4.0*M_PI*array[4]*array[4]*array[5]);
-		printf("t = %f d, %e %e %e %e %e, L = %e erg/s, di = %e\n", 
-			array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
-			4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[3])*pow(array[1], 3.));
-		fprintf(fp, "%f %e %e %e %e %e %e\n", 
-			array[0]/86400., array[1], array[2], array[3], array[4], array[5], rho_csm(array[3]));
+	egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
+	boundary(array[4], y, egn, 1);
+
+	printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
+		array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
+		4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[4])*pow(array[1], 3.));
+	fprintf(fp, "%f %e %e %e %e %e %e %e\n", 
+		array[0]/86400., array[1], array[2], array[3], array[4], array[5], (P_A)*pow(y[2], 4.), rho_csm(array[4]));
+/**************************************/
+
+
+
+
+
 	do{
 		dt = 0.005*t_exp;
 		if(t_exp+dt > t_fin){
 			dt = t_fin-t_exp;
 		}
 		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm);
-		printf("t = %f d, %e %e %e %e %e, L = %e erg/s, di = %e\n", 
+		egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
+		boundary(array[4], y, egn, 1);
+
+		printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
 			4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[3])*pow(array[1], 3.));
-		fprintf(fp, "%f %e %e %e %e %e %e\n", 
-			array[0]/86400., array[1], array[2], array[3], array[4], array[5], rho_csm(array[3]));
+		fprintf(fp, "%f %e %e %e %e %e %e %e\n", 
+			array[0]/86400., array[1], array[2], array[3], array[4], array[5], (P_A)*pow(y[2], 4.), rho_csm(array[3]));
 	}while(t_exp < t_fin);
 	fclose(fp);
 }

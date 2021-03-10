@@ -32,17 +32,16 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 {
 	FILE *fp, *fl;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
-	double r_ini, F_ini;
-	double F_add = 0.;
+	double r_ini, F_ini, u_ini, E_ini;
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
-	double tf[2000], rf[2000], Ff[2000];
+	double tf[2000], rf[2000], Ff[2000], Ef[2000], uf[2000];
 	int i = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
-	double dummy[7];
+	double dummy[8];
 	double dr;
-	double CFL = 0.5;
+	double CFL = 1.00000000000000;
 	char filename[256];
 
 	sprintf(csm, "%s", file_csm);
@@ -52,9 +51,11 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 
 	sprintf(filename, "%s", file_outp);
 	fl = fopen(filename, "w");
-	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6]) != EOF){
+	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6], &dummy[7]) != EOF){
 		tf[i] = dummy[0]*86400.000;
 		rf[i] = dummy[4];
+		uf[i] = dummy[2];
+		Ef[i] = dummy[6];
 		if (F_neg_flag==0 && dummy[5]>0.0) {
 			Ff[i] = dummy[5];
 		} else {
@@ -68,6 +69,8 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	t = tf[0];
 	r_ini = rf[0];
 	F_ini = Ff[0];
+	u_ini = uf[0];
+	E_ini = Ef[0];
 
 
 	init_E_U(r_ini, r_out, r, rho, v_w, E, U, NSIZE);
@@ -85,7 +88,6 @@ X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 dt does not necesarrily satisfy CFL condition.
 */
 		if(flag == 0){
-//			dt = t*0.00001;
 			dt = CFL*dr/(P_C);
 		}
 		else{
@@ -101,19 +103,19 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			}
 		}
 
+/*Interpolation of r, E, u_fs, F*/
+		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+		E_ini = Ef[j]*exp(log(Ef[j+1]/Ef[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+		u_ini = uf[j]*exp(log(uf[j+1]/uf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		if(Ff[j] > 0. && Ff[j+1] > 0.){
-			r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+			F_ini += E_ini*u_ini;
 		}
 		else{
-			r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-//			F_ini = (Ff[j+1]-Ff[j])/(tf[j+1]-tf[j])*(t-tf[j])+Ff[j];
 			F_ini = 1.e+04;
 		}
 
-#if 1
 		if(r_ini > r[0]-dr/4.){
-			F_add = calc_flux_i(r_ini, r, E, U, rho, dt, 1, n);
 			n--;
 			for(i = 0; i < n; i++){
 				E[2*i] = E[2*(i+1)];
@@ -126,8 +128,6 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			}
 			r[n] = r[n+1];
 		}
-		F_ini += F_add;
-#endif
 
 		for(i = 0; i < n; i++){
 			E0[i] = E[2*i];
