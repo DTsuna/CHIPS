@@ -109,15 +109,13 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		u_ini = uf[j]*exp(log(uf[j+1]/uf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		if(Ff[j] > 0. && Ff[j+1] > 0.){
 			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-#ifdef EADD
-			F_ini += E_ini*u_ini;
-#endif
 		}
 		else{
 			F_ini = 1.e+04;
 		}
 
 		if(r_ini > r[0]-dr/4.){
+			E_ini = E[0];
 			n--;
 			for(i = 0; i < n; i++){
 				E[2*i] = E[2*(i+1)];
@@ -136,6 +134,12 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			U0[i] = U[2*i];
 //			printf("E = %e U = %e\n", E0[i], U0[i]);
 		}
+
+#ifdef EADD
+		F_ini += E_ini*u_ini;
+#endif
+
+
 /*
 In the following, integrate radiative transfer equation and energy eqation using operator splitting.
 i)   Integrate source term dE/dt = kappa*rho*(acT^4-E), dU/dt = -kappa*rho(acT^4-E), by implicit Euler method.
