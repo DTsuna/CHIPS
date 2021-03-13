@@ -70,7 +70,7 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	r_ini = rf[0];
 	F_ini = Ff[0];
 	u_ini = uf[0];
-	E_ini = Ef[0];
+	E_ini = 0.;
 
 
 	init_E_U(r_ini, r_out, r, rho, v_w, E, U, NSIZE);
@@ -105,7 +105,7 @@ Identify the position of forward shock, and estimate by linear interpolation.
 
 /*Interpolation of r, E, u_fs, F*/
 		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-		E_ini = Ef[j]*exp(log(Ef[j+1]/Ef[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+//		E_ini = Ef[j]*exp(log(Ef[j+1]/Ef[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		u_ini = uf[j]*exp(log(uf[j+1]/uf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		if(Ff[j] > 0. && Ff[j+1] > 0.){
 			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
