@@ -12,7 +12,7 @@ from TOPS import gen_op_tbl
 def parse_command_line():
 	parser = OptionParser(
 		description = '''Execution script. e.g.,\n
-		python run.py --zams-m 15 --zams-z 1 --profile-at-cc snhydOutput/result??.txt
+		python run.py --zams-m 15 --zams-z 1 --profile-at-cc snhydOutput/intermediate??yr.txt
 		'''
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
