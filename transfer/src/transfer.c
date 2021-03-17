@@ -111,6 +111,7 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		}
 		else{
+			printf("Negative Flux value.\n");
 			F_ini = 1.e+04;
 		}
 
