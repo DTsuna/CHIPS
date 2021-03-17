@@ -15,7 +15,7 @@ extern double t_exp;
 extern char csm[256];
 
 double *calc_init_dist(double, double, double, double, double, double, const char*);
-double *calc_dist(double[], double, double, double, double, double, const char*);
+double *calc_dist(double[], double, double, double, double, double, const char*, int*);
 void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
 void shock_csm(double, double, double, double, const char*, const char*);
@@ -61,6 +61,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	double dt = 8640.;
 	double t_ini, t_fin = 100.*86400.;
 	double r_ini;
+	int info;
 	FILE *fp;
 	double egn[4], y[4]; //These arrays are used to get E_fs.
 
@@ -95,12 +96,12 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 		if(t_exp+dt > t_fin){
 			dt = t_fin-t_exp;
 		}
-		if(fabs(dt) < 0.1){
-			break;
-		}
-		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm);
+		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm, &info);
 		egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 		boundary(array[4], y, egn, 1);
+		if(info == 1){
+			break;
+		}
 
 		printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
@@ -171,7 +172,7 @@ These values are old, so before calculating the distribution, r_rs, r_fs must be
 r_rs = r_rs + u_rs*dt, r_fs = r_fs + r_fs*dt.
 */
 
-double *calc_dist(double array[], double E_ej, double M_ej, double n, double delta, double dt, const char *file_csm)
+double *calc_dist(double array[], double E_ej, double M_ej, double n, double delta, double dt, const char *file_csm, int *info)
 {
 	const int nsize = 3, cmax = 100;
 	int i, j, c = 0;
@@ -187,6 +188,8 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 
 	strcpy(csm, file_csm);
 	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, 0.00);
+
+	*info = 0;
 
 	while(1){
 		for(i = 0; i < 4; i++){
@@ -237,6 +240,10 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 		else{
 			break;
 		}
+	}
+
+	if(dt < 0.1){
+		*info = 1;
 	}
 
 	outp_egn[0] = t_exp; outp_egn[1] = egn[0]; outp_egn[2] = egn[1];
