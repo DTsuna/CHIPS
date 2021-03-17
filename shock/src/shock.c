@@ -95,6 +95,9 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 		if(t_exp+dt > t_fin){
 			dt = t_fin-t_exp;
 		}
+		if(fabs(dt) < 0.1){
+			break;
+		}
 		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm);
 		egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 		boundary(array[4], y, egn, 1);
