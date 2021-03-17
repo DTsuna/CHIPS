@@ -16,13 +16,14 @@ double func_dM(double x, double dx, double rho, double rho_out)
 	return 4.0*M_PI*x_m*x_m*rho_m*fabs(dx);
 }
 
-void solver_rev(double x_ini, double int_phys[], double egn[])
+void solver_rev(double x_ini, double int_phys[], double egn[], int *info)
 {
 	double x = x_ini, y[N], yout[N];
 	double dx = 0.0;
 	double M = 0.0, dM = 0.0, M_rev = func_M_ej(x_ini, t_exp);
+	int bflag = 0;
 
-	boundary(x, yout, egn, 0);
+	boundary(x, yout, egn, bflag, info);
 	
 	do{
 		x += dx;
@@ -39,14 +40,16 @@ void solver_rev(double x_ini, double int_phys[], double egn[])
 	set_phys(x, dx, yout, int_phys, egn, 0);
 }
 
-void solver_for(double int_phys[], double ext_phys[], double egn[], int flag)
+void solver_for(double int_phys[], double ext_phys[], double egn[], int flag, int *info)
 {
 	double x = egn[3], y[N], yout[N];
 	double dx = 0.0;
 	double M = 0.0, dM = 0.0;
 	double M_for = func_M_csm(x, t_exp);
+	int bflag = 1;
 
-	boundary(x, yout, egn, 1);
+	boundary(x, yout, egn, bflag, info);
+
 	if(flag == 0){
 		do{
 			x += dx;
@@ -74,13 +77,13 @@ void solver_for(double int_phys[], double ext_phys[], double egn[], int flag)
 	set_phys(x, dx, yout, ext_phys, egn, 1);
 }
 
-void solver(double x_ini, double phys[], double egn[], int flag)
+void solver(double x_ini, double phys[], double egn[], int flag, int *info)
 {
 	double int_phys[4], ext_phys[4];
 	int i;
 
-	solver_rev(x_ini, int_phys, egn);
-	solver_for(int_phys, ext_phys, egn, flag);
+	solver_rev(x_ini, int_phys, egn, info);
+	solver_for(int_phys, ext_phys, egn, flag, info);
 	for(i = 0; i < 4; i++){
 		phys[i] = ext_phys[i]-int_phys[i];
 	}

@@ -78,7 +78,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 /****************1 step****************/
 	array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm);
 	egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
-	boundary(array[4], y, egn, 1);
+	boundary(array[4], y, egn, 1, &info);
 
 	printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
 		array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
@@ -92,13 +92,13 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 
 
 	do{
-		dt = 0.005*t_exp;
+		dt = 0.001*t_exp;
 		if(t_exp+dt > t_fin){
 			dt = t_fin-t_exp;
 		}
 		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm, &info);
 		egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
-		boundary(array[4], y, egn, 1);
+		boundary(array[4], y, egn, 1, &info);
 		if(info == 1){
 			break;
 		}
@@ -115,7 +115,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, double r_ini, const char *file_csm)
 {
 	const int nsize = 4;
-	int i, j;
+	int i, j, info = 0;
 	double dtau = 0.50;
 	double err, tol = 1.00e-09;
 	double egn[4], degn[4], egnfd[4], p[4] = {};
@@ -138,10 +138,10 @@ double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double 
 
 	do{
 		err = 0.00;
-		solver(r_ini, phys, egn, 0);
+		solver(r_ini, phys, egn, 0, &info);
 		for(i = 0; i < nsize; i++){
 			egn[i] += degn[i];
-			solver(r_ini, phys+nsize, egn, 0);
+			solver(r_ini, phys+nsize, egn, 0, &info);
 			for(j = 0; j < nsize; j++){
 				J[nsize*j+i] = (phys[nsize+j]-phys[j])/degn[i]*egnfd[i]/physfd[j];
 			}
@@ -210,10 +210,13 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 	
 		do{
 			err = 0.00;
-			solver(r_ini, phys, egn, 1);
+			solver(r_ini, phys, egn, 1, info);
+			if(*info == 1){
+				break;
+			}
 			for(i = 0; i < nsize; i++){
 				egn[i] += degn[i];
-				solver(r_ini, phys+nsize, egn, 1);
+				solver(r_ini, phys+nsize, egn, 1, info);
 				for(j = 0; j < nsize; j++){
 					J[nsize*j+i] = (phys[nsize+j]-phys[j])/degn[i]*egnfd[i]/physfd[j];
 				}
@@ -236,9 +239,12 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 			}
 		}while(err > tol);
 		if(isnan(egn[0]) || isnan(egn[1]) || isnan(egn[2]) || isnan(egn[3])){
-			dt *= 0.5;
+			dt *= 0.9;
 		}
 		else{
+			break;
+		}
+		if(*info == 1){
 			break;
 		}
 	}

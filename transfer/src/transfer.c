@@ -36,7 +36,7 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
-	double tf[2000], rf[2000], Ff[2000], Ef[2000], uf[2000];
+	double tf[7000], rf[7000], Ff[7000], Ef[7000], uf[7000];
 	int i = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
 	double dummy[8];

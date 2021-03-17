@@ -9,9 +9,15 @@ void diff_eq(double x, double y[], double dydx[])
 	double kappa;
 	double dTdr[2] = {};
 	double eps = 1.e-10;
+	int count = 0, count_max = 100;
 	kappa = kappa_r(y[1], y[2]);
 
 	do{
+		count++;
+		if(count == count_max){
+			printf("count max (diff_eq).\n");
+			break;
+		}
 		dTdr[0] = dTdr[1];
 		dTdr[1] = func_dTdr(y, kappa, dTdr[0]);
 	}while(fabs(1.-dTdr[1]/dTdr[0]) > eps);

@@ -56,9 +56,10 @@ Note that boundary conditions at reverse shock are calculated when the variable 
 If flag = 1, then at forward shock are calculated.
 If flag != 0 or 1, then warning is output and ABEND... be careful.
 */
-void boundary(double x, double y[], double egn[], int flag)
+void boundary(double x, double y[], double egn[], int flag, int *info)
 {
 	int i, j;
+	int count = 0, count_max = 100;
 	double y_up[4], y_fd[4];
 	double func[3], func_fd[3];
 	double J[9];
@@ -100,6 +101,11 @@ void boundary(double x, double y[], double egn[], int flag)
 		for(i = 0; i < 3; i++){
 			y[i] = a[i]*y_fd[i];
 			err += b[i]*b[i];
+		}
+		count++;
+		if(count == count_max){
+			printf("iteration failure. exit. err = %e (boundary conditions)\n", err);
+			*info = 1;
 		}
 	}while(err > tol);
 }
