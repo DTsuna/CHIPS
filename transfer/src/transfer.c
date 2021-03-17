@@ -31,6 +31,7 @@ void init_E_U(double, double, double[], double[], double[], double[], double[], 
 void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, const char *file_outp)
 {
 	FILE *fp, *fl;
+	double F_max = 0., F_out = 0.;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double r_ini, F_ini, u_ini, E_ini;
 	double t, dt = 4.;
@@ -244,6 +245,16 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			E[2*i] = E[2*i+1];
 			U[2*i] = U[2*i+1];
 		}
+
+		F_out = (P_C)*E[2*(n-1)];
+		if(F_max < F_out){
+			F_max = F_out;
+		}
+
+		if(F_out < F_max*0.1 && 4.*M_PI*r[n-1]*r[n-1]*F_out < 1.e+41){
+			break;
+		}
+
 	
 		fprintf(fl, "%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
