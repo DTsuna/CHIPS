@@ -192,6 +192,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 	*info = 0;
 
 	while(1){
+		c = 0;
 		for(i = 0; i < 4; i++){
 			p[i] = 0.;
 //			egn[i] = (i==2) ? 0.9*egn_old[i] : egn_old[i];
@@ -234,12 +235,12 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 			err = sqrt(err/(double)nsize);
 			c++;
 			if(c == cmax){
-				printf("count max\n");
+				printf("count max (iteration failure)\n");
 				break;
 			}
 		}while(err > tol);
 		if(isnan(egn[0]) || isnan(egn[1]) || isnan(egn[2]) || isnan(egn[3])){
-			dt *= 0.9;
+			dt *= 0.1;
 		}
 		else{
 			break;
