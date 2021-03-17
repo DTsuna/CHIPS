@@ -248,6 +248,8 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		fprintf(fl, "%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
+	fclose(fp);
+	fclose(fl);
 }
 
 void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[], double E[], double U[], const int nsize)
