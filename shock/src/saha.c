@@ -28,6 +28,7 @@ void saha(double rho, double U, double *mu, double *T)
                 	mu_tmp[1] = pow(X*(1.+n_HII/n_H)+Y/4.*(1.+n_HeII/n_He+2.*n_HeIII/n_He), -1.);
                 	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
                 	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
+                	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
         	}
 		*mu = mu_tmp[0];
 		*T = T_tmp;
