@@ -41,7 +41,7 @@ file_me = file_cc
 #################################################################
 
 # outer extent of the CSN to feed into the LC calculation
-r_out = 9.9e15
+r_out = 3e16
 CSM_file = 'inp-data/CSM.txt'
 Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me)
 

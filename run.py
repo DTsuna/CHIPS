@@ -136,7 +136,7 @@ utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
 #################################################################
 
 # outer extent of the CSN to feed into the LC calculation
-r_out = 9.9e15
+r_out = 3e16
 CSM_file = 'inp-data/CSM.txt'
 profile_at_cc = 'snhydOutput/atCCSN.txt'
 Y_He, r_edge = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_me)
