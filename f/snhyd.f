@@ -144,6 +144,12 @@ c      time = 0.d0
       write(*,*)time_to_cc, e_charge_tot, injection_time
 c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
+      open(97, file='snhydOutput/parameter.txt'
+     $       ,status='unknown',form='formatted')
+      write(97,*)"time_to_cc injected_energy inject_duration"
+      write(97,*)time_to_cc, e_charge_tot, injection_time
+      close(97)
+      
 !      call eos(n,1,cv,kap)
       call eoshelm(n,cv,temp,e,tau,p,x,
      %        grv,rad,eu,g,g1,cs,u,mn,nelem,time,dummyInt)
