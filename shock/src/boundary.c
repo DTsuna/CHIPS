@@ -106,6 +106,7 @@ void boundary(double x, double y[], double egn[], int flag, int *info)
 		if(count == count_max){
 			printf("iteration failure. exit. err = %e (boundary conditions)\n", err);
 			*info = 1;
+			break;
 		}
 	}while(err > tol);
 }

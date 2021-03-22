@@ -29,6 +29,7 @@ void saha(double rho, double U, double *mu, double *T)
                 	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
                 	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
                 	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
+                	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
         	}
 		*mu = mu_tmp[0];
 		*T = T_tmp;

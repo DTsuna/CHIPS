@@ -239,7 +239,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 				break;
 			}
 		}while(err > tol);
-		if(isnan(egn[0]) || isnan(egn[1]) || isnan(egn[2]) || isnan(egn[3])){
+		if(isnan(egn[0]) || isnan(egn[1]) || isnan(egn[2]) || isnan(egn[3]) || c == cmax){
 			dt *= 0.1;
 		}
 		else{
