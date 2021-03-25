@@ -21,6 +21,7 @@ double r_early(double t)
 	E_ej = pdt.E_ej;
 
 	s = -(log(rho_out)-log(rho_in))/(log(r_out)-log(r_in));
+	s = 1.5;
 	D = rho_out*pow(r_out, s);
 //	printf("%f %e\n", s, D);
 
@@ -43,6 +44,7 @@ double t_early(double r)
 	E_ej = pdt.E_ej;
 
 	s = -(log(rho_out)-log(rho_in))/(log(r_out)-log(r_in));
+	s = 1.5;
 	D = rho_out*pow(r_out, s);
 
 	A = pow(2.*(5.-delta)*(n-5.)*E_ej, (n-3.)/2.);
@@ -73,6 +75,7 @@ double rho_csm(double r)
 		flag = 1;
 		fclose(fp);
 		s = (-(log10(rho_c[1])-log10(rho_c[0]))/(log10(r_c[1])-log10(r_c[0]))-(log10(rho_c[2])-log10(rho_c[1]))/(log10(r_c[2])-log10(r_c[1])))*0.5;
+		s = 1.5;
 	}
 	if(r <= r_c[0]){
 		rho = rho_c[0]*pow(r/r_c[0], -s);
@@ -160,6 +163,7 @@ double func_M_csm(double r, double t)
 			fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]);
 		}
 		s = (-(log10(rho_c[1])-log10(rho_c[0]))/(log10(r_c[1])-log10(r_c[0]))-(log10(rho_c[2])-log10(rho_c[1]))/(log10(r_c[2])-log10(r_c[1])))*0.5;
+		s = 1.5;
 //		printf("s = %f\n", s);
 		fclose(fp);
 		flag = 1;
