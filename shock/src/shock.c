@@ -250,7 +250,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 		}
 	}
 
-	if(dt < 0.1){
+	if(dt < 0.01){
 		*info = 1;
 	}
 
