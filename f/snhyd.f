@@ -44,13 +44,13 @@ c---  initial data is required.
       common /massn/ am(14)
       data iarrv, finish/0, .false./
 
-      real*8  scaleDeposition
+      integer  scaleDeposition, continueTransfer
       logical scaleDepositionFlag
       real*8 scalingRate
 
       real*8 e_charge_tot, injection_time, time_to_cc, dynamicalTime
       integer ejectaCut
-      integer fixedCell, innerCell
+      integer fixedCell, innerCell, icell
       real*8 fixedRad
       integer year
       ! Calculate only ejecta after dynamcal time if true.
@@ -91,12 +91,12 @@ c---  initial data is required.
       open(21,file='f/eruptPara.d',status='old')
       read(21,*)
       read(21,*)time_to_cc, e_charge_tot, injection_time,
-     $     scaleDeposition, scalingRate
+     $     scaleDeposition, scalingRate, continueTransfer
       close(21)
       if(scaleDeposition.eq.0)scaleDepositionFlag = .false.
       if(scaleDeposition.eq.1)scaleDepositionFlag = .true.
       write(*,*)time_to_cc, e_charge_tot, injection_time,
-     $          scaleDepositionFlag, scalingRate
+     $          scaleDepositionFlag, scalingRate, continueTransfer
       open(66,file='snhydOutput/passage@0.1AU.txt',form='formatted')
       write(66,*)' no. time radius mass density velocity pressure'
      $     ,' temperature'
@@ -289,10 +289,17 @@ c      call grow(n, finish, dt, time, encmg)
 
 
       if(ejectaCut.eq.0)then
+        icell = 1
         call opac(n, kap,iphoto)
-        call radtra(n,ihyd,dt,time,cv,kap)
+        call radtra(n,ihyd,dt,time,cv,kap,icell)
       end if
-
+      if(ejectaCut.eq.1)then
+        icell = innerCell
+        if(continueTransfer.eq.1)then
+          call opac(n, kap,iphoto)
+          call radtra(n,ihyd,dt,time,cv,kap,icell)
+        end if
+      end if
 
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 

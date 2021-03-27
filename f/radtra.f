@@ -1,10 +1,10 @@
-      subroutine radtra(nn, istep, dt, time, dedlt, kap)
+      subroutine radtra(nn, istep, dt, time, dedlt, kap, icell)
  
       include 'inclm1.f'
       include 'inclcnst.f'
       include 'inclold.f'
 
-      integer  nn, n, ni
+      integer  nn, n, ni, icell
       common /nickel/ni
 c     physical quantities
       real*8 encm(mn), dmass(mn), dedlt(mn), oeu(mn)
@@ -68,7 +68,7 @@ c$$$ 996  n = min(n,nn-2)
       if(irad.eq.1)then
          write(6,*)' radtra starts now '
          mni = 0.d0
-         do i = 3, n
+         do i = icell+2, n
 c            if(encm(i).gt.0.5*1.989d33)then
 c             if(encm(i).gt.0.075*1.989d33)then
             mni = mni + dmass(i)*x(i,3)
@@ -86,7 +86,7 @@ c             if(encm(i).gt.0.075*1.989d33)then
       st = 3.9e+10*exp(-time/tni)
      &     +7.03e+09*(exp(-time/tco)-exp(-time/tni))
 
-      Do j = 1, n
+      Do j = icell, n
          rnm(j) = rad(j)/radn
          oeu(j) = eu(j)
          gam1(j) = 0
@@ -94,13 +94,13 @@ c             if(encm(i).gt.0.075*1.989d33)then
          lgam1(j) = 0
          lgam2(j) = 0
       enddo
-      do i = 1, n-2
+      do i = icell, n-2
          rn2 = 0.25*(rnm(n-i+1)+rnm(n-i))**2*radn2
          taug(n-i) = taug(n-i+1) + kapg/(rn2*pi)*dmass(n-i+1)*0.25
       enddo
-      taug(1) = taug(3)
+      taug(icell) = taug(icell+2)
       if(difl(n).eq.0.0)then
-         do i = 3, n
+         do i = icell+2, n
             rad2 = rnm(i)*rnm(i)
             t2 = temp(i)*temp(i)
             t2m = temp(i-1)*temp(i-1)
@@ -122,14 +122,14 @@ c             if(encm(i).gt.0.075*1.989d33)then
 c           lum(i) = st*dmass(i)*1d-2
          enddo
       else
-         do i = 1, n
+         do i = icell, n
             lum(i) = difl(i)
          enddo
       endif
       lum(n) = radn2*8.d0*pi*temp(n)**4*sigma
       if(lum(n-1).eq.0.0)lum(n-1)=lum(n)
 
-      do j = 1, n
+      do j = icell, n
          srce(j) = 0.d0
          srceni(j) = 0.d0
       enddo
@@ -149,7 +149,7 @@ c           lum(i) = st*dmass(i)*1d-2
 c         srceni(i) = st*(1.0-0.96*extau)*0.075*1.989d33/encm(ni)
 !      enddo
 
-      do j = 3, n
+      do j = icell+2, n
          j1 = j - 1
          r2 = rad(j)*rad(j)
          or2 = orad(j)*orad(j)
@@ -162,62 +162,65 @@ c         srceni(i) = st*(1.0-0.96*extau)*0.075*1.989d33/encm(ni)
      $           /dmass(j)-(0.5d0*(u(j)*u(j)-ou(j)*ou(j))
      $           +(rad(j)*grv(j)- orad(j)*ogrv(j)))/dt
       enddo
-      srce(3) = srce(3)
-      srce(1)=srce(4)
-      srce(2)=srce(3)
-      lum(2) = 0.0
+      srce(icell+2) = srce(icell+2)
+      srce(icell)=srce(icell+3)
+      srce(icell+1)=srce(icell+2)
+      lum(icell+1) = 0.0
 c     iteration starts here
       iter = 0
 
 
       do it = 1, 100
-         rad32 = rnm(3)*rnm(3)
+         rad32 = rnm(icell+2)*rnm(icell+2)
          rad34 = rad32*rad32
-         btl = temp(2)
+         btl = temp(icell+1)
          btl2 = btl*btl
          btl4 = btl2*btl2
-         t2 = temp(3)*temp(3)
+         t2 = temp(icell+2)*temp(icell+2)
          t4 = t2*t2
-         tl3= t2*temp(3)
-         tb2 = t2+btl2+2*temp(3)*btl
+         tl3= t2*temp(icell+2)
+         tb2 = t2+btl2+2*temp(icell+2)*btl
          tb4 = 0.0625*tb2*tb2
-         bluml = lum(2)
-         alpha1 = 64.0*pi*pi*sigma/kap(3)*rad34/dmass(3)
-         beta1 = 4.0*pi*rad32*radn2/kap(3)/dmass(3)
+         bluml = lum(icell+1)
+         alpha1 = 64.0*pi*pi*sigma/kap(icell+2)*rad34/dmass(icell+2)
+         beta1 = 4.0*pi*rad32*radn2/kap(icell+2)/dmass(icell+2)
          r = abs(beta1*(t4-btl4)/tb4)
          if(r.lt.1e+18)then
-            df(3) = (3.0+r)/(6.0+3.0*r+r*r)
+            df(icell+2) = (3.0+r)/(6.0+3.0*r+r*r)
             ddf = -r*(4.0+r)/(6.0+3.0*r+r*r)**2
          else
-            df(3) = 1.0/r
+            df(icell+2) = 1.0/r
             ddf = -1.0/(r*r)
          endif
-         dr1 = -4.0*beta1*temp(3)*btl*(t2-temp(3)*btl+btl2)/tb4
-         a11 = dt/dmass(3)
-         a12 = dedlt(3)
+         dr1 = -4.0*beta1*temp(icell+2)*btl*
+     $          (t2-temp(icell+2)*btl+btl2)/tb4
+         a11 = dt/dmass(icell+2)
+         a12 = dedlt(icell+2)
          a21 = 1.0/radn2/radn2
-         a22 = -alpha1*(4.0*df(3)*btl4+dr1*ddf*(t4-btl4))
-         b1 = -dt/dmass(3)
-         b2 = alpha1*(4.0*t4*df(3)+(t4-btl4)*ddf*dr1)
+         a22 = -alpha1*(4.0*df(icell+2)*btl4+dr1*ddf*(t4-btl4))
+         b1 = -dt/dmass(icell+2)
+         b2 = alpha1*(4.0*t4*df(icell+2)+(t4-btl4)*ddf*dr1)
 !         c1 = (lum(3)-bluml)/dmass(3)*dt + (eu(3)-oeu(3))
 !     $        +0.5d0*(p(3)+op(3))*(tau(3)-otau(3))-srce(3)*dt
-         c1 = (lum(3)-bluml)/dmass(3)*dt + (eu(3)-oeu(3))
-     $        -srce(3)*dt
-         c1 = (lum(3)-bluml)/dmass(3)*dt + (eu(3)-oeu(3))
+         c1 = (lum(icell+2)-bluml)/dmass(icell+2)*dt +
+     $      (eu(icell+2)-oeu(icell+2))
+     $        -srce(icell+2)*dt
+         c1 = (lum(icell+2)-bluml)/dmass(icell+2)*dt +
+     $           (eu(icell+2)-oeu(icell+2))
          c2 = bluml/radn2/radn2
-     &        + alpha1*df(3)*(t4-btl4)
+     &        + alpha1*df(icell+2)*(t4-btl4)
          detmi = 1.d0/(b1*b2-a12*a21)
-         gam1(3) = b2*a11*detmi
-         gam2(3) = -a21*a11*detmi
-         lgam1(3) = (b2*c1-a12*c2)*detmi
-         lgam2(3) = (b1*c2-a21*c1)*detmi
+         gam1(icell+2) = b2*a11*detmi
+         gam2(icell+2) = -a21*a11*detmi
+         lgam1(icell+2) = (b2*c1-a12*c2)*detmi
+         lgam2(icell+2) = (b1*c2-a21*c1)*detmi
 
-         gam1(3) = 0.d0
-         lgam1(3) = 0.d0
-         gam2(3) = a11/a12
-         lgam2(3) = c1/a12
+         gam1(icell+2) = 0.d0
+         lgam1(icell+2) = 0.d0
+         gam2(icell+2) = a11/a12
+         lgam2(icell+2) = c1/a12
 
-         do j = 4, n
+         do j = icell+3, n
             radj2 = rnm(j-1)*rnm(j-1)
             radj4 = radj2*radj2
             t2 = temp(j)*temp(j)
@@ -285,14 +288,14 @@ c$$$     $        (1.d0+4.0*bgam*gam2(n))i
          dll(n) = (radn2*16.d0*pi*sigma*temp(n)**4)
      $    /3.d0/((kap(n)*dmass(n)/4.d0/pi/radn2)+2.d0/3.d0) - lum(n)
          dltemp(n) = -gam2(n)*dll(n)-lgam2(n)
-         do j = n-1, 3, -1
+         do j = n-1, icell+2, -1
             j1 = j + 1
             dll(j) = -gam1(j1)*dll(j1) - lgam1(j1)
             dltemp(j) = -gam2(j)*dll(j) - lgam2(j)
          enddo
          test = 0.d0
          tesl = 0.d0
-         do j = 3, n
+         do j = icell+2, n
             temp(j) = max(t_min,temp(j)*(1.0+max(-0.1d0,dltemp(j))))
 c$$$            print *,"dT(",j,")/T=",dltemp(j),"dl=",dll(j)
             ts = sqrt(temp(j))
@@ -313,8 +316,8 @@ c$$$            print *,"dT(",j,")/T=",dltemp(j),"dl=",dll(j)
             test = max(test,abs(dltemp(j)))
             tesl = max(tesl,abs(dll(j)/(lum(j)+1.d0)))
          enddo
-         temp(1) = temp(4)
-         temp(2) = temp(3)
+         temp(icell) = temp(icell+3)
+         temp(icell+1) = temp(icell+2)
 !         call eos(n,0,dedlt,kap)
          call eoshelm_e(n,dedlt,temp,e,tau,p,x,grv,rad,eu,g,g1,cs,u,mn,
      $           nelem,time)
@@ -368,7 +371,7 @@ c     if(iter.ge.40)write(6,*)'no of iterations',iter,istep
       end if
       if(test.gt.10000.d0)then!epsl to 10000
          write(6,'(a,1p3e12.4,i6)')'test = ',test, tesl, time, istep
-         do j = 3, n
+         do j = icell+2, n
             if(abs(dltemp(j)).gt.epsl.and.tauo(j).gt.1d-2)then
                write(*,'(i4,1p6e12.4)')j,temp(j),lum(j),dltemp(j),dll(j)
      $              ,eu(j),oeu(j)
