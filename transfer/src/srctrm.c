@@ -3,6 +3,9 @@
 #include "srctrm.h"
 #include "saha.h"
 #include "constant.h"
+#include "nr.h"
+
+#define W4
 
 double func_rhs(double E, double U, double rho)
 {
@@ -58,8 +61,15 @@ void itg_src(double E[], double U[], double rho, double dt, double tol)
 		func[0] /= E[0];
 		func[1] /= E[0];
 
+#ifdef W4
 		get_itr_x(x, p, J, func, dtau, 2);
 		E[1] = x[0]*E[0]; U[1] = x[1]*U[0];
+#else
+		nr_itr(x, p, J, func, 2);
+		E[1] = (x[0]+p[0])*E[0]; U[1] = (x[1]+p[1])*U[0];
+#endif
+
+
 		err = func[0]*func[0]/E[1]/E[1]+func[1]*func[1]/U[1]/U[1];
 		err = sqrt(err/2.);
 //		printf("err = %e kappa = %e T = %e\n", err, kappa, T);
