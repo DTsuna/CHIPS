@@ -7,8 +7,11 @@ import sys
 import warnings
 import os
 import re
-
-from scipy.optimize import curve_fit
+try:
+	from scipy.optimize import curve_fit
+	scipy_exists = True
+except:
+	pass
 
 MSUN = 1.9884e+33
 RSUN = 6.96e+10
@@ -109,7 +112,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 
 	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 	try:
-		if analytical_CSM:
+		if analytical_CSM and scipy_exists:
 			# find outermost radius where the slope suddenly changes from ~-1.5 to <-10.
 			# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
 			# can be the boundary of the star and the CSM.
@@ -130,7 +133,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			# we fix the density profile as rho\propto r^(-1.5) inside the radius where the CSM density become
 			# unreliable due to artificial shocks. this profile is merely a guess: but should be somewhat accurate
 			# well close to the stellar surface
-			if analytical_CSM:
+			if analytical_CSM and scipy_exists:
 				rho = math.exp(func(math.log(r), r_break, rho_break, yrho))
 			else:
 				rho = rho_in[istop] * (r/rstop)**(-1.5)
