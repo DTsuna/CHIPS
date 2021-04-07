@@ -142,7 +142,7 @@ utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
 r_out = 3e16
 CSM_file = 'inp-data/CSM.txt'
 profile_at_cc = 'snhydOutput/atCCSN.txt'
-Y_He, r_edge = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_me, options.analytical_CSM)
+Y_He, r_edge = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM)
 
 # extract the ejecta parameters
 Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, r_edge)
