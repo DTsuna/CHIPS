@@ -18,6 +18,7 @@ def parse_command_line():
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
 	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
+	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
 
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
@@ -43,7 +44,7 @@ file_me = file_cc
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
 CSM_file = 'inp-data/CSM.txt'
-Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me)
+Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me, options.analytical_CSM)
 
 # extract the ejecta parameters
 Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, r_edge)
