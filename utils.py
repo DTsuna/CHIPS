@@ -118,6 +118,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			# can be the boundary of the star and the CSM.
 			slope = [r/rho_in[i]*(rho_in[i+1]-rho_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
 			istop = max([i for i in range(len(slope[:-10])) if slope[i]<-10 and slope[i+10]>-2.0 and slope[i+10]<-1.0])
+			istop += 10
 			rstop = r_in[istop]
 			popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:]), np.log(rho_in[istop:]), p0=[1e15,1e-15,2.0])
 			(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
@@ -134,7 +135,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			# unreliable due to artificial shocks. this profile is merely a guess: but should be somewhat accurate
 			# well close to the stellar surface
 			if analytical_CSM and scipy_exists:
-				rho = math.exp(func(math.log(r), r_break, rho_break, yrho))
+				rho = math.exp(CSMprof_func(math.log(r), r_break, rho_break, yrho))
 			else:
 				rho = rho_in[istop] * (r/rstop)**(-1.5)
 			# use values at istop
