@@ -25,6 +25,8 @@ def parse_command_line():
 	available_mesa_models = [(mass, 1.) for mass in available_masses]
 	if (options.zams_m,options.zams_z) not in available_mesa_models:
 		raise ValueError('stellar model not available')
+	if options.profile_at_cc == None:
+		raise ValueError('the density profile at core-collapse (snhydOutput/intermediate??.txt) is a required argument')
 
 	return options, filenames
 
