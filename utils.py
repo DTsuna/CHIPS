@@ -113,12 +113,12 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 	try:
 		if analytical_CSM and scipy_exists:
-			# find outermost radius where the slope suddenly changes from ~-1.5 to <-10.
+			# find outermost radius where the slope suddenly changes from ~-1.5 to <-15.
 			# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
 			# can be the boundary of the star and the CSM.
 			slope = [r/rho_in[i]*(rho_in[i+1]-rho_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
-			istop = max([i for i in range(len(slope[:-10])) if slope[i]<-10 and slope[i+10]>-2.0 and slope[i+10]<-1.0])
-			istop += 10
+			istop = max([i for i in range(len(slope[:-100])) if slope[i]<-15 and slope[i+100]>-2.0 and slope[i+100]<-1.0])
+			istop += 100
 			rstop = r_in[istop]
 			popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:]), np.log(rho_in[istop:]), p0=[1e15,1e-15,2.0])
 			(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
