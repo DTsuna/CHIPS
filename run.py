@@ -124,7 +124,7 @@ subprocess.call("make")
 
 
 # run eruptive mass-loss rad-hydro calculation
-subprocess.call("./runsnhyd")
+subprocess.call("./runsnhyd", stdout=open(os.devnull,'wb'))
 
 
 # obtain light curve at mass eruption
