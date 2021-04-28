@@ -187,9 +187,10 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		plt.xlabel('radius [cm]')
 		plt.ylabel('density [g cm$^{-3}$]')
 		plt.xlim(0.5*rs[0], rs[-1])
-		plt.plot(r_in, rho_in, label='original')
+		plt.plot(r_in, rho_in, linestyle='dashed', label='original')
 		plt.plot(rs, rho_array, label='remeshed')
 		plt.legend(loc='upper right')
+		plt.grid(linestyle='dotted')
 		plt.tight_layout()
 		plt.savefig('CSM_comparison.png')
 
