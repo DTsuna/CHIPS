@@ -7,11 +7,21 @@ import sys
 import warnings
 import os
 import re
+# check of whether scipy can be imported
 try:
 	from scipy.optimize import curve_fit
 	scipy_exists = True
 except:
+	scipy_exists = False
 	pass
+# check of whether matplotlib can be imported
+try:
+	from matplotlib import pyplot as plt
+	matplotlib_exists = True
+except:
+	matplotlib_exists = False
+	pass
+
 
 MSUN = 1.9884e+33
 RSUN = 6.96e+10
@@ -129,6 +139,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	except:
 		istop = 0
 		rstop = 0.0
+	rho_array = []
 	for i, r in enumerate(rs):
 		if r < rstop:
 			# we fix the density profile as rho\propto r^(-1.5) inside the radius where the CSM density become
@@ -167,7 +178,21 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			last_Mr = Mr
 			# X, Y are the edge value
 			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, vwind, rho, X_edge, Y_edge), file=fout)
+		rho_array.append(rho)
 	fout.close()
+	# plot CSM profile
+	if matplotlib_exists:
+		plt.xscale('log')
+		plt.yscale('log')
+		plt.xlabel('radius [cm]')
+		plt.ylabel('density [g cm$^{-3}$]')
+		plt.xlim(0.5*rs[0], rs[-1])
+		plt.plot(r_in, rho_in, label='original')
+		plt.plot(rs, rho_array, label='remeshed')
+		plt.legend(loc='upper right')
+		plt.tight_layout()
+		plt.savefig('CSM_comparison.png')
+
 	# extract Y_avrg, needed for opacity calculation, and start of CSM, needed to set end of ejecta for ejecta calculation
 	return Y_avrg, max(rs[0], rstop)
 
