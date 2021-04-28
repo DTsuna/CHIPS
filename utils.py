@@ -192,7 +192,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		plt.legend(loc='upper right')
 		plt.grid(linestyle='dotted')
 		plt.tight_layout()
-		plt.savefig('CSM_comparison.png')
+		plt.savefig('inp-data/CSM_comparison.png')
 
 	# extract Y_avrg, needed for opacity calculation, and start of CSM, needed to set end of ejecta for ejecta calculation
 	return Y_avrg, max(rs[0], rstop)
