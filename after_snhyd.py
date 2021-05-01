@@ -45,7 +45,7 @@ file_me = file_cc
 
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
-CSM_file = 'inp-data/CSM.txt'
+CSM_file = 'LCFiles/CSM.txt'
 Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM)
 
 # extract the ejecta parameters
@@ -53,16 +53,16 @@ Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, r_edge)
 Eexps = [1e51, 3e51, 1e52]
 
 # obtain opacity 
-opacity_file = 'inp-data/opacity.txt'
+opacity_file = 'LCFiles/opacity.txt'
 gen_op_tbl.gen_op_tbl(Y_He, opacity_file)
 
 for Eexp in Eexps:
 	# luminosity at shock
-	shock_file = 'inp-data/shock_output_'+str(Eexp)+'erg.txt'
+	shock_file = 'LCFiles/shock_output_'+str(Eexp)+'erg.txt'
 	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file)
 
 	# radiation transfer
-	IIn_lc_file = 'outp-data/IIn_lightcurve_'+str(Eexp)+'erg.txt'
+	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg.txt'
 	lightcurve.transfer(r_out, CSM_file, shock_file, IIn_lc_file)
 
 	# obtain peak luminosity and rise/decay time in days
@@ -70,5 +70,5 @@ for Eexp in Eexps:
 	utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
 
 # obtain light curve at mass eruption
-mass_eruption_lc_file = 'outp-data/mass_eruption_lightcurve.txt'
+mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
 utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)

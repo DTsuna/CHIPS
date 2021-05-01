@@ -118,7 +118,7 @@ convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration, Scale
 
 
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
-subprocess.call(["mkdir", "-p", "snhydOutput"])
+subprocess.call(["mkdir", "-p", "EruptionFiles"])
 subprocess.call(["make", "clean"])
 subprocess.call("make")
 
@@ -128,7 +128,7 @@ subprocess.call("./runsnhyd", stdout=open(os.devnull,'wb'))
 
 
 # obtain light curve at mass eruption
-mass_eruption_lc_file = 'outp-data/mass_eruption_lightcurve.txt'
+mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
 utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
 
 
@@ -140,8 +140,8 @@ utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
 
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
-CSM_file = 'inp-data/CSM.txt'
-profile_at_cc = 'snhydOutput/atCCSN.txt'
+CSM_file = 'LCFiles/CSM.txt'
+profile_at_cc = 'EruptionFiles/atCCSN.txt'
 Y_He, r_edge = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM)
 
 # extract the ejecta parameters
@@ -149,16 +149,16 @@ Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, r_edge)
 Eexps = [1e51, 3e51, 1e52]
 
 # obtain opacity 
-opacity_file = 'inp-data/opacity.txt'
+opacity_file = 'LCFiles/opacity.txt'
 gen_op_tbl.gen_op_tbl(Y_He, opacity_file)
 
 for Eexp in Eexps:
 	# luminosity at shock
-	shock_file = 'inp-data/shock_output_'+str(Eexp)+'erg.txt'
+	shock_file = 'LCFiles/shock_output_'+str(Eexp)+'erg.txt'
 	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file)
 
 	# radiation transfer
-	IIn_lc_file = 'outp-data/IIn_lightcurve_'+str(Eexp)+'erg.txt'
+	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg.txt'
 	lightcurve.transfer(r_out, CSM_file, shock_file, IIn_lc_file)
 
 	# obtain peak luminosity and rise/decay time in days

@@ -1,8 +1,8 @@
 FC	:=	gfortran
 FFLAGS	:=	-fno-automatic -fno-range-check
-PROG	:=	runsnhyd
+PROG	:=	../../eruption
 
-TARGETS	:=	f f90
+TARGETS	:=	hydro eos	
 
 CPPS	=	$(shell find $(TARGETS) -name '*.o')
 
