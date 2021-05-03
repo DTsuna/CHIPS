@@ -7,7 +7,7 @@
       common /riem/ ps, us
 
       if(initial)then
-         open(25,file='snhydOutput/grow.d',
+         open(25,file='EruptionFiles/grow.d',
      $            form='formatted',status='unknown')
          do j = 3, n
             amp(j) = 0.d0
@@ -29,7 +29,7 @@
 
       write(25,'(1p3e15.7)')time,exp(amp(59)),exp(amp(168))
       if(finish)then
-         open(45,file='snhydOutput/amp_RT.d',
+         open(45,file='EruptionFiles/amp_RT.d',
      $          status='unknown',form='formatted')
          write(45,'(i5,1p2e15.7)')
      $        (j,encm(j)/1.989d33,exp(amp(j)),j=3,n-1)

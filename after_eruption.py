@@ -12,7 +12,7 @@ from TOPS import gen_op_tbl
 def parse_command_line():
 	parser = OptionParser(
 		description = '''Execution script. e.g.,\n
-		python run.py --zams-m 15 --zams-z 1 --profile-at-cc snhydOutput/intermediate??yr.txt
+		python run.py --zams-m 15 --zams-z 1 --profile-at-cc EruptionFiles/intermediate??yr.txt
 		'''
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
@@ -26,7 +26,7 @@ def parse_command_line():
 	if (options.zams_m,options.zams_z) not in available_mesa_models:
 		raise ValueError('stellar model not available')
 	if options.profile_at_cc == None:
-		raise ValueError('the density profile at core-collapse (snhydOutput/intermediate??.txt) is a required argument')
+		raise ValueError('the density profile at core-collapse (EruptionFiles/intermediate??.txt) is a required argument')
 
 	return options, filenames
 

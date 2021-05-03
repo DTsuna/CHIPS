@@ -59,7 +59,7 @@
       if(done.eq.0)then
        write(*,*) 'now reading table'
        call read_helm_table
-       open(81,file='snhydOutput/eos_Report.d', status='unknown')
+       open(81,file='EruptionFiles/eos_Report.d', status='unknown')
        write(81,*)"*****eos_Report*****"
        close(81)
        done = 1
@@ -132,7 +132,7 @@
        call helmeos(k,error)
        if(error.ne.0)then
          write(*,*)"error",error,"before itteration at cell",k
-!         open(81,file='snhydOutput/eos_Report.d', access='append')
+!         open(81,file='EruptionFiles/eos_Report.d', access='append')
 !         write(81,*),k,time,"before iter"
 !         close(81)
        end if
@@ -153,7 +153,7 @@
           call helmeos(k,error)
           if(error.ne.0)then
             write(*,*)"error",error ,"during itteration at cell",k
-!            open(81,file='snhydOutput/eos_Report.d', access='append')
+!            open(81,file='EruptionFiles/eos_Report.d', access='append')
 !            write(81,*),k,time,"during iter"
 !            close(81)
           end if
@@ -189,7 +189,7 @@
             te = te + dt
             kk = kk + 1
             if(kk.gt.100)then
-                open(81,file='snhydOutput/eos_Report.d', access='append')
+                open(81,file='EruptionFiles/eos_Report.d', access='append')
                 write(81,*),k,time,"iter does not converge"
                 close(81)
                 exit

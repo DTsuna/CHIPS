@@ -71,7 +71,7 @@ c---  initial data is required.
          am(k) = 4.d0*k
  5       continue
       alpha = 0.d0
-      open(17,file='snhydOutput/start.time',status='unknown')
+      open(17,file='EruptionFiles/start.time',status='unknown')
       write(17,*)'just starting'
       close(17)
       open(18,file='f/para1.d',status='old')
@@ -97,7 +97,7 @@ c---  initial data is required.
       if(scaleDeposition.eq.1)scaleDepositionFlag = .true.
       write(*,*)time_to_cc, e_charge_tot, injection_time,
      $          scaleDepositionFlag, scalingRate, continueTransfer
-      open(66,file='snhydOutput/passage@0.1AU.txt',form='formatted')
+      open(66,file='EruptionFiles/passage@0.1AU.txt',form='formatted')
       write(66,*)' no. time radius mass density velocity pressure'
      $     ,' temperature'
 c$$$      do k = 1, ntp
@@ -144,7 +144,7 @@ c      time = 0.d0
       write(*,*)time_to_cc, e_charge_tot, injection_time
 c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
-      open(97, file='snhydOutput/parameter.txt'
+      open(97, file='EruptionFiles/parameter.txt'
      $       ,status='unknown',form='formatted')
       write(97,*)"time_to_cc injected_energy inject_duration"
       write(97,*)time_to_cc, e_charge_tot, injection_time
@@ -169,12 +169,12 @@ c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
       call riemnt( n,ihyd,gl,gr,g1l,g1r,psl,psr,taup,taum,usl,
      *     usr,pn)
-      open (11,file='snhydOutput/hyd.d',
+      open (11,file='EruptionFiles/hyd.d',
      $               status='unknown',form='formatted')
       WRITe(11,'(''total energy ='',1pe12.4,''erg, total mass =''
      $     ,e12.4,'' Msun'')')te, encm(n)/1.989e33
       close(11)
-      open (12,file='snhydOutput/lightc.d',
+      open (12,file='EruptionFiles/lightc.d',
      $               status='unknown',form='formatted')
       dt = 0.d0
       kp = 1
@@ -213,7 +213,7 @@ c$$$      do 10 ihyd = istart, ihydm
 
       if(output_do.le.99)then
         if(time.gt.when_out(output_do))then
-           write (filename, '("snhydOutput/result", i2.2, ".txt")')
+           write (filename, '("EruptionFiles/result", i2.2, ".txt")')
      $         output_do
            open(91, file=filename,status='unknown',form='formatted')
 
@@ -304,7 +304,7 @@ c      call grow(n, finish, dt, time, encmg)
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
       if(time-dt.gt.year*86400.d0*365.25d0)then
-        write (filename, '("snhydOutput/intermediate", i2.2, "yr.txt")')
+        write (filename, '("EruptionFiles/intermediate", i2.2, "yr.txt")')
      $         year
         year = year + 1
         output_init = 3
@@ -328,7 +328,7 @@ c      call grow(n, finish, dt, time, encmg)
         if(ejectaCut.eq.1)then
           output_init = fixedCell
         end if
-        open(98,file='snhydOutput/atCCSN.txt',status='unknown'
+        open(98,file='EruptionFiles/atCCSN.txt',status='unknown'
      $               ,form='formatted')
         write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H X_He
      $ P[erg/cc]"
@@ -374,14 +374,14 @@ c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
       kp1 = max(kp-1,1)
       if(time.eq.tp(kp1)) then
-         open (11,file='snhydOutput/hyd.d',
+         open (11,file='EruptionFiles/hyd.d',
      $           access='append',form='formatted')
 !         call output(n, alpha, ihyd, time, dt)
          close(11)
       end if
 !      if(u(n).gt.2.d9.and.iarrv.eq.0)then
       if(u(n).gt.1.d9.and.iarrv.eq.0)then
-         open (11,file='snhydOutput/hyd.d',
+         open (11,file='EruptionFiles/hyd.d',
      $        access='append',form='formatted')
 !         call output(n, alpha, ihyd, time, dt)
          close(11)
@@ -412,7 +412,7 @@ c$$$ 10   continue
  99   close(12)
       close(11)
       write(*,*)"at 99"
-      open(19,file='snhydOutput/finish.time',status='unknown')
+      open(19,file='EruptionFiles/finish.time',status='unknown')
       write(19,*)'just finished'
       close(19)
       stop' normal end.'

@@ -10,7 +10,7 @@ void set_opacity(const char *openfile, opacity *op)
 	char buf[256], *ascii;
 	int i = 0, k = 0, l = 0;
 
-	snprintf(filename, 256, "./inp-data/%s", openfile);
+	snprintf(filename, 256, "./LCFiles/%s", openfile);
 	if((fp = fopen(filename, "r")) == NULL){
 		printf("ERROR: Can't open opacity file \"%s\". Check whether it exists.\n", filename);
 		exit(EXIT_FAILURE);

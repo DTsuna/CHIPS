@@ -1,8 +1,9 @@
 build/
-f/obj/
-f90/obj/
-f/eruptPara.d
-f/inclmn.f
-snhydOutput/
-runsnhyd
-example_make_ccsn/
+src/eruption/f/obj/
+src/eruption/f90/obj/
+src/eruption/f/eruptPara.d
+src/eruption/f/inclmn.f
+EruptionFiles/
+LCFiles/
+eruption
+example_make_pre_ccsn/

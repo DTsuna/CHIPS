@@ -61,7 +61,7 @@
        write(*,*) 'now reading table'
        call read_helm_table_e
        done = 1
-       open(83,file='snhydOutput/eos_eReport.d', status='unknown')
+       open(83,file='EruptionFiles/eos_eReport.d', status='unknown')
        write(83,*)"*****eos_eReport*****"
        close(83)
       end if
@@ -103,7 +103,7 @@
          dedlt_ar(k) = temp_ar(k)*cv_row(1)
        end if
        if(error.ne.0)then
-         open(83,file='snhydOutput/eos_eReport.d', access='append')
+         open(83,file='EruptionFiles/eos_eReport.d', access='append')
 !         write(83,*),k,time
          close(83)
          write(*,*)"eoshelm_e error at j =",k
