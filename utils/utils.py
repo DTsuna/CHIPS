@@ -192,7 +192,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		plt.legend(loc='upper right')
 		plt.grid(linestyle='dotted')
 		plt.tight_layout()
-		plt.savefig('../LCFiles/CSM_comparison.png')
+		plt.savefig('LCFiles/CSM_comparison.png')
 
 	# extract Y_avrg, needed for opacity calculation, and start of CSM, needed to set end of ejecta for ejecta calculation
 	return Y_avrg, max(rs[0], rstop)
@@ -218,7 +218,7 @@ def get_mass_eruption_lightcurve(outputFile):
         temperature = np.zeros(maxFileSize)
 
         # Get the abundance
-        fileName = '../EruptionFiles/atCCSN.txt'
+        fileName = 'EruptionFiles/atCCSN.txt'
         if os.path.exists(fileName) == False:
                 X = 0.7
                 Y = 0.28
@@ -233,7 +233,7 @@ def get_mass_eruption_lightcurve(outputFile):
 
         for i in range(1,maxFileSize):
                 # Get the hydrodynamical result
-                fileName='../EruptionFiles/result%s.txt' % str(i).zfill(2)
+                fileName='EruptionFiles/result%s.txt' % str(i).zfill(2)
                 if os.path.exists(fileName) == False:
                         break
                 #print(str(fileName))
