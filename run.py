@@ -40,7 +40,7 @@ options, filenames = parse_command_line()
 
 
 if options.skip_mesa:
-	file_cc = 'mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
+	file_cc = 'input/mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
 	file_me = file_cc 
 	time_CSM = options.delta_t
 else:
