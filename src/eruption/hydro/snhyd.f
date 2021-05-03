@@ -304,7 +304,7 @@ c      call grow(n, finish, dt, time, encmg)
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
       if(time-dt.gt.year*86400.d0*365.25d0)then
-        write (filename, '("EruptionFiles/intermediate", i2.2, "yr.txt")')
+        write (filename, '("EruptionFiles/intermediate",i2.2,"yr.txt")')
      $         year
         year = year + 1
         output_init = 3
