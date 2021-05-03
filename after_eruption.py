@@ -54,7 +54,9 @@ Eexps = [1e51, 3e51, 1e52]
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'
-gen_op_tbl.gen_op_tbl(Y_He, opacity_file)
+gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
+opacity_file = 'LCFiles/kappa_p.txt'
+gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 
 for Eexp in Eexps:
 	# luminosity at shock
