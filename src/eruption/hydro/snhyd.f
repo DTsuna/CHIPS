@@ -74,7 +74,7 @@ c---  initial data is required.
       open(17,file='EruptionFiles/start.time',status='unknown')
       write(17,*)'just starting'
       close(17)
-      open(18,file='f/para1.d',status='old')
+      open(18,file='src/eruption/hydro/para1.d',status='old')
       read(18,*)
       read(18,*)istart,ihydm, jw, iout, idev
       read(18,*)
@@ -88,7 +88,7 @@ c---  initial data is required.
       close(18)
 
         
-      open(21,file='f/eruptPara.d',status='old')
+      open(21,file='src/eruption/hydro/eruptPara.d',status='old')
       read(21,*)
       read(21,*)time_to_cc, e_charge_tot, injection_time,
      $     scaleDeposition, scalingRate, continueTransfer

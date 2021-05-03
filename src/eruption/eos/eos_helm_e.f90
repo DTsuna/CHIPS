@@ -213,7 +213,7 @@
 
 
 ! open the file (use softlinks to input the desired table)
-       open(unit=19,file='f90/helm_table.dat',status='old')
+       open(unit=19,file='src/eruption/eos/helm_table.dat',status='old')
 
 
 ! for standard table limits
