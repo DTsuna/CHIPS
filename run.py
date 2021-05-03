@@ -7,10 +7,10 @@ import subprocess
 import sys
 
 # our modules
-import convert
-import utils
+from utils import convert
+from utils import utils
+from input.TOPS import gen_op_tbl 
 import lightcurve
-from TOPS import gen_op_tbl 
 
 
 def parse_command_line():
@@ -89,16 +89,16 @@ print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 
 
 # convert data for hydro in KS20
-file_hydro = 'InitForHydro.txt'
+file_hydro = 'EruptionFiles/InitForHydro.txt'
 hydroNumMesh = 10000
 logscaleRemesh = False
 
 massCutByHand = False # If true, massCutPoint is used. If false, helium core is cutted automatically.
 massCutPoint = 1.3 # unit in Msun
 
-subprocess.call(["rm", "f/inclmn.f"])
-subprocess.call(["rm", "f/eruptPara.d"])
-subprocess.call(["rm", "InitForHydro.txt"])
+subprocess.call(["rm", "src/eruption/f/inclmn.f"])
+subprocess.call(["rm", "src/eruption/f/eruptPara.d"])
+subprocess.call(["rm", "EruptionFiles/InitForHydro.txt"])
 
 convert.convertForHydro(file_me, file_hydro, hydroNumMesh, massCutByHand, massCutPoint, logscaleRemesh)
 
@@ -118,9 +118,10 @@ convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration, Scale
 
 
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
-subprocess.call(["mkdir", "-p", "EruptionFiles"])
+os.chdir("src/eruption")
 subprocess.call(["make", "clean"])
 subprocess.call("make")
+os.chdir("../../")
 
 
 # run eruptive mass-loss rad-hydro calculation

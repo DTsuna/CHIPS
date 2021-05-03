@@ -4,9 +4,9 @@ from optparse import OptionParser
 import sys
 
 # our modules
-import utils
+from utils import utils
 import lightcurve
-from TOPS import gen_op_tbl 
+from input.TOPS import gen_op_tbl 
 
 
 def parse_command_line():

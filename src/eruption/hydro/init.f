@@ -24,7 +24,7 @@ c     &            as = 7.564d-15, r = 8.3147515d7, kdeg = 2.384d14 )
 
       if(istart.le.1)then
          time = 0.d0
-         open(15,file='InitForHydro.txt', status='old')	
+         open(15,file='EruptionFiles/InitForHydro.txt', status='old')	
 c$$$         open(15,file='Heger/hyd.rezone',status='old')
          read(15,*)n
          read(15,*)	
