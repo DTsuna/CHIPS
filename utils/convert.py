@@ -319,7 +319,7 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
                         f.write('\n')
 
 
-def setSnhydParam(hydroNumMesh,timeToCC,injectedEnergy,injectDuration, ScaledByEnvelopeEnergy, injectedEnergyRate, continueTransfer):
+def setSnhydParam(hydroNumMesh, timeToCC, injectedEnergy, injectDuration, ScaledByEnvelopeEnergy, injectedEnergyRate, continueTransfer):
         if ScaledByEnvelopeEnergy == True:
                 flag = 1
         else:

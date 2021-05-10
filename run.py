@@ -21,7 +21,8 @@ def parse_command_line():
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
-	parser.add_option("--delta-t", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years.")
+	parser.add_option("--tinj", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years.")
+	parser.add_option("--finj", metavar = "float", type = "float", default=0.3, help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (default: 0.3).")
 	parser.add_option("--inlist-file", metavar = "filename", help = "Inlist file with the ZAMS mass and metallicity information.")
 	parser.add_option("--skip-mesa", action = "store_true", help = "Use stellar models pre-computed for input to the mass eruption code.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
@@ -29,6 +30,8 @@ def parse_command_line():
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
 	available_mesa_models = [(mass, 1.) for mass in available_masses]
+	if options.zams_m <= 0 or options.zams_z <= 0 or options.tinj <= 0 or options.finj <= 0:
+		raise ValueError("The input parameters must all be positive.")
 	if options.skip_mesa and (options.zams_m,options.zams_z) not in available_mesa_models:
 		print("(M, Z) = (%.1f Msun, %.1f Zsun) not available. Running mesa calculation instead..." % (options.zams_m,options.zams_z))
 		options.skip_mesa = False
@@ -42,7 +45,7 @@ options, filenames = parse_command_line()
 if options.skip_mesa:
 	file_cc = 'input/mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
 	file_me = file_cc 
-	time_CSM = options.delta_t
+	time_CSM = options.tinj
 else:
 	#################################################################
 	#								#
@@ -74,7 +77,7 @@ else:
 	# find data file at mass eruption and core collapse. 
 	# FIXME we set the mass eruption to 5 years before collapse
 	file_cc = mesa_dir+'/pre_ccsn.data'
-	file_me = utils.find_mass_eruption(glob.glob(mesa_dir+'/LOGS_to_si_burn/profile*.data'), file_cc, options.delta_t)
+	file_me = utils.find_mass_eruption(glob.glob(mesa_dir+'/LOGS_to_si_burn/profile*.data'), file_cc, options.tinj)
 
 	# obtain the time from end of rad-hydro calculation to core-collapse (in years)
 	time_CSM = utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
@@ -103,18 +106,15 @@ subprocess.call(["rm", "EruptionFiles/InitForHydro.txt"])
 convert.convertForHydro(file_me, file_hydro, hydroNumMesh, massCutByHand, massCutPoint, logscaleRemesh)
 
 
-
 # decide energy injection timescale and luminosity
-# find when to calculate the eruptive mass-loss
-injectedEnergy = 1.5e47 # unit in erg
 injectDuration = 1e3 # unit in second
+injectedEnergyRate = options.finj # around 0.3 is recommended
 
-ScaledByEnvelopeEnergy = True # If enabled, (-1)*(injectedEnergyRate)*(total energy of the envelope) is deposited instead of injectedEnergy.
-injectedEnergyRate = 0.3 # around 0.3 is recommended
-
-continueTransfer = False # If true, radiative transfer scheme is activated even after the eruption.
-
-convert.setSnhydParam(hydroNumMesh,time_CSM,injectedEnergy,injectDuration, ScaledByEnvelopeEnergy, injectedEnergyRate, continueTransfer)
+# Stop radiative transfer calculation from well after mass eruption.
+# If true, radiative transfer scheme is activated even after the eruption.
+continueTransfer = False
+# FIXME remove extra argument that says True
+convert.setSnhydParam(hydroNumMesh, time_CSM, injectedEnergy, injectDuration, True, injectedEnergyRate, continueTransfer)
 
 
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
