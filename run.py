@@ -113,8 +113,8 @@ injectedEnergyRate = options.finj # around 0.3 is recommended
 # Stop radiative transfer calculation from well after mass eruption.
 # If true, radiative transfer scheme is activated even after the eruption.
 continueTransfer = False
-# FIXME remove extra argument that says True
-convert.setSnhydParam(hydroNumMesh, time_CSM, injectedEnergy, injectDuration, True, injectedEnergyRate, continueTransfer)
+# FIXME remove extra argument of 0, True
+convert.setSnhydParam(hydroNumMesh, time_CSM, 0, injectDuration, True, injectedEnergyRate, continueTransfer)
 
 
 # compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
