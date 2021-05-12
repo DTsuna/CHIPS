@@ -10,6 +10,8 @@
 #include "srctrm.h"
 #include "rhocsm.h"
 #include "flux.h"
+#include "opacity.h"
+#include "saha.h"
 
 extern char csm[256];
 
@@ -32,7 +34,10 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 {
 	FILE *fp, *fl;
 	double F_max = 0., F_out = 0.;
+	double r_eff, T_eff;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
+	double T_g[NSIZE], mu[NSIZE], F[NSIZE];
+	double kappa_s, kappa_a;
 	double r_ini, F_ini, u_ini, E_ini;
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
@@ -43,6 +48,8 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	double dummy[8];
 	double dr;
 	double CFL = 1.00000000000000;
+	double tau[NSIZE];
+	double tau_tot;
 	char filename[256];
 
 	sprintf(csm, "%s", file_csm);
@@ -255,8 +262,38 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			break;
 		}
 
+		for(i = 0; i < n; i++){
+			saha(rho[i], U[2*i], mu+i, T_g+i);
+			kappa_s = kappa_r(rho[i], T_g[i]);
+			kappa_a = kappa_p(rho[i], T_g[i]);
+			if(i != 0){
+				F[i-1] = calc_flux_i(r_ini, r, E, U, rho, dt, i, n);
+			}
+			tau[i] = sqrt(kappa_a*kappa_s)*rho[i]*(r[i+1]-r[i]);
+		}
+
+		tau_tot = 0.;
+		for(i = n-1; i > 0; --i){
+			tau_tot += tau[i];
+			if(tau_tot < 1. && tau_tot+tau[i-1] > 1.){
+				break;
+			}
+		}
+
+		if(i != 1){
+			if(i != 2){
+				r_eff = (r[i-1]+r[i-2])/2.;
+				T_eff = pow(2.*(F[i-1]+F[i-2])/((P_A)*(P_C)), 0.25);
+			}
+			else{
+				r_eff = (r[0]+r_ini)/2.;
+				T_eff = pow(2.*(F[0]+F_ini)/((P_A)*(P_C)), 0.25);
+			}
+		}
+
+
 	
-		fprintf(fl, "%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
+		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_eff);
 		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 	fclose(fp);
