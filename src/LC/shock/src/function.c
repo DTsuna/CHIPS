@@ -106,6 +106,30 @@ double set_r_ini(const char *file_csm)
 	return dammy[2];
 }
 
+double set_r_diff(const char *file_csm)
+{
+	FILE *fp;
+	char filename[256];
+	double dammy[7];
+	fp = fopen(file_csm, "r");
+	fgets(filename, 512, fp);
+	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]);
+
+	n = pdt.n;
+	delta = pdt.delta;
+	M_ej = pdt.M_ej;
+	E_ej = pdt.E_ej;
+	kappa = 0.2 * (1.+dammy[5]);
+	// FIXME obtain from Chevalier+82
+	A = 0.1;
+	s = 1.5;
+	q = dammy[4] * pow(dammy[2], s);
+	g_to_n = pow(2.0*(5.0-delta)*(n-5.0)*E_ej, (n-3.0)/2.0)/pow((3.0-delta)*(n-3.0)*M_ej, (n-5.0)/2.0)/((n-delta)*4.*M_PI);
+	rdiff = pow(A * g_to_n * pow(q,n-4.), 2./n) * pow(2.*(n-3.)*kappa/3./(n-1.5)/P_C, 2.*(n-3.)/n);
+	fclose(fp);
+	return rdiff;
+}
+
 double rho_ej(double r, double t)
 {
 	double A, B;
