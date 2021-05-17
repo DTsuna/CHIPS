@@ -70,7 +70,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 
 	pdt = setpars(n, delta, E_ej, M_ej, 1.e+07, 1.e+10);	
 	r_ini = set_r_ini(file_csm);
-	r_ini_diff = set_r_diff(n, delta, E_ej, M_ej);
+	r_ini_diff = set_r_diff(file_csm);
 	r_ini = fmax(r_ini, r_ini_diff);
 	t_ini = t_early(r_ini);
 	printf("t_ini = %e s\n", t_ini);
