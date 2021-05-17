@@ -60,7 +60,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	double *array;
 	double dt = 8640.;
 	double t_ini, t_fin = 100.*86400.;
-	double r_ini;
+	double r_ini, r_ini_diff;
 	int info;
 	FILE *fp;
 	double egn[4], y[4]; //These arrays are used to get E_fs.
