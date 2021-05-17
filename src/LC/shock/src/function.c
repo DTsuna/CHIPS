@@ -111,6 +111,8 @@ double set_r_diff(const char *file_csm)
 	FILE *fp;
 	char filename[256];
 	double dammy[7];
+	double n, s, delta, M_ej, E_ej, kappa, q;
+	double A, g_to_n, rdiff;
 	fp = fopen(file_csm, "r");
 	fgets(filename, 512, fp);
 	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]);
