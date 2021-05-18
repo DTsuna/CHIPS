@@ -32,8 +32,8 @@ void set_init_for(double x, double y_up[], double egn[])
 //guess initial value at downstream of reverse shock.
 void set_init_down_rev(double x, double y_up[], double y_down[], double egn[])
 {
-	y_down[0] = y_up[0]/4.0;
-	y_down[1] = y_up[1]*4.0;
+	y_down[0] = y_up[0]/7.0;
+	y_down[1] = y_up[1]*7.0;
 	y_down[2] = 6.0/7.0*y_up[1]*y_up[0]*y_up[0];
 	y_down[2] = pow(3.0*y_down[2]/(P_A), 0.25);
 	y_down[3] = 0.0;
@@ -42,8 +42,8 @@ void set_init_down_rev(double x, double y_up[], double y_down[], double egn[])
 //guess initial value at downstream of forward shock.
 void set_init_down_for(double x, double y_up[], double y_down[], double egn[])
 {
-	y_down[0] = y_up[0]/4.0;
-	y_down[1] = y_up[1]*4.0;
+	y_down[0] = y_up[0]/7.0;
+	y_down[1] = y_up[1]*7.0;
 	y_down[2] = 6.0/7.0*y_up[1]*y_up[0]*y_up[0];
 	y_down[2] = pow(3.0*y_down[2]/(P_A), 0.25);
 	y_down[3] = egn[2];
