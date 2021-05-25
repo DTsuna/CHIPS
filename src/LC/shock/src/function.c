@@ -122,8 +122,6 @@ double set_r_diff(const char *file_csm)
 	M_ej = pdt.M_ej;
 	E_ej = pdt.E_ej;
 	kappa = 0.2 * (1.+dammy[5]);
-	// FIXME obtain from Chevalier+82
-	A = 0.1;
 	A = interp_A(n);
 	s = 1.5;
 	q = dammy[4] * pow(dammy[2], s);
