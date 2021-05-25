@@ -248,10 +248,10 @@ double v_wind(double r)
 double interp_A(double n)
 {
 	double array_n[20], array_A[20];
-	int i = 0;
+	int i = 0, j;
 	FILE *fp;
 
-	fp = fopen("./src/LC/shock/rel_n_A_gam_1.3.txt");
+	fp = fopen("./src/LC/shock/rel_n_A_gam_1.3.txt", "r");
 	while(fscanf(fp, "%lf %lf", array_n+i, array_A+i) != EOF){
 		i++;
 	}
