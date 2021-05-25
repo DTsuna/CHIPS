@@ -11,5 +11,6 @@ double set_r_diff(const char*);
 double func_M_csm(double, double);
 double p_tot(double[]);
 double v_wind(double);
+double interp_A(double);
 
 #endif

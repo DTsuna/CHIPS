@@ -124,6 +124,7 @@ double set_r_diff(const char *file_csm)
 	kappa = 0.2 * (1.+dammy[5]);
 	// FIXME obtain from Chevalier+82
 	A = 0.1;
+	A = interp_A(n);
 	s = 1.5;
 	q = dammy[4] * pow(dammy[2], s);
 	g_to_n = pow(2.0*(5.0-delta)*(n-5.0)*E_ej, (n-3.0)/2.0)/pow((3.0-delta)*(n-3.0)*M_ej, (n-5.0)/2.0)/((n-delta)*4.*M_PI);
@@ -242,4 +243,25 @@ double v_wind(double r)
 	}
 
 	return v;
+}
+
+double interp_A(double n)
+{
+	double array_n[20], array_A[20];
+	int i = 0;
+	FILE *fp;
+
+	fp = fopen("./src/LC/shock/rel_n_A_gam_1.3.txt");
+	while(fscanf(fp, "%lf %lf", array_n+i, array_A+i) != EOF){
+		i++;
+	}
+	for(j = 0; j < i; j++){
+		if(array_n[j] <= n && n <= array_n[j+1]){
+			break;
+		}
+	}
+
+	fclose(fp);
+
+	return (array_A[j+1]-array_A[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_A[j];
 }
