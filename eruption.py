@@ -104,7 +104,7 @@ convert.convertForHydro(file_me, file_hydro, hydroNumMesh, massCutByHand, massCu
 
 
 # decide energy injection timescale and luminosity
-injectDuration = 1e3 # unit in second
+injectDuration = options.inject_duration # unit in second
 injectedEnergyRate = options.finj # around 0.3 is recommended
 
 # Stop radiative transfer calculation from well after mass eruption.
