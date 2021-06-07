@@ -59,7 +59,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 {
 	double *array;
 	double dt = 8640.;
-	double t_ini, t_fin = 100.*86400.;
+	double t_ini, t_fin = 400.*86400.;
 	double r_ini, r_ini_diff;
 	int info;
 	FILE *fp;
@@ -103,6 +103,9 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 		boundary(array[4], y, egn, 1, &info);
 		if(info == 1){
 			break;
+		}
+		if(4.*M_PI*array[4]*array[4]*array[5] < 1.e+40){
+			breakl
 		}
 
 		printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
