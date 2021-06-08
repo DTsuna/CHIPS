@@ -105,7 +105,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 			break;
 		}
 		if(4.*M_PI*array[4]*array[4]*array[5] < 1.e+40){
-			breakl
+			break;
 		}
 
 		printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
