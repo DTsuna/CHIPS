@@ -1,7 +1,7 @@
 #include "Python.h"
 
 extern void shock_csm(double, double, double, double, const char*, const char*);
-extern void rad_transfer_csm(double, const char*, const char*, const char*);
+extern void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*);
 
 // definition of shock flux calculator method
 static PyObject* lightcurve_shock(PyObject* self, PyObject* args, PyObject* kw)
@@ -20,13 +20,14 @@ static PyObject* lightcurve_shock(PyObject* self, PyObject* args, PyObject* kw)
 static PyObject* lightcurve_transfer(PyObject* self, PyObject* args, PyObject* kw)
 {
 	double r_out;
+	double Eexp, Mej, n, delta;
 	const char* file_csm=NULL;
 	const char* file_shock=NULL;
 	const char* file_lc=NULL;
-	static char* argnames[] = {"r_out", "file_csm", "file_shock", "file_lc", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "d|sss", argnames, &r_out, &file_csm, &file_shock, &file_lc))
+	static char* argnames[] = {"Eexp", "Mej", "n", "delta", "r_out", "file_csm", "file_shock", "file_lc", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "d|sss", argnames, &Eexp, &Mej, &n, &delta, &r_out, &file_csm, &file_shock, &file_lc))
 		return NULL;
-	rad_transfer_csm(r_out, file_csm, file_shock, file_lc);
+	rad_transfer_csm(Eexp, Mej, n, delta, r_out, file_csm, file_shock, file_lc);
 	return Py_BuildValue("");
 }
 
