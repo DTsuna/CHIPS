@@ -20,17 +20,6 @@ void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
 void shock_csm(double, double, double, double, const char*, const char*);
 
-//int main(void)
-//{
-//	const char file_csm[] = "./inp-data/CSM_1.5.txt";
-//	const char file_outp[] = "aaa.txt";
-//
-////	shock_csm(1.e+51, 10.*M_SUN, 10., 1., 1.e+14, file_csm, file_outp);
-//	rad_transfer_csm(9.9e+15, file_csm, file_outp);
-//
-//	return 0;
-//}
-
 void init_egn(double r_ini, double egn[])
 {
 	egn[0] = 0.9*r_ini/t_exp;

@@ -126,7 +126,8 @@ double set_r_diff(const char *file_csm)
 	s = 1.5;
 	q = dammy[4] * pow(dammy[2], s);
 	g_to_n = pow(2.0*(5.0-delta)*(n-5.0)*E_ej, (n-3.0)/2.0)/pow((3.0-delta)*(n-3.0)*M_ej, (n-5.0)/2.0)/((n-delta)*4.*M_PI);
-	rdiff = pow(A * g_to_n * pow(q,n-4.), 2./n) * pow(2.*(n-3.)*kappa/3./(n-1.5)/P_C, 2.*(n-3.)/n);
+//	rdiff = pow(A * g_to_n * pow(q,n-4.), 2./n) * pow(2.*(n-3.)*kappa/3./(n-1.5)/P_C, 2.*(n-3.)/n);
+	rdiff = pow(A * g_to_n * pow(q,n-4.), 2./n) * pow(2.*(n-3.)*kappa/21./(n-1.5)/P_C, 2.*(n-3.)/n);
 	fclose(fp);
 	return rdiff;
 }
@@ -262,4 +263,27 @@ double interp_A(double n)
 	fclose(fp);
 
 	return (array_A[j+1]-array_A[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_A[j];
+}
+
+void interp_int_e(double n, double *E_rev, double *E_for)
+{
+	double array_n[20], array_E_rev[20], array_E_for[20];
+	int i = 0, j;
+	FILE *fp;
+
+	fp = fopen("./src/LC/transfer/rel_n_e_gam_1.3.txt", "r");
+	while(fscanf(fp, "%lf %lf %lf", array_n+i, array_E_rev+i, array_E_for+i) != EOF){
+		i++;
+	}
+
+	for(j = 0; j < i; j++){
+		if(array_n[j] <= n && n <= array_n[j+1]){
+			break;
+		}
+	}
+
+	fclose(fp);
+
+	*E_rev = (array_E_rev[j+1]-array_E_rev[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_E_rev[j];
+	*E_for = (array_E_for[j+1]-array_E_for[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_E_for[j];
 }

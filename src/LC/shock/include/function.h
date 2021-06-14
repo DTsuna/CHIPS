@@ -12,5 +12,6 @@ double func_M_csm(double, double);
 double p_tot(double[]);
 double v_wind(double);
 double interp_A(double);
+void interp_int_e(double, double*, double*);
 
 #endif

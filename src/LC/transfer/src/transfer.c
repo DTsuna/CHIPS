@@ -15,7 +15,7 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, const char*, const char*, const char*);
+void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 
 //int main(void)
@@ -30,7 +30,7 @@ void init_E_U(double, double, double[], double[], double[], double[], double[], 
 //	return 0;
 //}
 
-void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, const char *file_outp)
+void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, const char *file_csm, const char *file_inp, const char *file_outp)
 {
 	FILE *fp, *fl;
 	double F_max = 0., F_out = 0.;
@@ -51,6 +51,10 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	double tau[NSIZE];
 	double tau_tot;
 	char filename[256];
+	double g, A, q;
+	double gam = 4./3.;
+	double E_rev, E_for;
+	double t_diff;
 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
@@ -79,6 +83,23 @@ void rad_transfer_csm(double r_out, const char *file_csm, const char *file_inp, 
 	F_ini = Ff[0];
 	u_ini = uf[0];
 	E_ini = 0.;
+
+
+
+/********************Calculate internal energy deposited in shocked region********************/
+	A = interp_A(nej);
+	interp_int_e(nej, &E_rev, &E_for);
+	g = 1./(4.*M_PI*(nej-delta))*pow(2.*(5.-delta)*(nej-5.), (nej-3.)/2.)/pow((3.-delta)*(n-3.), (n-5.)/2.);
+	g *= pow(Eexp/Mej, (n-3.)/2.);
+	g *= Mej;
+//g -> g^nej
+	q = rho_csm(rf[0])*pow(rf[0], 1.5);
+	E_rev *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-1.5))*g*pow(A*g/q, (5.-nej)/(nej-1.5))*pow(tf[0], 1.5*(nej-5.)/(nej-1.5));
+	E_for *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-1.5))*q*pow(A*g/q, 3.5/(nej-1.5))*pow(tf[0], 1.5*(nej-5.)/(nej-1.5));
+	t_diff = rf[0]/uf[0];
+/*********************************************************************************************/
+
+
 
 
 	init_E_U(r_ini, r_out, r, rho, v_w, E, U, NSIZE);
@@ -145,7 +166,13 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		}
 
 #ifdef EADD
-		F_ini += E_ini*u_ini;
+		if(t < tf[0]+t_diff){
+			F_ini += E_ini*u_ini+E_for/(4.*M_PI*r_ini*r_ini*t_diff);
+		}
+		else{
+			F_ini += E_ini*u_ini;
+		}
+
 #endif
 
 
