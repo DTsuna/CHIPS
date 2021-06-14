@@ -167,7 +167,7 @@ Identify the position of forward shock, and estimate by linear interpolation.
 
 #ifdef EADD
 		if(t < tf[0]+t_diff){
-			F_ini += E_ini*u_ini+E_for/(4.*M_PI*r_ini*r_ini*t_diff);
+			F_ini += E_ini*u_ini+(E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff);
 		}
 		else{
 			F_ini += E_ini*u_ini;
