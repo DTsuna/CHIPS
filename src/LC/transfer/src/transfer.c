@@ -89,8 +89,8 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 /********************Calculate internal energy deposited in shocked region********************/
 	A = interp_A(nej);
 	interp_int_e(nej, &E_rev, &E_for);
-	g = 1./(4.*M_PI*(nej-delta))*pow(2.*(5.-delta)*(nej-5.), (nej-3.)/2.)/pow((3.-delta)*(n-3.), (n-5.)/2.);
-	g *= pow(Eexp/Mej, (n-3.)/2.);
+	g = 1./(4.*M_PI*(nej-delta))*pow(2.*(5.-delta)*(nej-5.), (nej-3.)/2.)/pow((3.-delta)*(nej-3.), (nej-5.)/2.);
+	g *= pow(Eexp/Mej, (nej-3.)/2.);
 	g *= Mej;
 //g -> g^nej
 	q = rho_csm(rf[0])*pow(rf[0], 1.5);
