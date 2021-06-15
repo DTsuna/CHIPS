@@ -167,7 +167,7 @@ double set_r_diff(const char *file_csm)
 	E_ej = pdt.E_ej;
 	A = interp_A(n);
 	s = 1.5;
-	q = dammy[4] * pow(dammy[2], s);
+	q = rho[0]*pow(r[0], s);
 	g_to_n = pow(2.0*(5.0-delta)*(n-5.0)*E_ej, (n-3.0)/2.0)/pow((3.0-delta)*(n-3.0)*M_ej, (n-5.0)/2.0)/((n-delta)*4.*M_PI);
 
 	for(j = i-1; j > 0; --j){
