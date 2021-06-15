@@ -25,7 +25,7 @@ static PyObject* lightcurve_transfer(PyObject* self, PyObject* args, PyObject* k
 	const char* file_shock=NULL;
 	const char* file_lc=NULL;
 	static char* argnames[] = {"Eexp", "Mej", "n", "delta", "r_out", "file_csm", "file_shock", "file_lc", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "d|sss", argnames, &Eexp, &Mej, &n, &delta, &r_out, &file_csm, &file_shock, &file_lc))
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "ddddd|sss", argnames, &Eexp, &Mej, &n, &delta, &r_out, &file_csm, &file_shock, &file_lc))
 		return NULL;
 	rad_transfer_csm(Eexp, Mej, n, delta, r_out, file_csm, file_shock, file_lc);
 	return Py_BuildValue("");
