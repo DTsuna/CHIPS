@@ -106,6 +106,7 @@ double set_r_ini(const char *file_csm)
 	return dammy[2];
 }
 
+/*
 double set_r_diff(const char *file_csm)
 {
 	FILE *fp;
@@ -130,6 +131,59 @@ double set_r_diff(const char *file_csm)
 	rdiff = pow(A * g_to_n * pow(q,n-4.), 2./n) * pow(2.*(n-3.)*kappa/21./(n-1.5)/P_C, 2.*(n-3.)/n);
 	fclose(fp);
 	return rdiff;
+}
+*/
+
+double set_r_diff(const char *file_csm)
+{
+	FILE *fp;
+	char filename[256];
+	double dammy[7];
+	double n, s, delta, M_ej, E_ej, kappa, q;
+	double A, g_to_n, rdiff;
+	double v_sh;
+	double *rho, *r, *dr, *tau, tau_tot = 0.;
+	int i = 0, j;
+
+	rho = (double*)calloc(20000, sizeof(double));
+	tau = (double*)calloc(20000, sizeof(double));
+	r = (double*)calloc(20000, sizeof(double));
+	dr = (double*)calloc(20000, sizeof(double));
+
+	fp = fopen(file_csm, "r");
+	fgets(filename, 512, fp);
+	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r[i], &dammy[3], &rho[i], &dammy[5], &dammy[6]) != EOF){
+		if(i != 0){
+			kappa = 0.2 * (1.+dammy[5]);
+			dr[i] = r[i]-r[i-1];
+			tau[i] = kappa*(rho[i]+rho[i-1])/2.*dr[i];
+		}
+		i++;
+	}
+
+	n = pdt.n;
+	delta = pdt.delta;
+	M_ej = pdt.M_ej;
+	E_ej = pdt.E_ej;
+	A = interp_A(n);
+	s = 1.5;
+	q = dammy[4] * pow(dammy[2], s);
+	g_to_n = pow(2.0*(5.0-delta)*(n-5.0)*E_ej, (n-3.0)/2.0)/pow((3.0-delta)*(n-3.0)*M_ej, (n-5.0)/2.0)/((n-delta)*4.*M_PI);
+
+	for(j = i-1; j > 0; --j){
+		tau_tot += tau[j];
+		v_sh = (n-3.)/(n-s)*pow(A*g_to_n/q, 1./(n-3.))*pow(r[j], -(3.-s)/(n-3.));
+		if((P_C)/tau_tot < v_sh){
+			break;
+		}
+	}
+
+	free(rho);
+	free(tau);
+	free(r);
+	free(dr);
+	fclose(fp);
+	return r[j];
 }
 
 double rho_ej(double r, double t)
