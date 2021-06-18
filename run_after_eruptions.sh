@@ -3,7 +3,7 @@ name=tsuna # FIXME CHANGE THIS
 
 today=$(date "+%m%d")
 for f in 0.3 0.4 0.5 0.6 0.8; do
-	for t in 3 10 30; do
+	for t in 03 10 30; do
 		cp -r ~/mesa-r12778/star/CHIPS ./
 		mv CHIPS ${mass}Msun_finj${f}_t${t}yr_${today}_${name}
 		cd ${mass}Msun_finj${f}_t${t}yr_${today}_${name}
