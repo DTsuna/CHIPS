@@ -42,7 +42,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
-	double tf[7000], rf[7000], Ff[7000], Ef[7000], uf[7000];
+	double tf[10000], rf[10000], Ff[10000], Ef[10000], uf[10000];
 	int i = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
 	double dummy[8];
