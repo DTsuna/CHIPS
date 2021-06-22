@@ -121,24 +121,25 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	Y_avrg = 0.0
 
 	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
-	try:
-		if analytical_CSM and scipy_exists:
-			# find outermost radius where the slope suddenly changes from ~-1.5 to <-15.
-			# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
-			# can be the boundary of the star and the CSM.
-			slope = [r/rho_in[i+1]*(rho_in[i+1]-rho_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
-			istop = max([i for i in range(len(slope[:-10])) if slope[i]<-15 and slope[i+10]>-2.0 and slope[i+10]<-1.0])
-			istop += 5 
-			rstop = r_in[istop]
-			popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:]), np.log(rho_in[istop:]), p0=[1e15,1e-15,2.0])
-			(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
-		else:
-			# find outermost radius where the velocity suddenly decreases. 
-			istop = max([i for i in range(len(v_in)-1) if v_in[i]-v_in[i-1]<-5e5])
-			rstop = r_in[istop]
-	except:
-		istop = 0
-		rstop = 0.0
+	if analytical_CSM and scipy_exists:
+		# find outermost radius where the slope suddenly jumps from ~-1.5 to <-15.
+		# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
+		# can be the boundary of the star and the CSM.
+		slope = [r/rho_in[i+1]*(rho_in[i+1]-rho_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
+		# get a "global slope" since there exists local numerical fluctuations
+		outward_global_slope = [r/rho_in[i+20]*(rho_in[i+20]-rho_in[i])/(r_in[i+20]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-20]
+		# find where density suddenly rises and global slope beyond that is around 1.5
+		# FIXME maybe better to just find from outside where the global_slope settles to 1.5, and fitting only outside this radius.
+		istop = max([i for i in range(len(slope[:-21])) if slope[i]<-15 and outward_global_slope[i+1]>-2.0 and outward_global_slope[i+1]<-1.0])
+		# one cell forward to not include the jumped cell
+		istop += 1 
+		rstop = r_in[istop]
+		popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:]), np.log(rho_in[istop:]), p0=[1e15,1e-15,2.0])
+		(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
+	else:
+		# find outermost radius where the velocity suddenly decreases.
+		istop = max([i for i in range(len(v_in)-1) if v_in[i]-v_in[i-1]<-5e5])
+		rstop = r_in[istop]
 	rho_array = []
 	for i, r in enumerate(rs):
 		if r < rstop:
