@@ -34,7 +34,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 {
 	FILE *fp, *fl;
 	double F_max = 0., F_out = 0.;
-	double r_eff, T_eff;
+	double r_eff, T_eff, r_eff_interp;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double T_g[NSIZE], mu[NSIZE], F[NSIZE];
 	double kappa_s, kappa_a;
@@ -55,6 +55,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double gam = 4./3.;
 	double E_rev, E_for;
 	double t_diff;
+	double E_to_T;
 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
@@ -134,7 +135,7 @@ Identify the position of forward shock, and estimate by linear interpolation.
 
 /*Interpolation of r, E, u_fs, F*/
 		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-//		E_ini = Ef[j]*exp(log(Ef[j+1]/Ef[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+		E_to_T = Ef[j]*exp(log(Ef[j+1]/Ef[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		u_ini = uf[j]*exp(log(uf[j+1]/uf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
 		if(Ff[j] > 0. && Ff[j+1] > 0.){
 			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
@@ -312,16 +313,23 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			if(i != 2){
 				r_eff = (r[i-1]+r[i-2])/2.;
 				T_eff = pow(2.*(F[i-1]+F[i-2])/((P_A)*(P_C)), 0.25);
+				r_eff_interp = (r[i-2]-r[i-1])/tau[i-1]*(1.-tau_tot)+r[i-1];
 			}
 			else{
 				r_eff = (r[0]+r_ini)/2.;
 				T_eff = pow(2.*(F[0]+F_ini)/((P_A)*(P_C)), 0.25);
+				r_eff_interp = (r_ini-r[0])/tau[0]*(1.-tau_tot)+r[0];
 			}
+		}
+		else if(i == 1){
+			r_eff = r_ini;
+			r_eff_interp = r_eff;
+			T_eff = pow(E_to_T/(P_A), 0.25);
 		}
 
 
 	
-		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_eff);
+		fprintf(fl, "%f %e %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, r_eff_interp, T_eff);
 		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 	fclose(fp);
