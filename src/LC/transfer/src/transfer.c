@@ -32,7 +32,7 @@ void init_E_U(double, double, double[], double[], double[], double[], double[], 
 
 void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, const char *file_csm, const char *file_inp, const char *file_outp)
 {
-	FILE *fp, *fl;
+	FILE *fp, *fl, *fw;
 	double F_max = 0., F_out = 0.;
 	double r_eff, T_eff, r_eff_interp;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
@@ -43,8 +43,9 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
 	double tf[10000], rf[10000], Ff[10000], Ef[10000], uf[10000];
-	int i = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
+	int i = 0, j = 0, k, l, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
+	int count = 0;
 	double dummy[8];
 	double dr;
 	double CFL = 1.00000000000000;
@@ -56,6 +57,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double E_rev, E_for;
 	double t_diff;
 	double E_to_T;
+	double F_mean;
 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
@@ -291,6 +293,15 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			break;
 		}
 
+
+
+
+
+
+
+
+
+
 		for(i = 0; i < n; i++){
 			saha(rho[i], U[2*i], mu+i, T_g+i);
 			kappa_s = kappa_r(rho[i], T_g[i]);
@@ -309,27 +320,41 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			}
 		}
 
-		if(i != 1){
-			if(i != 2){
-				r_eff = (r[i-1]+r[i-2])/2.;
-				T_eff = pow(2.*(F[i-1]+F[i-2])/((P_A)*(P_C)), 0.25);
-				r_eff_interp = (r[i-2]-r[i-1])/tau[i-1]*(1.-tau_tot)+r[i-1];
-			}
-			else{
-				r_eff = (r[0]+r_ini)/2.;
-				T_eff = pow(2.*(F[0]+F_ini)/((P_A)*(P_C)), 0.25);
-				r_eff_interp = (r_ini-r[0])/tau[0]*(1.-tau_tot)+r[0];
-			}
+		if(i != 1 && i != 0){
+			r_eff = (r[i-1]+r[i-2])/2.;
+//			T_eff = pow(2.*(F[i-1]+F[i-2])/((P_A)*(P_C)), 0.25);
+			T_eff = T_g[i-1];
+			F_mean = (F[i-1]+F[i-2])/2.;
+			F_mean = (F[i-2]-F[i-1])/tau[i-1]*(1.-tau_tot)+F[i-1];
+			T_eff = (T_g[i-2]-T_g[i])/2./tau[i-1]*(1.-tau_tot)+(T_g[i-1]+T_g[i])/2.;
+			r_eff_interp = (r[i-2]-r[i])/2./tau[i-1]*(1.-tau_tot)+(r[i-1]+r[i])/2.;
+			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
 		}
-		else if(i == 1){
+		else{
 			r_eff = r_ini;
 			r_eff_interp = r_eff;
+			F_mean = F_ini;
 			T_eff = pow(E_to_T/(P_A), 0.25);
+			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
 		}
+
+/**********************************************************************************
+Output of temperature, radiation energy density, flux as functions of radius.
+**********************************************************************************/
+#if 0
+		sprintf(filename, "LCFiles/dist%08d.txt", count);
+		count++;
+		fw = fopen(filename, "w");
+		for(l = 0; l < n; l++){
+			fprintf(fw, "%e %e %e %e %e\n", r[l], F[l], E[l], U[l], T_g[l]);
+		}
+		fclose(fw);
+#endif
+/*********************************************************************************/
 
 
 	
-		fprintf(fl, "%f %e %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, r_eff_interp, T_eff);
+		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff_interp, T_eff);
 		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 	fclose(fp);

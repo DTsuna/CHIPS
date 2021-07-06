@@ -93,7 +93,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 		if(info == 1){
 			break;
 		}
-		if(4.*M_PI*array[4]*array[4]*array[5] < 1.e+40){
+		if(4.*M_PI*array[4]*array[4]*array[5] < 1.e+40 || y[2] < pow(10., 3.8)){
 			break;
 		}
 
