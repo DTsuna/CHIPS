@@ -42,7 +42,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
-	double tf[10000], rf[10000], Ff[10000], Ef[10000], uf[10000];
+	double tf[20000], rf[20000], Ff[20000], Ef[20000], uf[20000];
 	int i = 0, j = 0, k, l, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
 	int count = 0;
@@ -80,6 +80,14 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 		i++;
 	}
 	fsize = i;
+	double last_dt = tf[fsize-1] - tf[fsize-2];
+	double slope_dlogr_dlogt = (tf[fsize-1]/rf[fsize-1]) * (rf[fsize-1]-rf[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
+	for(i = fsize; i < 2*fsize; i++){
+		tf[i] = tf[fsize-1] + (double) (i-fsize+1) * last_dt;
+		rf[i] = rf[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogr_dlogt);
+		uf[i] = 0.0;
+		Ef[i] = 0.0;
+	}
 
 	t = tf[0];
 	r_ini = rf[0];
@@ -114,7 +122,7 @@ Here, dr = r[N]-r[N-1] must be fixed.
 for i = 0, 1, ..., n-1, 
 X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 */
-	while(t < tf[fsize-1]){
+	while(t < tf[2*fsize-1]){
 
 /*
 dt does not necesarrily satisfy CFL condition.
