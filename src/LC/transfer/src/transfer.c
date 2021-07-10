@@ -321,7 +321,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				break;
 			}
 		}
-		for(j = n-1; j > 0; --i){
+		for(j = n-1; j > 0; --j){
 			tau_eff_tot += tau_eff[j];
 			if(tau_eff_tot < 1. && tau_eff_tot+tau_eff[j-1] > 1.){
 				break;
@@ -341,7 +341,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 //			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
 		}
 		else{
-			r_eff = r_ini;
+//			r_eff = r_ini;
 			r_eff_interp = r_eff;
 			F_mean = F_ini;
 			T_color = pow(E_to_T/(P_A), 0.25);
@@ -381,7 +381,8 @@ Output of temperature, radiation energy density, flux as functions of radius.
 
 	
 		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
-		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
+		printf("%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
+//		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 	fclose(fp);
 	fclose(fl);
