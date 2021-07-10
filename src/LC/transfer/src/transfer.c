@@ -43,7 +43,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
 	double tf[20000], rf[20000], Ff[20000], Ef[20000], uf[20000];
-	int i = 0, j = 0, k, l, n = NSIZE, fsize, flag = 0;
+	int i = 0, ii = 0, j = 0, k, l, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
 	int count = 0;
 	double dummy[8];
@@ -321,22 +321,22 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				break;
 			}
 		}
-		for(j = n-1; j > 0; --j){
-			tau_eff_tot += tau_eff[j];
-			if(tau_eff_tot < 1. && tau_eff_tot+tau_eff[j-1] > 1.){
+		for(ii = n-1; ii > 0; --ii){
+			tau_eff_tot += tau_eff[ii];
+			if(tau_eff_tot < 1. && tau_eff_tot+tau_eff[ii-1] > 1.){
 				break;
 			}
 		}
 
 
 /********************Calculate color temperature*********************/
-		if(j != 1 && j != 0){
+		if(ii != 1 && ii != 0){
 //			r_eff = (r[j-1]+r[j-2])/2.;
 //			T_eff = pow(2.*(F[i-1]+F[i-2])/((P_A)*(P_C)), 0.25);
 //			T_color = T_g[j-1];
 //			F_mean = (F[j-1]+F[j-2])/2.;
 //			F_mean = (F[j-2]-F[j-1])/tau[j-1]*(1.-tau_eff_tot)+F[j-1];
-			T_color = (T_g[j-2]-T_g[j])/2./tau_eff[j-1]*(1.-tau_eff_tot)+(T_g[j-1]+T_g[j])/2.;
+			T_color = (T_g[ii-2]-T_g[ii])/2./tau_eff[ii-1]*(1.-tau_eff_tot)+(T_g[ii-1]+T_g[ii])/2.;
 //			r_eff_interp = (r[i-2]-r[i])/2./tau[i-1]*(1.-tau_tot)+(r[i-1]+r[i])/2.;
 //			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
 		}
