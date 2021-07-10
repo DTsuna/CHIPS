@@ -34,7 +34,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 {
 	FILE *fp, *fl, *fw;
 	double F_max = 0., F_out = 0.;
-	double r_eff, T_eff, r_eff_interp;
+	double r_eff, T_eff, r_eff_interp, T_color;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double T_g[NSIZE], mu[NSIZE], F[NSIZE];
 	double kappa_s, kappa_a;
@@ -49,8 +49,8 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double dummy[8];
 	double dr;
 	double CFL = 1.00000000000000;
-	double tau[NSIZE];
-	double tau_tot;
+	double tau[NSIZE], tau_eff[NSIZE];
+	double tau_tot, tau_eff_tot;
 	char filename[256];
 	double g, A, q;
 	double gam = 4./3.;
@@ -302,14 +302,6 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		}
 
 
-
-
-
-
-
-
-
-
 		for(i = 0; i < n; i++){
 			saha(rho[i], U[2*i], mu+i, T_g+i);
 			kappa_s = kappa_r(rho[i], T_g[i]);
@@ -317,34 +309,60 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			if(i != 0){
 				F[i-1] = calc_flux_i(r_ini, r, E, U, rho, dt, i, n);
 			}
-			tau[i] = sqrt(kappa_a*kappa_s)*rho[i]*(r[i+1]-r[i]);
+			tau_eff[i] = sqrt(kappa_a*kappa_s)*rho[i]*(r[i+1]-r[i]);
+			tau[i] = kappa_s*rho[i]*(r[i+1]-r[i]);
 		}
 
 		tau_tot = 0.;
+		tau_eff_tot = 0.;
 		for(i = n-1; i > 0; --i){
 			tau_tot += tau[i];
 			if(tau_tot < 1. && tau_tot+tau[i-1] > 1.){
 				break;
 			}
 		}
+		for(j = n-1; j > 0; --i){
+			tau_eff_tot += tau_eff[j];
+			if(tau_eff_tot < 1. && tau_eff_tot+tau_eff[j-1] > 1.){
+				break;
+			}
+		}
 
-		if(i != 1 && i != 0){
-			r_eff = (r[i-1]+r[i-2])/2.;
+
+/********************Calculate color temperature*********************/
+		if(j != 1 && j != 0){
+//			r_eff = (r[j-1]+r[j-2])/2.;
 //			T_eff = pow(2.*(F[i-1]+F[i-2])/((P_A)*(P_C)), 0.25);
-			T_eff = T_g[i-1];
-			F_mean = (F[i-1]+F[i-2])/2.;
-			F_mean = (F[i-2]-F[i-1])/tau[i-1]*(1.-tau_tot)+F[i-1];
-			T_eff = (T_g[i-2]-T_g[i])/2./tau[i-1]*(1.-tau_tot)+(T_g[i-1]+T_g[i])/2.;
-			r_eff_interp = (r[i-2]-r[i])/2./tau[i-1]*(1.-tau_tot)+(r[i-1]+r[i])/2.;
-			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
+//			T_color = T_g[j-1];
+//			F_mean = (F[j-1]+F[j-2])/2.;
+//			F_mean = (F[j-2]-F[j-1])/tau[j-1]*(1.-tau_eff_tot)+F[j-1];
+			T_color = (T_g[j-2]-T_g[j])/2./tau_eff[j-1]*(1.-tau_eff_tot)+(T_g[j-1]+T_g[j])/2.;
+//			r_eff_interp = (r[i-2]-r[i])/2./tau[i-1]*(1.-tau_tot)+(r[i-1]+r[i])/2.;
+//			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
 		}
 		else{
 			r_eff = r_ini;
 			r_eff_interp = r_eff;
 			F_mean = F_ini;
-			T_eff = pow(E_to_T/(P_A), 0.25);
-			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
+			T_color = pow(E_to_T/(P_A), 0.25);
+			if(fabs(T_color) < 1.e-20){
+				T_color = NAN;
+			}
 		}
+/********************************************************************/
+
+/***********************Calculate photosphere************************/
+		if(i != 1 && i != 0){
+			r_eff = (r[i-2]-r[i])/2./tau[i-1]*(1.-tau_tot)+(r[i-1]+r[i])/2.;
+		}
+		else{
+			r_eff = r_ini;
+		}
+/********************************************************************/
+
+
+
+
 
 /**********************************************************************************
 Output of temperature, radiation energy density, flux as functions of radius.
@@ -362,7 +380,7 @@ Output of temperature, radiation energy density, flux as functions of radius.
 
 
 	
-		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff_interp, T_eff);
+		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
 		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 	fclose(fp);
