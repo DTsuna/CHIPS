@@ -46,6 +46,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int i = 0, ii = 0, j = 0, k, l, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
 	int count = 0;
+	int c = 0, cmax = 100;
 	double dummy[8];
 	double dr;
 	double CFL = 1.00000000000000;
@@ -281,10 +282,16 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				U[2*i+1] = U[2*i];
 			}
 			dt *= 0.5;
+			c++;
+			if(c == cmax){
+				fprintf(stderr, "too small dt. exit.\n");
+				exit(EXIT_FAILURE);
+			}
 //			printf("back to (?)\n");
 			continue;
 		}
 		else{
+			c = 0;
 			flag = 0;
 		}
 
