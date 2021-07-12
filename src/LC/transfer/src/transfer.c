@@ -82,9 +82,11 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	fsize = i;
 	double last_dt = tf[fsize-1] - tf[fsize-2];
 	double slope_dlogr_dlogt = (tf[fsize-1]/rf[fsize-1]) * (rf[fsize-1]-rf[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
+	double slope_dlogF_dlogt = (tf[fsize-1]/Ff[fsize-1]) * (Ff[fsize-1]-Ff[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
 	for(i = fsize; i < 2*fsize; i++){
 		tf[i] = tf[fsize-1] + (double) (i-fsize+1) * last_dt;
 		rf[i] = rf[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogr_dlogt);
+		Ff[i] = Ff[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogF_dlogt);
 		uf[i] = 0.0;
 		Ef[i] = 0.0;
 	}
