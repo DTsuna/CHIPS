@@ -5,6 +5,7 @@ import sys
 
 # our modules
 from utils import utils
+from utils import mag
 import lightcurve
 from input.TOPS import gen_op_tbl 
 
@@ -70,6 +71,7 @@ for Eexp in Eexps:
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
 	utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
+	mag.calc_mag(IIn_lc_file)
 
 # obtain light curve at mass eruption
 mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
