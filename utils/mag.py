@@ -26,7 +26,7 @@ def calc_mag(path):
 	b[:,0] = data[:,0]
 	Tc = data[:,3]
 	Lbol = data[:,1]
-	r = (Lbol/(pi*a*c*Tc**4.0))**(-0.5)
+	r = np.sqrt(Lbol/(pi*a*c*Tc**4.0))
 
 	for i, band in enumerate(bands):
 		filename = './input/band_filters/'+band+'band.txt'
