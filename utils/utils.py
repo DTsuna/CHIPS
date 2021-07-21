@@ -110,7 +110,6 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	X_edge = CSM[-1,5]
 	Y_edge = CSM[-1,6]
 	p_in = CSM[:,7]
-	v_wind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
 	if steady_wind == 'RSGwind':
 		if data.star_mdot > 0.0:
 			# use the value from MESA
@@ -119,7 +118,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			# Nieuwenhuijzen & de Jager 90
 			wind_Mdot = 5.6e-6 * (data.photosphere_L/1e5)**1.64 * (data.Teff/3500.)**(-1.61) * MSUN / 3.15e7 
 		# wind velocity from galactic RSGs (Mauron+11, Appendix C)
-		vwind = 2e6 * (data.photosphere_L/1e5)**0.35
+		v_wind = 2e6 * (data.photosphere_L/1e5)**0.35
 		wind_Mdot_vw = wind_Mdot / v_wind
 
 	# find where the CSM contains artificial shock
