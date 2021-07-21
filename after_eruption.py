@@ -20,6 +20,7 @@ def parse_command_line():
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
 	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
+	parser.add_option("--steady-wind", metavar = "string", type = "string", default='attach', help = "Set how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind'.")
 
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
@@ -47,7 +48,7 @@ file_me = file_cc
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
 CSM_file = 'LCFiles/CSM.txt'
-Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM)
+Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM, steady_wind = options.steady_wind)
 
 # extract the ejecta parameters
 Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, r_edge)

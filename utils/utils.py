@@ -53,9 +53,7 @@ def remnant_from_CO(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
 		Mrem = 0.03357 * CO_core_mass + 1.31780
 	else:
-		# NOTE currently extrapolating the NS value to BH mass range, with maximum at 2.1Msun.
-		warnings.warn("This CO core mass is predicted to lead to BH formation. Extrapolating the NS relation up to 2.1Msun...")
-		Mrem = max(2.1, 0.03357 * CO_core_mass + 1.31780)
+		Mrem = 10.**(−0.02466 * CO_core_mass + 1.28070)
 	return Mrem
 
 
@@ -90,12 +88,13 @@ def calculate_ejecta(data_file, file_at_cc, r_edge):
 	remnant_mass = remnant_from_CO(CO_core_mass)
 	CSM_mass = (Mrenv[-1] - min([Mr for i, Mr in enumerate(Mrenv) if renv[i]>=r_edge]) ) / MSUN 
 	Mej = total_mass - remnant_mass - CSM_mass
+	assert Mej > 0.0
 	print("Mej:%f Msun, n:%f, delta:%f" % (Mej, n, delta), file=sys.stderr)
 	return Mej, n, delta
 
 
 # remesh CSM for input to the light curve calculation
-def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False):
+def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False, steady_wind='attach'):
 	# copy first line
 	fout = open(CSM_out, 'w')
 	with open(CSM_in, 'r') as fin:
@@ -112,12 +111,15 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	Y_edge = CSM[-1,6]
 	p_in = CSM[:,7]
 	vwind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
-	if data.star_mdot > 0.0:
-		wind_Mdot_vw = -data.star_mdot * MSUN / 3.15e7 / vwind 
-	else:
-		# FIXME input random mass loss rate of 10^(-5)Msun/yr for now
-		wind_Mdot_vw = 1e-5 * MSUN / 3.15e7 / vwind 
-	
+	if steady_wind == 'RSGwind':
+		if data.star_mdot > 0.0:
+			# use the value from MESA
+			wind_Mdot = -data.star_mdot * MSUN / 3.15e7
+		else:
+			# Nieuwenhuijzen & de Jager 90
+			wind_Mdot = 5.6e-6 * (data.photosphere_L/1e5)**1.64 * (data.Teff/3500.)**(-1.61) * MSUN / 3.15e7 
+		# wind velocity from galactic RSGs (Mauron+11, Appendix C)
+		wind_Mdot_vw = wind_Mdot / (2e6 * (data.photosphere_L/1e5)**0.35)
 	last_Mr = 0.0
 	Y_avrg = 0.0
 
@@ -172,9 +174,11 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, v, rho, X, Y), file=fout)
 		else:
 			# use a profile that connects to the wind profile with a Gaussian drop 
-			#rho = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
+			if steady_wind == 'RSGwind':
+				rho = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
 			# or connect a wind profile to the edge of the erupted CSM profile
-			rho = rho_in[-1] * (r_in[-1]/r)**2
+			elif steady_wind == 'attach':
+				rho = rho_in[-1] * (r_in[-1]/r)**2
 			Mr += 4.*math.pi*r**2*rho*(r-rs[i-1])
 			Y_avrg = (Y_avrg*last_Mr + Y_edge*(Mr-last_Mr))/Mr
 			last_Mr = Mr
