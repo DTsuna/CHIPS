@@ -49,7 +49,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int c = 0, cmax = 100;
 	double dummy[8];
 	double dr;
-	double CFL = 1.00000000000000;
+	double CFL = 0.5000000000000000;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
 	char filename[256];
@@ -159,15 +159,26 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			F_ini = 1.e+04;
 		}
 
-		if(r_ini > r[0]-dr/4.){
+		r[0] = r_ini;
+		if(r_ini > r[1]-dr/4.){
 			E_ini = E[0];
 			n--;
 			for(i = 0; i < n; i++){
-				E[2*i] = E[2*(i+1)];
-				U[2*i] = U[2*(i+1)];
+				if(i == 0){
+					E[0] = E[0]*(r[1]*r[1]*r[1]-r[0]*r[0]*r[0])/(r[2]*r[2]*r[2]-r[0]*r[0]*r[0])
+						+E[2]*(r[2]*r[2]*r[2]-r[1]*r[1]*r[1])/(r[2]*r[2]*r[2]-r[0]*r[0]*r[0]);
+					U[0] = U[0]*(r[1]*r[1]*r[1]-r[0]*r[0]*r[0])/(r[2]*r[2]*r[2]-r[0]*r[0]*r[0])
+						+U[2]*(r[2]*r[2]*r[2]-r[1]*r[1]*r[1])/(r[2]*r[2]*r[2]-r[0]*r[0]*r[0]);
+				}
+				else{
+					E[2*i] = E[2*(i+1)];
+					U[2*i] = U[2*(i+1)];
+				}
 				E[2*i+1] = E[2*(i+1)+1];
 				U[2*i+1] = U[2*(i+1)+1];
-				r[i] = r[i+1];
+				if(i != 0){
+					r[i] = r[i+1];
+				}
 				rho[i] = rho[i+1];
 				v_w[i] = v_w[i+1];
 			}
@@ -213,6 +224,9 @@ At first, intergrate source term using implicit Euler method.
 				break;
 			}
 		}
+		for(i = 0; i < n; i++){
+//			printf("U_o = %e, U = %e, E_o = %e, E = %e\n", U[2*i], U[2*i+1], E[2*i], E[2*i+1]);
+		}
 		
 		if(flag == 1){
 			for(k = 0; k <= i; k++){
@@ -230,13 +244,15 @@ At first, intergrate source term using implicit Euler method.
 			}
 			flag = 0;
 		}
+
 /*
 Integrate energy equation impilicitly.
 */
-		rho_ed[0] = rho_csm(r[0]-(r[1]-r[0]));
-		rho_ed[1] = rho_csm(r[n]);
+		rho_ed[0] = rho_csm(r[0]-(r[1]-r[0])/2.);
+		rho_ed[1] = rho_csm(r[n]+dr/2.);
 		itg_adv_U(r, U, rho, rho_ed, v_w, dt, n);
-		
+
+
 	
 /*
 Integrate 0th moment equation implicitly.
@@ -251,16 +267,19 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		for(i = 0; i < n; i++){
 			E_old[i] = E[2*i];
 		}
-	
+		
+
 		do{
 			err = 0.;
-			itg_adv_E(r_ini, F_ini, r, E, U, rho, dt, n);
+			itg_adv_E(F_ini, r, E, U, rho, dt, n);
 			for(i = 0; i < n; i++){
+//				printf("E = %e %e\n", E[2*i], E[2*i+1]);
 				if(isnan(E[2*i+1])){
 					flag = 1;
 					break;
 				}
 			}
+//		exit(EXIT_FAILURE);
 			if(flag == 1){
 				fprintf(stderr, "iteration failure. time step is too large.\n");
 				break;
@@ -391,7 +410,7 @@ Output of temperature, radiation energy density, flux as functions of radius.
 
 	
 		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
-		printf("%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
+		printf("j = %d, n = %d, %f %e %e %e\n", j, n, t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
 //		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 	fclose(fp);
@@ -401,19 +420,19 @@ Output of temperature, radiation energy density, flux as functions of radius.
 void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[], double E[], double U[], const int nsize)
 {
 	int i;
-	double dr = (r_out-r_ini)/((double)(nsize)+1./2.)/2.;
+	double dr = (r_out-r_ini)/((double)NSIZE);
 	double T;
 
 	for(i = 0; i < nsize; i++){
-		r[i] = r_ini-dr+2.*(double)(i+1)*dr;
+		r[i] = r_ini+dr*(double)i;
 		E[2*i] = (P_A)*pow(1.e+03, 4.)*pow(r[0]/r[i], 2.);
 		T = pow(E[2*i]/(P_A), 0.25);
 		E[2*i+1] = E[2*i];
-		rho[i] = rho_csm(r[i]);
+		rho[i] = rho_csm(r[i]+dr/2.);
 		v_w[i] = v_wind(r[i]);
 //		U[2*i] = 1.5*rho[0]*(P_K)*T/(0.62*(MH))*pow(rho[i]/rho[0], 5./3.);
 		U[2*i] = 1.5*rho[i]*(P_K)*T/(1.3*(MH));
 		U[2*i+1] = U[2*i];
 	}
-	r[nsize] = r[nsize-1]+2.*dr;
+	r[nsize] = r[nsize-1]+dr;
 }
