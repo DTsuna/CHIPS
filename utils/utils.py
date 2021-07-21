@@ -53,7 +53,7 @@ def remnant_from_CO(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
 		Mrem = 0.03357 * CO_core_mass + 1.31780
 	else:
-		Mrem = 10.**(−0.02466 * CO_core_mass + 1.28070)
+		Mrem = 10.**(-0.02466*CO_core_mass+1.28070)
 	return Mrem
 
 
@@ -67,8 +67,7 @@ def cc_param_extractor(data_file):
 
 # ejecta calculation script
 # r_edge is the edge of the ejecta, i.e. start of the CSM
-def calculate_ejecta(data_file, file_at_cc, r_edge):
-	Mrenv = np.loadtxt(file_at_cc, skiprows=1)[:,1]
+def calculate_ejecta(data_file, file_at_cc, file_CSM, r_edge):
 	renv = np.loadtxt(file_at_cc, skiprows=1)[:,2]
 	rhoenv = np.loadtxt(file_at_cc, skiprows=1)[:,4]
 	penv =  np.loadtxt(file_at_cc, skiprows=1)[:,7]
@@ -86,7 +85,9 @@ def calculate_ejecta(data_file, file_at_cc, r_edge):
 	# ejecta mass
 	total_mass, CO_core_mass = cc_param_extractor(data_file)
 	remnant_mass = remnant_from_CO(CO_core_mass)
-	CSM_mass = (Mrenv[-1] - min([Mr for i, Mr in enumerate(Mrenv) if renv[i]>=r_edge]) ) / MSUN 
+	# obtain CSM mass from CSM file
+	MrCSM = np.loadtxt(file_CSM, skiprows=1)[:,1]
+	CSM_mass = (MrCSM[-1] - MrCSM[0]) / MSUN 
 	Mej = total_mass - remnant_mass - CSM_mass
 	assert Mej > 0.0
 	print("Mej:%f Msun, n:%f, delta:%f" % (Mej, n, delta), file=sys.stderr)
@@ -96,10 +97,8 @@ def calculate_ejecta(data_file, file_at_cc, r_edge):
 # remesh CSM for input to the light curve calculation
 def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False, steady_wind='attach'):
 	# copy first line
-	fout = open(CSM_out, 'w')
 	with open(CSM_in, 'r') as fin:
-		fout.write(fin.readline())
-	
+		head = fin.readline().rstrip('\n')	
 	# record values with edited mesh
 	data = mr.MesaData(data_file_at_mass_eruption)
 	CSM = np.loadtxt(CSM_in, skiprows=1)
@@ -107,10 +106,11 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	v_in = CSM[:,3]
 	rho_in = CSM[:,4]
 	rmin = max(r_in[0], 2.*data.photosphere_r*RSUN)
+	v_edge = CSM[-1,3]
 	X_edge = CSM[-1,5]
 	Y_edge = CSM[-1,6]
 	p_in = CSM[:,7]
-	vwind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
+	v_wind = 1.6 *  math.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
 	if steady_wind == 'RSGwind':
 		if data.star_mdot > 0.0:
 			# use the value from MESA
@@ -119,81 +119,101 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			# Nieuwenhuijzen & de Jager 90
 			wind_Mdot = 5.6e-6 * (data.photosphere_L/1e5)**1.64 * (data.Teff/3500.)**(-1.61) * MSUN / 3.15e7 
 		# wind velocity from galactic RSGs (Mauron+11, Appendix C)
-		wind_Mdot_vw = wind_Mdot / (2e6 * (data.photosphere_L/1e5)**0.35)
+		vwind = 2e6 * (data.photosphere_L/1e5)**0.35
+		wind_Mdot_vw = wind_Mdot / v_wind
+
+	# find where the CSM contains artificial shock
+	# We identify this to be the outermost radius where the pressure slope suddenly jumps to <-20.
+	# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
+	# can be the boundary of the star and the CSM.
+	slope = [r/p_in[i+1]*(p_in[i+1]-p_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
+	# narrow down by also requiring outside of this to have a density profile of index ~-1.5.
+	# get a "global density slope" since there exists local numerical fluctuations
+	# FIXME maybe better to just find from outside where the global_slope settles to 1.5, and fitting only outside this radius.
+	outward_global_slope = [r_in[i+10]/rho_in[i+20]*(rho_in[i+20]-rho_in[i+10])/(r_in[i+20]-r_in[i+10]) for i,r in enumerate(r_in) if i<len(r_in)-20]
+	istop = max([i for i in range(len(slope[:-21])) if slope[i]<-20 and outward_global_slope[i+1]>-2.0 and outward_global_slope[i+1]<-1.0])
+	# one cell forward to not include the jumped cell
+	istop += 1 
+	rstop = r_in[istop]
+
+	if analytical_CSM and scipy_exists:
+		popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:-2]), np.log(rho_in[istop:-2]), p0=[1e15,1e-15,2.0])
+		(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
+	
+	# generate output file of remeshed CSM
+	r_out = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
+	Mr_out = np.zeros(Ncell)
+	v_out = np.zeros(Ncell)
+	rho_out = np.zeros(Ncell)
+	X_out = np.zeros(Ncell)
+	Y_out = np.zeros(Ncell)
 	last_Mr = 0.0
 	Y_avrg = 0.0
-
-	rs = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
-	if analytical_CSM and scipy_exists:
-		# find outermost radius where the pressure slope suddenly jumps to <-20.
-		# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
-		# can be the boundary of the star and the CSM.
-		slope = [r/p_in[i+1]*(p_in[i+1]-p_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
-		# narrow down by also requiring outside of this to have a density profile of index ~-1.5.
-		# get a "global density slope" since there exists local numerical fluctuations
-		# FIXME maybe better to just find from outside where the global_slope settles to 1.5, and fitting only outside this radius.
-		outward_global_slope = [r_in[i+10]/rho_in[i+20]*(rho_in[i+20]-rho_in[i+10])/(r_in[i+20]-r_in[i+10]) for i,r in enumerate(r_in) if i<len(r_in)-20]
-		istop = max([i for i in range(len(slope[:-21])) if slope[i]<-20 and outward_global_slope[i+1]>-2.0 and outward_global_slope[i+1]<-1.0])
-		# one cell forward to not include the jumped cell
-		istop += 1 
-		rstop = r_in[istop]
-		popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:]), np.log(rho_in[istop:]), p0=[1e15,1e-15,2.0])
-		(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
-	else:
-		# find outermost radius where the velocity suddenly decreases.
-		istop = max([i for i in range(len(v_in)-1) if v_in[i]-v_in[i-1]<-5e5])
-		rstop = r_in[istop]
-	rho_array = []
-	for i, r in enumerate(rs):
+	counter = 0
+	for i, r in enumerate(r_out):
 		if r < rstop:
 			# we fix the density profile as rho\propto r^(-1.5) inside the radius where the CSM density become
 			# unreliable due to artificial shocks. this profile is merely a guess: but should be somewhat accurate
 			# well close to the stellar surface
 			if analytical_CSM and scipy_exists:
-				rho = math.exp(CSMprof_func(math.log(r), r_break, rho_break, yrho))
+				rho_out[i] = math.exp(CSMprof_func(math.log(r), r_break, rho_break, yrho))
 			else:
-				rho = rho_in[istop] * (r/rstop)**(-1.5)
-			# use values at istop
-			# FIXME Mr is incorrect; fix or delete Mr
-			Mr = CSM[istop, 1]
-			v = CSM[istop, 3]
-			X = CSM[istop, 5]
-			Y = CSM[istop, 6]
-			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, v, rho, X, Y), file=fout)
+				rho_out[i] = rho_in[istop] * (r/rstop)**(-1.5)
+			# Mr is obtained later once rho and r are determined
+			# for other ones use values at istop, since they are not important anyway
+			v_out[i] = CSM[istop, 3]
+			X_out[i] = CSM[istop, 5]
+			Y_out[i] = CSM[istop, 6]
+			counter += 1
 		elif r < r_in[-1]:
+			# initial Mr is that at istop.
+			# NOTE this sets the zero point of the enclosed mass, which is presumably close
+			# to the actual value. We don't really mind because we only use the difference of Mr
+			# between 2 cells, but if we include the central star's gravity for calculation of
+			# the light curve, this has to be revisited.
+			last_Mr = CSM[istop, 1]
 			# obtain rho by log interpolation, Mr and v by linear. Mr is not used anyway
 			index = len([thisr for thisr in r_in if thisr < r])-1
 			fraction = (r - r_in[index]) / (r_in[index+1] - r_in[index])
-			rho = CSM[index, 4]**(1.-fraction) * CSM[index+1,4]**(fraction)
-			Mr = CSM[index, 1]*(1.-fraction) + CSM[index+1,1]*(fraction)
-			v = CSM[index, 3]*(1.-fraction) + CSM[index+1,3]*(fraction)
-			X = CSM[index, 5]*(1.-fraction) + CSM[index+1,5]*(fraction)
-			Y = CSM[index, 6]*(1.-fraction) + CSM[index+1,6]*(fraction)
-			Y_avrg = (Y_avrg*last_Mr + Y*(Mr-last_Mr))/Mr
-			last_Mr = Mr
-			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, v, rho, X, Y), file=fout)
+			v_out[i] = CSM[index, 3]*(1.-fraction) + CSM[index+1,3]*(fraction)
+			rho_out[i] = CSM[index, 4]**(1.-fraction) * CSM[index+1,4]**(fraction) 
+			Mr_out[i] = last_Mr + 4.*math.pi*r**2*rho_out[i]*(r-r_out[i-1])
+			X_out[i] = CSM[index, 5]*(1.-fraction) + CSM[index+1,5]*(fraction)
+			Y_out[i] = CSM[index, 6]*(1.-fraction) + CSM[index+1,6]*(fraction)
+			# for next step
+			Y_avrg = (Y_avrg*last_Mr + Y_out[i]*(Mr_out[i]-last_Mr))/Mr_out[i]
+			last_Mr = Mr_out[i]
 		else:
 			# use a profile that connects to the wind profile with a Gaussian drop 
 			if steady_wind == 'RSGwind':
-				rho = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
+				rho_out[i] = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
+				v_out[i] = v_wind
 			# or connect a wind profile to the edge of the erupted CSM profile
 			elif steady_wind == 'attach':
-				rho = rho_in[-1] * (r_in[-1]/r)**2
-			Mr += 4.*math.pi*r**2*rho*(r-rs[i-1])
-			Y_avrg = (Y_avrg*last_Mr + Y_edge*(Mr-last_Mr))/Mr
-			last_Mr = Mr
+				rho_out[i] = rho_in[-1] * (r_in[-1]/r)**2
+				v_out[i] = v_edge 
+			Mr_out[i] = last_Mr + 4.*math.pi*r**2*rho_out[i]*(r-r_out[i-1])
 			# X, Y are the edge value
-			print("%d %.8g %.8g %.8g %.8g %.8g %.8g" % (i, Mr, r, vwind, rho, X_edge, Y_edge), file=fout)
-		rho_array.append(rho)
-	fout.close()
+			X_out[i] = X_edge 
+			Y_out[i] = Y_edge 
+			# for next step
+			Y_avrg = (Y_avrg*last_Mr + Y_out[i]*(Mr_out[i]-last_Mr))/Mr_out[i]
+			last_Mr = Mr_out[i]
+	
+	# obtain Mr at r < rstop
+	for i in range(counter, -1, -1):
+		Mr_out[i] = Mr_out[i+1] - 4.*math.pi*r_out[i+1]**2*rho_out[i+1]*(r_out[i+1]-r_out[i])
+
+	# save the CSM to an output file
+	np.savetxt(CSM_out, np.transpose([list(range(1,Ncell+1)), Mr_out, r_out, v_out, rho_out, X_out, Y_out]), fmt=['%d','%.8e','%.8e','%.8e','%.8e','%.8e','%.8e'], header=head)
 	# plot CSM profile
 	if matplotlib_exists:
 		plt.xscale('log')
 		plt.yscale('log')
 		plt.xlabel('radius [cm]')
 		plt.ylabel('density [g cm$^{-3}$]')
-		plt.xlim(0.5*rs[0], rs[-1])
-		plt.plot(rs, rho_array, label='remeshed')
+		plt.xlim(0.5*r_out[0], r_out[-1])
+		plt.plot(r_out, rho_out, label='remeshed')
 		plt.plot(r_in, rho_in, linestyle='dashed', label='original')
 		plt.legend(loc='upper right')
 		plt.grid(linestyle='dotted')
@@ -201,7 +221,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		plt.savefig('LCFiles/CSM_comparison.png')
 
 	# extract Y_avrg, needed for opacity calculation, and start of CSM, needed to set end of ejecta for ejecta calculation
-	return Y_avrg, max(rs[0], rstop)
+	return Y_avrg, max(r_out[0], rstop)
 
 # extract peak luminosity and rise time, defined as the time from (frac*L_peak) to L_peak
 def extract_peak_and_rise_time(LC_file, frac):

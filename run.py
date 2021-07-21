@@ -147,7 +147,7 @@ profile_at_cc = 'EruptionFiles/atCCSN.txt'
 Y_He, r_edge = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
 
 # extract the ejecta parameters
-Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, r_edge)
+Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, r_edge)
 Eexps = [1e51, 3e51, 1e52]
 
 # obtain opacity 
