@@ -26,7 +26,7 @@ def parse_command_line():
 	parser.add_option("--inlist-file", metavar = "filename", help = "Inlist file with the ZAMS mass and metallicity information.")
 	parser.add_option("--skip-mesa", action = "store_true", help = "Use stellar models pre-computed for input to the mass eruption code.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
-	parser.add_option("--steady-wind", metavar = "string", type = "string", default='attach', help = "Set how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind'.")
+	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Set how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind'.")
 
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
