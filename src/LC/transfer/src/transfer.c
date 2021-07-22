@@ -56,7 +56,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double CFL = 0.5000000000000000;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
-	char filename[256], profiles[256];
+	char filename[1024], profiles[1024];
 	double g, A, q;
 	double gam = 4./3.;
 	double E_rev, E_for;
@@ -401,17 +401,18 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 /************************Calculate L_nu******************************/
 #if 1
 		if(L_outp_flag == 1){
-			if(tf[j+1]/86400. > (double)outp_date_int){
-				outp_date_int++;
+			if(t/86400. > (double)outp_date_int){
 				printf("/*********************************************************/\n");
 				n_sh = 0;
 				fprintf(fnu_time, "%e\n", tf[j+1]);
 				printf("%e\n", tf[j+1]);
-				sprintf(filename, "%s/profiles%08d.txt", dir_shockprofiles, count_nu);
+				sprintf(filename, "%s/profiles%08d.txt", dir_shockprofiles, j+1);
+				printf("Open shock profile: %s/profiles%08d.txt", dir_shockprofiles, j+1);
 				fsh = fopen(filename, "r");
 				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
 				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int);
 				calc_lum(r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename);
+				outp_date_int++;
 				fclose(fsh);
 				printf("/*********************************************************/\n");
 			}

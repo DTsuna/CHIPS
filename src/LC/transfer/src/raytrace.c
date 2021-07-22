@@ -47,12 +47,7 @@ double Planck_func(double nu, double T)
 	fac1 = 2.0*(P_H)/((P_C)*(P_C))*nu*nu*nu;
 	fac2 = (P_H)*nu/((P_K)*T);
 
-	if(fac2 < 1.0e-05){
-		return fac1/(fac2+fac2*(0.5*fac2+(fac2*fac2)/6.0));
-	}
-	else{
-		return fac1/(exp(fac2)-1.0);
-	}
+	return fac1/expm1(fac2);
 }
 
 /************************This subroutine returns I(b, nu)**************************/
