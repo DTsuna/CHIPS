@@ -8,6 +8,8 @@ module1 = Extension('lightcurve',
                     define_macros = [('NSIZE', '1000'), ('EADD', None), ('NNU', '30'), ('NB', '100')],
                     sources = ['lcwrapper.c']+shock_src+transfer_src,
 		    include_dirs = ['./shock/include', './transfer/include'],
+		    extra_compile_args = ['-fopenmp', '-O3'],
+		    extra_link_args = ['-lgomp'],
                     )
 
 setup(name = 'lightcurve', version = '1.0.0', ext_modules = [module1])

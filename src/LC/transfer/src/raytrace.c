@@ -2,6 +2,7 @@
 #include "saha.h"
 #include "constant.h"
 #include <stdio.h>
+#include <omp.h>
 #include <math.h>
 
 int imax(int a, int b)
@@ -148,6 +149,7 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 	}
 
 	printf("Started spec calculation.\n");
+#pragma omp parallel for
 	for(i = 0; i < NNU; i++){
 		L_nu[i] = Lum_nu(r_init, r_out, nu[i], r, rho, T, r_sh, rho_sh, T_sh, n, n_sh);
 		printf("L_nu[%d] = %e\n", i, L_nu[i]);

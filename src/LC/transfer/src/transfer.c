@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <omp.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -53,7 +54,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int L_outp_flag = 0, count_nu = 0;
 	double dummy[8];
 	double dr;
-	double CFL = 0.5000000000000000;
+	double CFL = 1.0000000000000000;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
 	char filename[1024], profiles[1024];
@@ -102,6 +103,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 
 	double last_dt = tf[fsize-1] - tf[fsize-2];
 	double slope_dlogr_dlogt = (tf[fsize-1]/rf[fsize-1]) * (rf[fsize-1]-rf[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
+	double slope_dlogu_dlogt = (tf[fsize-1]/rf[fsize-1]) * (uf[fsize-1]-uf[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
 	double slope_dlogF_dlogt = (tf[fsize-1]/Ff[fsize-1]) * (Ff[fsize-1]-Ff[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
 	double slope_dlogE_dlogt = (tf[fsize-1]/Ef[fsize-1]) * (Ef[fsize-1]-Ef[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
 	for(i = fsize; i < 2*fsize; i++){
@@ -109,7 +111,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 		rf[i] = rf[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogr_dlogt);
 		Ff[i] = Ff[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogF_dlogt);
 		Ef[i] = Ef[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogE_dlogt);
-		uf[i] = 0.0;
+		uf[i] = Ef[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogu_dlogt);
 	}
 
 	t = tf[0];
@@ -240,8 +242,46 @@ iii) Integrate 0th moment equation implicitly. Iteration is needed to complete t
 /*
 At first, intergrate source term using implicit Euler method.
 */
-		for(i = 0; i < n; i++){
+#pragma omp parallel
+{
+#pragma omp sections
+	{
+#pragma omp section
+		for(i = 0; i < n; i+= 8){
 			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+#pragma omp section
+		for(i = 1; i < n; i+= 8){
+			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+#pragma omp section
+		for(i = 2; i < n; i+= 8){
+			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+#pragma omp section
+		for(i = 3; i < n; i+= 8){
+			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+#pragma omp section
+		for(i = 4; i < n; i+= 8){
+			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+#pragma omp section
+		for(i = 5; i < n; i+= 8){
+			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+#pragma omp section
+		for(i = 6; i < n; i+= 8){
+			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+#pragma omp section
+		for(i = 7; i < n; i+= 8){
+			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+		}
+
+	}
+}
+		for(i = 0; i < n; i++){
 			if(isnan(E[2*i+1]) != 0){
 				flag = 1;
 				break;
@@ -401,7 +441,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 /************************Calculate L_nu******************************/
 #if 1
 		if(L_outp_flag == 1){
-			if(t/86400. > (double)outp_date_int){
+			if(t/86400. > (double)outp_date_int && j < fsize-1){
 				printf("/*********************************************************/\n");
 				n_sh = 0;
 				fprintf(fnu_time, "%e\n", tf[j+1]);
