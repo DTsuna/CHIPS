@@ -6,5 +6,6 @@
 #define CHI_HeII 8.67901E-11
 
 void saha(double, double, double*, double*);
+void get_num_density(double rho, double T,  double ndens[]);
 
 #endif

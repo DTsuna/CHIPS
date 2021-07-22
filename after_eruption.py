@@ -2,6 +2,7 @@ from __future__ import print_function
 import glob
 from optparse import OptionParser
 import sys
+import subprocess
 
 # our modules
 from utils import utils
@@ -62,12 +63,15 @@ gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 
 for Eexp in Eexps:
 	# luminosity at shock
+	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eexp)
+	subprocess.call(["rm", "-r", dir_name_shockprofiles])
+	subprocess.call(["mkdir", dir_name_shockprofiles])
 	shock_file = 'LCFiles/shock_output_'+str(Eexp)+'erg.txt'
-	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file)
+	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
 
 	# radiation transfer
 	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg.txt'
-	lightcurve.transfer(Eexp, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file)
+	lightcurve.transfer(Eexp, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, dir_name_shockprofiles)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.

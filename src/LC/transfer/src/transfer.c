@@ -9,14 +9,16 @@
 #include "itgadve.h"
 #include "srctrm.h"
 #include "rhocsm.h"
+#include "raytrace.h"
 #include "flux.h"
 #include "opacity.h"
 #include "saha.h"
 
 extern char csm[256];
 
-void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*);
+void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
+void read_shockprofiles(FILE*, double[], double[], double[], int*);
 
 //int main(void)
 //{
@@ -30,9 +32,10 @@ void init_E_U(double, double, double[], double[], double[], double[], double[], 
 //	return 0;
 //}
 
-void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, const char *file_csm, const char *file_inp, const char *file_outp)
+void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, 
+	const char *file_csm, const char *file_inp, const char *file_outp, const char *dir_shockprofiles)
 {
-	FILE *fp, *fl, *fw;
+	FILE *fp, *fl, *fw, *fnu_time, *fsh;
 	double F_max = 0., F_out = 0.;
 	double r_eff, T_eff, r_eff_interp, T_color;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
@@ -47,22 +50,30 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int F_neg_flag = 0;
 	int count = 0;
 	int c = 0, cmax = 100;
+	int L_outp_flag = 0, count_nu = 0;
 	double dummy[8];
 	double dr;
 	double CFL = 0.5000000000000000;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
-	char filename[256];
+	char filename[256], profiles[256];
 	double g, A, q;
 	double gam = 4./3.;
 	double E_rev, E_for;
 	double t_diff;
 	double E_to_T;
 	double F_mean;
+	double r_sh[2000], T_sh[2000], rho_sh[2000];
+	int n_sh;
+	int interval = 50;
+	int outp_date_int = 0;
 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
+
+	sprintf(filename, "%s/timeline.txt", dir_shockprofiles);
+	fnu_time = fopen(filename, "w");
 
 
 	sprintf(filename, "%s", file_outp);
@@ -81,6 +92,14 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 		i++;
 	}
 	fsize = i;
+
+	for(outp_date_int = 0; outp_date_int < 100; outp_date_int++){
+		if(tf[0]/86400. >= (double)outp_date_int && tf[0]/86400. < (double)(outp_date_int+1)){
+			break;
+		}
+	}
+	outp_date_int++;
+
 	double last_dt = tf[fsize-1] - tf[fsize-2];
 	double slope_dlogr_dlogt = (tf[fsize-1]/rf[fsize-1]) * (rf[fsize-1]-rf[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
 	double slope_dlogF_dlogt = (tf[fsize-1]/Ff[fsize-1]) * (Ff[fsize-1]-Ff[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
@@ -141,18 +160,23 @@ dt does not necesarrily satisfy CFL condition.
 /*
 Identify the position of forward shock, and estimate by linear interpolation.
 */
-		for(i = j; i < fsize; i++){
+		for(i = j; i < 2*fsize; i++){
 			if(t >= tf[i] && t < tf[i+1]){
 				j = i;
 			}
 		}
 
+		if(t+dt > tf[j+1]){
+			L_outp_flag = 1;
+			dt = tf[j+1]-t;
+		}
+
 /*Interpolation of r, E, u_fs, F*/
-		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-		E_to_T = Ef[j]*exp(log(Ef[j+1]/Ef[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
-		u_ini = uf[j]*exp(log(uf[j+1]/uf[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log((t+dt)/tf[j]));
+		E_to_T = Ef[j]*exp(log(Ef[j+1]/Ef[j])/log(tf[j+1]/tf[j])*log((t+dt)/tf[j]));
+		u_ini = uf[j]*exp(log(uf[j+1]/uf[j])/log(tf[j+1]/tf[j])*log((t+dt)/tf[j]));
 		if(Ff[j] > 0. && Ff[j+1] > 0.){
-			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log(t/tf[j]));
+			F_ini = Ff[j]*exp(log(Ff[j+1]/Ff[j])/log(tf[j+1]/tf[j])*log((t+dt)/tf[j]));
 		}
 		else{
 			printf("Negative Flux value.\n");
@@ -217,15 +241,11 @@ iii) Integrate 0th moment equation implicitly. Iteration is needed to complete t
 At first, intergrate source term using implicit Euler method.
 */
 		for(i = 0; i < n; i++){
-//			printf("i = %d r[%d] = %e cm rho[%d] = %e\n", i, i, r[i], i, rho[i]);
 			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
 			if(isnan(E[2*i+1]) != 0){
 				flag = 1;
 				break;
 			}
-		}
-		for(i = 0; i < n; i++){
-//			printf("U_o = %e, U = %e, E_o = %e, E = %e\n", U[2*i], U[2*i+1], E[2*i], E[2*i+1]);
 		}
 		
 		if(flag == 1){
@@ -273,13 +293,11 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			err = 0.;
 			itg_adv_E(F_ini, r, E, U, rho, dt, n);
 			for(i = 0; i < n; i++){
-//				printf("E = %e %e\n", E[2*i], E[2*i+1]);
 				if(isnan(E[2*i+1])){
 					flag = 1;
 					break;
 				}
 			}
-//		exit(EXIT_FAILURE);
 			if(flag == 1){
 				fprintf(stderr, "iteration failure. time step is too large.\n");
 				break;
@@ -306,7 +324,6 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				fprintf(stderr, "too small dt. exit.\n");
 				exit(EXIT_FAILURE);
 			}
-//			printf("back to (?)\n");
 			continue;
 		}
 		else{
@@ -360,17 +377,9 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 
 /********************Calculate color temperature*********************/
 		if(ii != 1 && ii != 0){
-//			r_eff = (r[j-1]+r[j-2])/2.;
-//			T_eff = pow(2.*(F[i-1]+F[i-2])/((P_A)*(P_C)), 0.25);
-//			T_color = T_g[j-1];
-//			F_mean = (F[j-1]+F[j-2])/2.;
-//			F_mean = (F[j-2]-F[j-1])/tau[j-1]*(1.-tau_eff_tot)+F[j-1];
 			T_color = (T_g[ii-2]-T_g[ii])/2./tau_eff[ii-1]*(1.-tau_eff_tot)+(T_g[ii-1]+T_g[ii])/2.;
-//			r_eff_interp = (r[i-2]-r[i])/2./tau[i-1]*(1.-tau_tot)+(r[i-1]+r[i])/2.;
-//			r_eff_interp = sqrt(4.*M_PI*r_eff_interp*r_eff_interp*F_mean/(4.*M_PI*(P_A)*(P_C)/4.*pow(T_eff, 4.)));
 		}
 		else{
-//			r_eff = r_ini;
 			r_eff_interp = r_eff;
 			F_mean = F_ini;
 			T_color = pow(E_to_T/(P_A), 0.25);
@@ -389,6 +398,28 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		}
 /********************************************************************/
 
+/************************Calculate L_nu******************************/
+#if 1
+		if(L_outp_flag == 1){
+			if(tf[j+1]/86400. > (double)outp_date_int){
+				outp_date_int++;
+				printf("/*********************************************************/\n");
+				n_sh = 0;
+				fprintf(fnu_time, "%e\n", tf[j+1]);
+				printf("%e\n", tf[j+1]);
+				sprintf(filename, "%s/profiles%08d.txt", dir_shockprofiles, count_nu);
+				fsh = fopen(filename, "r");
+				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
+				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int);
+				calc_lum(r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename);
+				fclose(fsh);
+				printf("/*********************************************************/\n");
+			}
+			count_nu++;
+			L_outp_flag = 0;
+		}
+#endif
+/********************************************************************/
 
 
 
@@ -415,6 +446,7 @@ Output of temperature, radiation energy density, flux as functions of radius.
 	}
 	fclose(fp);
 	fclose(fl);
+	fclose(fnu_time);
 }
 
 void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[], double E[], double U[], const int nsize)
@@ -435,4 +467,31 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[]
 		U[2*i+1] = U[2*i];
 	}
 	r[nsize] = r[nsize-1]+dr;
+}
+
+void read_shockprofiles(FILE *f_sh, double r_sh[], double rho_sh[], double T_sh[], int *n_sh)
+{
+	int i = 0, j, positive = 0;
+	double dummy[2];
+	while(fscanf(f_sh, "%lf %lf %lf %lf %lf", r_sh+i, dummy, rho_sh+i, T_sh+i, dummy+1) != EOF){
+		i++;
+		if(dummy[0] > 0.){
+			positive++;
+		}
+	}
+	*n_sh = i-1;
+
+	for(j = 0; j < positive-1; j++){
+		rho_sh[j] = (rho_sh[j]+rho_sh[j+1])/2.;
+		T_sh[j] = (T_sh[j]+T_sh[j+1])/2.;
+	}
+	for(j = positive-1; j < i-1; j++){
+		r_sh[j] = r_sh[j+1];
+		rho_sh[j] = rho_sh[j+1];
+		T_sh[j] = T_sh[j+1];
+	}
+	for(j = positive-1; j < i-1; j++){
+		rho_sh[j] = (rho_sh[j]+rho_sh[j+1])/2.;
+		T_sh[j] = (T_sh[j]+T_sh[j+1])/2.;
+	}
 }
