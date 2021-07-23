@@ -66,6 +66,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double F_mean;
 	double r_sh[2000], T_sh[2000], rho_sh[2000];
 	double abmag[5];
+	char *cat_str = "mag_";
 	int n_sh;
 	int interval = 50;
 	int outp_date_int = 0, outp_date_min;
@@ -75,7 +76,20 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	fp = fopen(filename, "r");
 
 	sprintf(filename, "%s", file_outp);
-	strcat("mag_", filename);
+	for(ii = 0; ii < 512; ii++){
+		if(file_outp[ii] == '.' && file_outp[ii+1] == 't' && file_outp[ii+2] == 'x' && file_outp[ii+3] == 't'){
+			ii++;
+			filename[ii-1] = '_';
+			filename[ii] = 'm';
+			filename[ii+1] = 'a';
+			filename[ii+2] = 'g';
+			filename[ii+3] = '.';
+			filename[ii+4] = 't';
+			filename[ii+5] = 'x';
+			filename[ii+6] = 't';
+			break;
+		}
+	}
 	fnu_time = fopen(filename, "w");
 
 
@@ -440,6 +454,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int-outp_date_min);
 				calc_lum(r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag);
 				fprintf(fnu_time, "%e %e %e %e %e %e\n", tf[j+1], abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
+				printf("%e %e %e %e %e %e\n", tf[j+1], abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				outp_date_int++;
 				fclose(fsh);
 				printf("/*********************************************************/\n");
@@ -471,7 +486,6 @@ Output of temperature, radiation energy density, flux as functions of radius.
 	
 		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
 		printf("j = %d, n = %d, %f %e %e %e\n", j, n, t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
-//		printf("%f %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)]);
 	}
 	fclose(fp);
 	fclose(fl);
