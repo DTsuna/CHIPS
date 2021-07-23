@@ -133,15 +133,23 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 	return sum;
 }
 
-void calc_lum(double r_init, double r_out, double r[], double rho[], double T[], double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh, char *filename)
+void calc_lum(double r_init, double r_out, double r[], double rho[], double T[], 
+		double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh, char *filename, double abmag[])
 {
-	FILE *fp;
+	const double pc = 3.085677581e+18;
+	FILE *fp, *fb;
 	double nu[NNU], L_nu[NNU];
+	double lam[NNU];
 	double frac;
-	int i;
+	double lam_band[100], trans_band[100], Lnu_band[100];
+	double dummy[3];
+	double sum1, sum2;
+	int i, j, k, l, lmin;
+	char bands[5][256] = {"./input/band_filters/uband.txt", "./input/band_filters/bband.txt", "./input/band_filters/vband.txt",
+				"./input/band_filters/rband.txt", "./input/band_filters/iband.txt"};
 
-	nu[0] = (P_C)/(3.e-05); //corresponds to lambda = 300nm;
-	nu[NNU-1] = (P_C)/(1.e-04); //corresponds to lambda = 1000nm;
+	nu[0] = (P_C)/(2.9e-05); //corresponds to lambda = 290 nm;
+	nu[NNU-1] = (P_C)/(1.e-04); //corresponds to lambda = 1000 nm;
 
 	frac = pow(nu[NNU-1]/nu[0], 1./((double)NNU-1.0));
 	for(i = 1; i < NNU; i++){
@@ -154,13 +162,43 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 		L_nu[i] = Lum_nu(r_init, r_out, nu[i], r, rho, T, r_sh, rho_sh, T_sh, n, n_sh);
 		printf("L_nu[%d] = %e\n", i, L_nu[i]);
 	}
-	printf("Calculation end.\n");
+	printf("Spec calculation end.\n");
 
 	fp = fopen(filename, "w");
 	for(i = 0; i < NNU; i++){
+		lam[i] = (P_C)/nu[i];
 		fprintf(fp, "%e %e\n", nu[i], L_nu[i]);
 	}
 	fclose(fp);
+
+	for(i = 0; i < 5; i++){
+		j = 0;
+		sum1 = 0.;
+		sum2 = 0.;
+		fb = fopen(bands[i], "r");
+		while(fscanf(fb, "%lf %lf %lf %lf %lf", lam_band+j, dummy, dummy+1, dummy+2, trans_band+j) != EOF){
+			lam_band[j] *= 1.0e-07;
+			j++;
+		}
+		for(k = 0; k < j; k++){
+			lmin = 0;
+			for(l = lmin; l < NNU-1; l++){
+				if(lam_band[k] >= lam[l] && lam_band[k] < lam[l+1]){
+					lmin = l;
+					Lnu_band[k] = (L_nu[l+1]-L_nu[l])/(lam[l+1]-lam[l])*(lam_band[k]-lam[l])+L_nu[l];
+					break;
+				}
+			}
+		}
+
+		for(k = 0; k < j-1; k++){
+			sum1 += (trans_band[k+1]+trans_band[k+1])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
+			sum2 += (Lnu_band[k+1]+Lnu_band[k])/2.0*(trans_band[k+1]+trans_band[k+1])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
+		}
+		sum2 /= 4.*M_PI*100.*pc*pc;
+		fclose(fb);
+		abmag[i] = -2.5*log10(sum2/sum1)-48.6;
+	}
 }
 
 int jmin_func(double b, double r[], int n)

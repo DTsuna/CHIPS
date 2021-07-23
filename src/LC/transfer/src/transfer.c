@@ -65,15 +65,17 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double E_to_T;
 	double F_mean;
 	double r_sh[2000], T_sh[2000], rho_sh[2000];
+	double abmag[5];
 	int n_sh;
 	int interval = 50;
-	int outp_date_int = 0;
+	int outp_date_int = 0, outp_date_min;
 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
 
-	sprintf(filename, "%s/timeline.txt", dir_shockprofiles);
+	sprintf(filename, "%s", file_outp);
+	strcat("mag_", filename);
 	fnu_time = fopen(filename, "w");
 
 
@@ -99,6 +101,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 			break;
 		}
 	}
+	outp_date_min = outp_date_int;
 	outp_date_int++;
 
 	double last_dt = tf[fsize-1] - tf[fsize-2];
@@ -168,10 +171,12 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			}
 		}
 
+#if FLNU == 1
 		if(t+dt > tf[j+1]){
 			L_outp_flag = 1;
 			dt = tf[j+1]-t;
 		}
+#endif
 
 /*Interpolation of r, E, u_fs, F*/
 		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log((t+dt)/tf[j]));
@@ -247,38 +252,21 @@ At first, intergrate source term using implicit Euler method.
 #pragma omp sections
 	{
 #pragma omp section
-		for(i = 0; i < n; i+= 8){
+		for(i = 0; i < n; i+= 4){
 			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
 		}
 #pragma omp section
-		for(i = 1; i < n; i+= 8){
+		for(i = 1; i < n; i+= 4){
 			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
 		}
 #pragma omp section
-		for(i = 2; i < n; i+= 8){
+		for(i = 2; i < n; i+= 4){
 			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
 		}
 #pragma omp section
-		for(i = 3; i < n; i+= 8){
+		for(i = 3; i < n; i+= 4){
 			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
 		}
-#pragma omp section
-		for(i = 4; i < n; i+= 8){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
-		}
-#pragma omp section
-		for(i = 5; i < n; i+= 8){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
-		}
-#pragma omp section
-		for(i = 6; i < n; i+= 8){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
-		}
-#pragma omp section
-		for(i = 7; i < n; i+= 8){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
-		}
-
 	}
 }
 		for(i = 0; i < n; i++){
@@ -439,19 +427,19 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 /********************************************************************/
 
 /************************Calculate L_nu******************************/
-#if 1
+#if FLNU == 1
 		if(L_outp_flag == 1){
 			if(t/86400. > (double)outp_date_int && j < fsize-1){
 				printf("/*********************************************************/\n");
 				n_sh = 0;
-				fprintf(fnu_time, "%e\n", tf[j+1]);
 				printf("%e\n", tf[j+1]);
 				sprintf(filename, "%s/profiles%08d.txt", dir_shockprofiles, j+1);
 				printf("Open shock profile: %s/profiles%08d.txt", dir_shockprofiles, j+1);
 				fsh = fopen(filename, "r");
 				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
-				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int);
-				calc_lum(r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename);
+				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int-outp_date_min);
+				calc_lum(r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag);
+				fprintf(fnu_time, "%e %e %e %e %e %e\n", tf[j+1], abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				outp_date_int++;
 				fclose(fsh);
 				printf("/*********************************************************/\n");
