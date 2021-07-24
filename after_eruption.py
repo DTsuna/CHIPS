@@ -53,7 +53,7 @@ Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me,
 
 # extract the ejecta parameters
 Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file, r_edge)
-Eexps = [1e51, 3e51, 1e52]
+Eexps = [1e51]
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'
@@ -76,7 +76,6 @@ for Eexp in Eexps:
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
 	utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
-	mag.calc_mag(IIn_lc_file)
 
 # obtain light curve at mass eruption
 mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
