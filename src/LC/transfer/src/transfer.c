@@ -115,7 +115,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 			break;
 		}
 	}
-	outp_date_min = outp_date_int;
+	outp_date_min = outp_date_int+1;
 	outp_date_int++;
 
 	double last_dt = tf[fsize-1] - tf[fsize-2];
