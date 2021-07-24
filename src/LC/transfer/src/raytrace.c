@@ -302,8 +302,8 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 		}
 
 		for(k = 0; k < j-1; k++){
-			sum1 += (trans_band[k+1]+trans_band[k+1])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
-			sum2 += (Lnu_band[k+1]+Lnu_band[k])/2.0*(trans_band[k+1]+trans_band[k+1])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
+			sum1 += (trans_band[k+1]+trans_band[k])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
+			sum2 += (Lnu_band[k+1]+Lnu_band[k])/2.0*(trans_band[k+1]+trans_band[k])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
 		}
 		sum2 /= 4.*M_PI*100.*pc*pc;
 		fclose(fb);
