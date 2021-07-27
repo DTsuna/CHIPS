@@ -262,7 +262,7 @@ iii) Integrate 0th moment equation implicitly. Iteration is needed to complete t
 /*
 At first, intergrate source term using implicit Euler method.
 */
-#pragma omp parallel num_threads(4)
+#pragma omp parallel private(i) num_threads(4)
 {
 #pragma omp sections
 	{
