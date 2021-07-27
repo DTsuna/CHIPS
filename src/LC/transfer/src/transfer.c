@@ -75,6 +75,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
 
+#if FLNU == 1
 	sprintf(filename, "%s", file_outp);
 	for(ii = 0; ii < 512; ii++){
 		if(file_outp[ii] == '.' && file_outp[ii+1] == 't' && file_outp[ii+2] == 'x' && file_outp[ii+3] == 't'){
@@ -91,7 +92,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 		}
 	}
 	fnu_time = fopen(filename, "w");
-
+#endif
 
 	sprintf(filename, "%s", file_outp);
 	fl = fopen(filename, "w");
@@ -261,7 +262,7 @@ iii) Integrate 0th moment equation implicitly. Iteration is needed to complete t
 /*
 At first, intergrate source term using implicit Euler method.
 */
-#pragma omp parallel
+#pragma omp parallel num_threads(4)
 {
 #pragma omp sections
 	{
@@ -489,7 +490,9 @@ Output of temperature, radiation energy density, flux as functions of radius.
 	}
 	fclose(fp);
 	fclose(fl);
+#if FLNU == 1
 	fclose(fnu_time);
+#endif
 }
 
 void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[], double E[], double U[], const int nsize)
