@@ -51,60 +51,74 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	double t_ini, t_fin = 400.*86400.;
 	double r_ini, r_ini_diff;
 	int info, f = 0;
+	int flag = 1;
+	int c = 0;
 	FILE *fp;
 	double egn[4], y[4]; //These arrays are used to get E_fs.
 
 
 	strcpy(csm, file_csm);
-	fp = fopen(file_outp, "w");
 
 	pdt = setpars(n, delta, E_ej, M_ej, 1.e+07, 1.e+10);	
-	r_ini = set_r_ini(file_csm);
-	r_ini_diff = set_r_diff(file_csm);
-	r_ini = fmax(r_ini, r_ini_diff);
-	t_ini = t_early(r_ini);
-	printf("t_ini = %e s\n", t_ini);
+
+	while(flag == 1){
+		f = 0;
+		fp = fopen(file_outp, "w");
+		r_ini = set_r_ini(file_csm);
+		r_ini_diff = set_r_diff(file_csm);
+		r_ini = fmax(r_ini, r_ini_diff);
+		t_ini = t_early(r_ini)+(double)c*0.01*86400.;
+		printf("t_ini = %e s\n", t_ini);
+		c++;
 
 
-
-/****************1 step****************/
-	array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm, dir_shockprofiles);
-	egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
-	boundary(array[4], y, egn, 1, &info);
-
-	printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
-		array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
-		4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[4])*pow(array[1], 3.));
-	fprintf(fp, "%f %e %e %e %e %e %e %e\n", 
-		array[0]/86400., array[1], array[2], array[3], array[4], array[5], (P_A)*pow(y[2], 4.), rho_csm(array[4]));
-/**************************************/
-
-
-
-
-
-	do{
-		dt = 0.001*t_exp;
-		if(t_exp+dt > t_fin){
-			dt = t_fin-t_exp;
-		}
-		array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm, dir_shockprofiles, &info, &f);
+/**************************1st step**************************/
+		array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm, dir_shockprofiles);
 		egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 		boundary(array[4], y, egn, 1, &info);
-		if(info == 1){
-			break;
-		}
-		if(4.*M_PI*array[4]*array[4]*array[5] < 1.e+40 || y[2] < pow(10., 3.8)){
-			break;
-		}
 
 		printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
 			array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
-			4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[3])*pow(array[1], 3.));
+			4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[4])*pow(array[1], 3.));
 		fprintf(fp, "%f %e %e %e %e %e %e %e\n", 
-			array[0]/86400., array[1], array[2], array[3], array[4], array[5], (P_A)*pow(y[2], 4.), rho_csm(array[3]));
-	}while(t_exp < t_fin);
-	fclose(fp);
+			array[0]/86400., array[1], array[2], array[3], array[4], array[5], (P_A)*pow(y[2], 4.), rho_csm(array[4]));
+/************************************************************/
+
+
+
+
+
+		do{
+			dt = 0.001*t_exp;
+			if(t_exp+dt > t_fin){
+				dt = t_fin-t_exp;
+			}
+			array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm, dir_shockprofiles, &info, &f);
+			egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
+			boundary(array[4], y, egn, 1, &info);
+			if(info == 1){
+				break;
+			}
+			if(4.*M_PI*array[4]*array[4]*array[5] < 1.e+40 || y[2] < pow(10., 3.8)){
+				flag = 0;
+				break;
+			}
+
+			printf("t = %f d, u_rs = %e cm/s, u_fs = %e cm/s, r_rs = %e cm, r_fs = %e cm, F_fs = %e erg/cm^2/s, L = %e erg/s, di = %e\n", 
+				array[0]/86400., array[1], array[2], array[3], array[4], array[5], 
+				4.0*M_PI*array[4]*array[4]*array[5], 2.*M_PI*array[3]*array[3]*rho_csm(array[3])*pow(array[1], 3.));
+			fprintf(fp, "%f %e %e %e %e %e %e %e\n", 
+				array[0]/86400., array[1], array[2], array[3], array[4], array[5], (P_A)*pow(y[2], 4.), rho_csm(array[3]));
+		}while(t_exp < t_fin);
+
+		if(t_exp-t_fin > -1.e-10*t_fin && t_exp-t_fin < 1.e-10*t_fin){
+			flag = 0;
+		}
+		if(c > 10){
+			flag = 0;
+		}
+		fclose(fp);
+	}
 }
 
 double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, double r_ini, const char *file_csm, const char *dir_shockprofiles)

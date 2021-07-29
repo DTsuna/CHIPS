@@ -71,6 +71,11 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int interval = 50;
 	int outp_date_int = 0, outp_date_min;
 
+
+	int num_of_threads = 7, i_threads;
+
+
+
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
@@ -262,28 +267,13 @@ iii) Integrate 0th moment equation implicitly. Iteration is needed to complete t
 /*
 At first, intergrate source term using implicit Euler method.
 */
-#pragma omp parallel private(i) num_threads(4)
-{
-#pragma omp sections
-	{
-#pragma omp section
-		for(i = 0; i < n; i+= 4){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+#pragma omp parallel for private(i, i_threads) num_threads(num_of_threads)
+		for(i_threads = 0; i_threads < num_of_threads; i_threads++){
+			for(i = i_threads; i < n; i += num_of_threads){
+				itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+			}
 		}
-#pragma omp section
-		for(i = 1; i < n; i+= 4){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
-		}
-#pragma omp section
-		for(i = 2; i < n; i+= 4){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
-		}
-#pragma omp section
-		for(i = 3; i < n; i+= 4){
-			itg_src(E+2*i, U+2*i, rho[i], dt, tol);
-		}
-	}
-}
+
 		for(i = 0; i < n; i++){
 			if(isnan(E[2*i+1]) != 0){
 				flag = 1;

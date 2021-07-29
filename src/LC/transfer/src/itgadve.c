@@ -27,6 +27,7 @@ void matrix_E(double r[], double E[], double U[], double rho[], double dt, doubl
 		rhom[i] = rho_csm(r[i]);
 	}
 
+#pragma omp parallel for
 	for(i = 1; i < nsize; i++){
 		kappa[i] = kappa_r(rhom[i], (T_g[i-1]+T_g[i])/2.0);
 		drm[i] = (r[i+1]-r[i-1])/2.;
@@ -46,18 +47,15 @@ void matrix_E(double r[], double E[], double U[], double rho[], double dt, doubl
 	b[0] = 1.-3.*dt/dr3[0]*r[1]*r[1]*Xfac[1];
 	c[0] = 3.*dt/dr3[0]*r[1]*r[1]*Xfac[1];
 
-//	printf("a,b,c = %e %e %e\n", a[0], b[0], c[0]);
 	for(i = 1; i < nsize-1; i++){
 		a[i] = 3.*dt/dr3[i]*r[i]*r[i]*Xfac[i];
 		b[i] = 1.-3.*dt/dr3[i]*(r[i+1]*r[i+1]*Xfac[i+1]+r[i]*r[i]*Xfac[i]);
 		c[i] = 3.*dt/dr3[i]*r[i+1]*r[i+1]*Xfac[i+1];
-//		printf("a,b,c = %e %e %e\n", a[i], b[i], c[i]);
 	}
 
 	a[nsize-1] = 3.*dt/dr3[nsize-1]*r[nsize-1]*r[nsize-1]*Xfac[nsize-1];
 	b[nsize-1] = 1.-3.*dt/dr3[nsize-1]*(-(P_C)*r[nsize]*r[nsize]+r[nsize-1]*r[nsize-1]*Xfac[nsize-1]);
 	c[nsize-1] = 0.;
-//	printf("a,b,c = %e %e %e\n", a[i], b[i], c[i]);
 }
 
 void init_E(double F_ini, double r[], double E[], double dt, double func[], const int nsize)
@@ -81,7 +79,6 @@ void itg_adv_E(double F_ini, double r[], double E[], double U[], double rho[], d
 	matrix_E(r, E, U, rho, dt, a, b, c, nsize);
 	trid_matrix_algorithm(a, b, c, func, x, nsize);
 	for(i = 0; i < nsize; i++){
-//		printf("unchi = %e %e %e\n", a[i], b[i], c[i]);
 		E[2*i+1] = x[i];
 	}
 }
