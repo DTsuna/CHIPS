@@ -122,7 +122,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		wind_Mdot_vw = wind_Mdot / v_wind
 
 	# find where the CSM contains artificial shock
-	# We identify this to be the outermost radius where the pressure slope suddenly jumps to <-20.
+	# We identify this to be the outermost radius where the pressure slope suddenly jumps to <-100.
 	# this can be the radius where the CSM density becomes unreliable if there exists an artificial shock, or simply
 	# can be the boundary of the star and the CSM.
 	slope = [r/p_in[i+1]*(p_in[i+1]-p_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
@@ -130,7 +130,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	# get a "global density slope" since there exists local numerical fluctuations
 	# FIXME maybe better to just find from outside where the global_slope settles to 1.5, and fitting only outside this radius.
 	outward_global_slope = [r_in[i+10]/rho_in[i+20]*(rho_in[i+20]-rho_in[i+10])/(r_in[i+20]-r_in[i+10]) for i,r in enumerate(r_in) if i<len(r_in)-20]
-	istop = max([i for i in range(len(slope[:-21])) if slope[i]<-20 and outward_global_slope[i+1]>-2.0 and outward_global_slope[i+1]<-1.0])
+	istop = max([i for i in range(len(slope[:-21])) if slope[i]<-100 and outward_global_slope[i+1]>-4.0 and outward_global_slope[i+1]<-1.0])
 	# one cell forward to not include the jumped cell
 	istop += 1 
 	rstop = r_in[istop]
@@ -207,6 +207,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	np.savetxt(CSM_out, np.transpose([list(range(1,Ncell+1)), Mr_out, r_out, v_out, rho_out, X_out, Y_out]), fmt=['%d','%.8e','%.8e','%.8e','%.8e','%.8e','%.8e'], header=head)
 	# plot CSM profile
 	if matplotlib_exists:
+		plt.rcParams["font.size"] = 14
 		plt.xscale('log')
 		plt.yscale('log')
 		plt.xlabel('radius [cm]')
