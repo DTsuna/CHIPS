@@ -97,6 +97,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 			egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 			boundary(array[4], y, egn, 1, &info);
 			if(info == 1){
+				printf("t_ini += 0.01 d.\n");
 				break;
 			}
 			if(4.*M_PI*array[4]*array[4]*array[5] < 1.e+40 || y[2] < pow(10., 3.8)){
@@ -258,6 +259,9 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 			break;
 		}
 		if(*info == 1){
+			break;
+		}
+		if(dt < 0.01){
 			break;
 		}
 	}
