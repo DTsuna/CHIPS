@@ -71,10 +71,21 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int interval = 50;
 	int outp_date_int = 0, outp_date_min;
 
+	int num_of_threads, i_threads;
 
-	int num_of_threads = 7, i_threads;
+	if(getenv("OMP_NUM_THREADS") == NULL){
+		num_of_threads = 1;
+	}
+	else if(atoi(getenv("OMP_NUM_THREADS")) == 0){
+		num_of_threads = 1;
+	}
+	else{
+		num_of_threads = atoi(getenv("OMP_NUM_THREADS"));
+	}
 
-
+#ifdef _OPENMP
+	printf("The number of used threads = %d.\n", num_of_threads);
+#endif
 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
@@ -262,15 +273,19 @@ iii) Integrate 0th moment equation implicitly. Iteration is needed to complete t
 */
 
 
+//		for(i = 0; i < n; i++){
+//			printf("E+2*%d = %p, U+2*%d = %p\n", i, E+2*i, i, U+2*i);
+//		}
 
 
 /*
 At first, intergrate source term using implicit Euler method.
 */
-#pragma omp parallel for private(i, i_threads) num_threads(num_of_threads)
+#pragma omp parallel for shared(E, U), private(i)
 		for(i_threads = 0; i_threads < num_of_threads; i_threads++){
 			for(i = i_threads; i < n; i += num_of_threads){
-				itg_src(E+2*i, U+2*i, rho[i], dt, tol);
+				itg_src(&E[2*i], &U[2*i], rho[i], dt, tol);
+//				printf("E+2*%d = %p, U+2*%d = %p\n", i, E+2*i, i, U+2*i);
 			}
 		}
 
