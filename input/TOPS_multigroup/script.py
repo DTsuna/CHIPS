@@ -49,7 +49,7 @@ for j, name in enumerate(filelist):
 R = np.log10(R)
 Tmp = np.log10(Tmp)
 
-np.savetxt('opacity_table/freqency.txt', nu.reshape(-1, 1)*1.0e+03*Hz, fmt = '%1.4e')
+np.savetxt('opacity_table/frequency.txt', nu.reshape(-1, 1)*1.0e+03*Hz, fmt = '%1.4e')
 
 for i in range(l[1]-1-l[0]):
 	name = 'opacity_table/opacity_{:05d}.txt'.format(i)

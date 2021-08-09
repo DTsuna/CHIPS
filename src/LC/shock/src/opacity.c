@@ -10,13 +10,13 @@ void set_opacity(const char *openfile, opacity *op)
 	char buf[256], *ascii;
 	int i = 0, k = 0, l = 0;
 
-	snprintf(filename, 256, "./LCFiles/%s", openfile);
+	snprintf(filename, 256, "%s", openfile);
 	if((fp = fopen(filename, "r")) == NULL){
 		printf("ERROR: Can't open opacity file \"%s\". Check whether it exists.\n", filename);
 		exit(EXIT_FAILURE);
 	}
 	else{
-		printf("Opacity file \"%s\" was set.\n", filename);
+//		printf("Opacity file \"%s\" was set.\n", filename);
 	}
 	fgets(buf, 256, fp);
 	op->R[0] = atof(strtok(buf, " "));
@@ -61,7 +61,7 @@ double kappa_r(double rho, double T)
 	static opacity op = {{0.}, {0.}, {0.}, 0, 0};
 
 	if(op.imax == 0){
-		set_opacity("opacity.txt", &op);
+		set_opacity("./LCFiles/opacity.txt", &op);
 	}
 	
 	i = op.imax/2;
@@ -125,7 +125,7 @@ double sigma_sc(double rho, double T)
 	int i, j;
 
 	if(op.imax == 0){
-		set_opacity("opacity_sc.txt", &op);
+		set_opacity("./LCFiles/opacity_sc.txt", &op);
 	}
 
 	i = op.imax/2;
@@ -175,7 +175,7 @@ double kappa_p(double rho, double T)
 	int i, j;
 	
 	if(op.imax == 0){
-		set_opacity("kappa_p.txt", &op);
+		set_opacity("./LCFiles/kappa_p.txt", &op);
 	}
 //	printf("p, R = %f, T = %f\n", log10(R), log10(T));
 
@@ -248,7 +248,7 @@ double mmw(double rho, double T)
 	int i, j;
 	
 	if(op.imax == 0){
-		set_opacity("mean_ml_wght.txt", &op);
+		set_opacity("./LCFiles/mean_ml_wght.txt", &op);
 	}
 	i = op.imax/2;
 	j = op.jmax/2;
