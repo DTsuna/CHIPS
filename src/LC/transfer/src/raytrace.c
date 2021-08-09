@@ -1,5 +1,7 @@
 #include "raytrace.h"
+#include "dcht.h"
 #include "saha.h"
+#include "opacity.h"
 #include "constant.h"
 #include <stdio.h>
 #include <omp.h>
@@ -44,6 +46,59 @@ double alpha_ff_plus_beta_nu(double nu, double rho, double T)
 	}
 
 	return alpha;
+}
+
+double alpha_p_beta_nu(double nu, double rho, double T, opacity op)
+{
+	int i, j;
+	double a, b, c, d;
+	double kappa;
+	double ndens[4];
+	double alpha, beta;
+	double R = rho/sqrt(T)/T;
+
+	get_num_density(rho, T,  ndens);
+	beta = ndens[0]*(SIGMA_TH);
+
+	if(log10(T) < op.T[0]){
+		if(log10(R) < op.R[0]){
+			return rho*pow(10., op.kappa[0])+beta;
+		}
+		else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
+			j = dcht(log10(R), op.R, op.jmax);
+			kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
+			return rho*pow(10., kappa)+beta;
+		}
+		else{
+			return rho*pow(10., op.kappa[op.jmax-1])+beta;
+		}
+	}
+	else if(log10(R) > op.R[op.jmax-1]){
+		i = dcht(log10(T), op.T, op.imax);
+		kappa = op.kappa[op.jmax*i+op.jmax-1]
+		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+		kappa = pow(10., kappa);
+		kappa *= R/pow(10., op.R[op.jmax-1]);
+		return rho*kappa+beta;
+	}
+	else if(log10(T) > op.T[op.imax-1]){
+		return rho*pow(10., op.kappa[op.jmax*(op.imax-1)])+beta;
+	}
+	else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
+		i = dcht(log10(T), op.T, op.imax);
+		kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+		return rho*pow(10., kappa)+beta;
+	}
+	else{
+		i = dcht(log10(T), op.T, op.imax);
+		j = dcht(log10(R), op.R, op.jmax);
+		a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
+		b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
+		c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
+			+(op.kappa[op.jmax*i+j]))/((op.T[i+1]-op.T[i])*(op.R[j+1]-op.R[j]));
+		kappa = op.kappa[op.jmax*i+j]+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
+		return rho*pow(10., kappa)+beta;
+	}
 }
 
 double Planck_func(double nu, double T)
@@ -115,20 +170,25 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 }
 */
 
-double integ_ray_tracing(double b, double nu, double r[], double rho[], double T[], double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh)
+double integ_ray_tracing(double b, double nu, double r[], double rho[], double T[], double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh, opacity op)
 {
-	int i, j, jmin, jmin_sh;
+	FILE *fnu;
+	int i, j, jmin, jmin_sh, inu = 0;
+	int k = 0, l;
 	double B_nu;
 	double fac;
 	double ds, tau = 0., dtau, tau_fin;
 	double sum = 0.;
 	double I = 0.;
+	double opacity[8192];
 	
 	jmin = jmin_func(b, r, n);
 
 //Integrate intensity from the outermost region
 	for(j = n-1; j >= imax(jmin, 0); --j){
-		fac = alpha_ff_plus_beta_nu(nu, rho[j], T[j]);
+		opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
+		fac = opacity[k];
+		k++;
 		ds = ds_path(b, r, j);
 		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
@@ -139,14 +199,18 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 		jmin_sh = jmin_func(b, r_sh, n_sh);
 
 		for(j = n_sh-1; j >= imax(jmin_sh, 0); --j){
-			fac = alpha_ff_plus_beta_nu(nu, rho_sh[j], T_sh[j]);
+			opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
+			fac = opacity[k];
+			k++;
 			ds = ds_path(b, r_sh, j);
 			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
 			tau += dtau;
 		}
 		for(j = imax(jmin_sh, 0); j < n_sh; j++){
-			fac = alpha_ff_plus_beta_nu(nu, rho_sh[j], T_sh[j]);
+			opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
+			fac = opacity[k];
+			k++;
 			ds = ds_path(b, r_sh, j);
 			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
@@ -157,7 +221,9 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 
 	for(j = imax(jmin, 0); j < n; j++){
-		fac = alpha_ff_plus_beta_nu(nu, rho[j], T[j]);
+		opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
+		fac = opacity[k];
+		k++;
 		ds = ds_path(b, r, j);
 		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
@@ -166,11 +232,12 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 	tau_fin = tau;
 	tau = 0.;
-
+	k = 0;
 
 
 	for(j = n-1; j >= imax(jmin, 0); --j){
-		fac = alpha_ff_plus_beta_nu(nu, rho[j], T[j]);
+		fac = opacity[k];
+		k++;
 		ds = ds_path(b, r, j);
 		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
@@ -182,7 +249,8 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 		jmin_sh = jmin_func(b, r_sh, n_sh);
 
 		for(j = n_sh-1; j >= imax(jmin_sh, 0); --j){
-			fac = alpha_ff_plus_beta_nu(nu, rho_sh[j], T_sh[j]);
+			fac = opacity[k];
+			k++;
 			ds = ds_path(b, r_sh, j);
 			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
@@ -190,7 +258,8 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 			sum += B_nu*exp(tau-tau_fin)*dtau;
 		}
 		for(j = imax(jmin_sh, 0); j < n_sh; j++){
-			fac = alpha_ff_plus_beta_nu(nu, rho_sh[j], T_sh[j]);
+			fac = opacity[k];
+			k++;
 			ds = ds_path(b, r_sh, j);
 			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
@@ -202,7 +271,8 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 
 	for(j = imax(jmin, 0); j < n; j++){
-		fac = alpha_ff_plus_beta_nu(nu, rho[j], T[j]);
+		fac = opacity[k];
+		k++;
 		ds = ds_path(b, r, j);
 		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
@@ -215,10 +285,38 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], double T[], double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh)
 {
-	int i;
+	int i, inu = 0, k, l;
 	double b[NB] = {0.}, db = r_out/(double)((NB)-1);
 	double I[NB], sum = 0.;
 	double fac;
+	double kappa[2000];
+	double nu_opac[2000];
+	FILE *fnu;
+	char filename[512];
+
+/***************************Read nu******************************/
+	opacity op0, op1;
+	fnu = fopen("input/TOPS_multigroup/opacity_table/frequency.txt", "r");
+	while(fscanf(fnu, "%lf", &nu_opac[inu]) != EOF){
+		inu++;
+	}
+	fclose(fnu);
+	for(i = 0; i < inu-1; i++){
+		if(nu >= nu_opac[i] && nu < nu_opac[i+1]){
+			break;
+		}
+	}
+	sprintf(filename, "./input/TOPS_multigroup/opacity_table/opacity_%05d.txt", i);
+	set_opacity(filename, &op0);
+	sprintf(filename, "./input/TOPS_multigroup/opacity_table/opacity_%05d.txt", i+1);
+	set_opacity(filename, &op1);
+	for(k = 0; k < op0.jmax; k++){
+		for(l = 0; l < op0.imax; l++){
+			kappa[l*op0.jmax+k] = ((nu_opac[i+1]-nu)*op0.kappa[l*op0.jmax+k]+(nu-nu_opac[i])*op1.kappa[l*op1.jmax+k])/(nu_opac[i+1]-nu_opac[i]);
+			op0.kappa[l*op0.jmax+k] = kappa[l*op0.jmax+k];
+		}
+	}
+/****************************************************************/
 
 	b[0] = 0.;
 	b[1] = r_init/100.;
@@ -227,14 +325,14 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 		b[i] = fac*b[i-1];
 	}
 	
-	I[0] = integ_ray_tracing(b[0], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh);
+	I[0] = integ_ray_tracing(b[0], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh, op0);
 
 	for(i = 1; i < NB-1; i++){
 //		b[i] = b[i-1]+db;
-		I[i] = integ_ray_tracing(b[i], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh);
+		I[i] = integ_ray_tracing(b[i], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh, op0);
 	}
 	b[NB-1] = b[NB-2]+(b[NB-1]-b[NB-2])/2.;
-	I[NB-1] = integ_ray_tracing(b[NB-1], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh);
+	I[NB-1] = integ_ray_tracing(b[NB-1], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh, op0);
 
 	for(i = 0; i < NB-1; i++){
 		sum += 8.*M_PI*M_PI*0.5*(b[i]*I[i]+b[i+1]*I[i+1])*(b[i+1]-b[i]);
