@@ -1,7 +1,7 @@
 #include "Python.h"
 
 extern void shock_csm(double, double, double, double, const char*, const char*, const char*);
-extern void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*);
+extern void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
 
 // definition of shock flux calculator method
 static PyObject* lightcurve_shock(PyObject* self, PyObject* args, PyObject* kw)
