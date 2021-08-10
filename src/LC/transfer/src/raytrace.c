@@ -174,6 +174,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 {
 	FILE *fnu;
 	int i, j, jmin, jmin_sh, inu = 0;
+	int jminmax, jminmax_sh;
 	int k = 0, l;
 	double B_nu;
 	double fac;
@@ -185,7 +186,8 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 	jmin = jmin_func(b, r, n);
 
 //Integrate intensity from the outermost region
-	for(j = n-1; j >= imax(jmin, 0); --j){
+	jminmax = imax(jmin, 0);
+	for(j = n-1; j >= jminmax; --j){
 		opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
 		fac = opacity[k];
 		k++;
@@ -197,8 +199,9 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 	if(jmin == -1){
 		jmin_sh = jmin_func(b, r_sh, n_sh);
+		jminmax_sh = imax(jmin_sh, 0);
 
-		for(j = n_sh-1; j >= imax(jmin_sh, 0); --j){
+		for(j = n_sh-1; j >= jminmax_sh; --j){
 			opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
 			fac = opacity[k];
 			k++;
@@ -207,7 +210,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 			dtau = fac*ds;
 			tau += dtau;
 		}
-		for(j = imax(jmin_sh, 0); j < n_sh; j++){
+		for(j = jminmax_sh; j < n_sh; j++){
 			opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
 			fac = opacity[k];
 			k++;
@@ -220,7 +223,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 
 
-	for(j = imax(jmin, 0); j < n; j++){
+	for(j = jminmax; j < n; j++){
 		opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
 		fac = opacity[k];
 		k++;
@@ -235,7 +238,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 	k = 0;
 
 
-	for(j = n-1; j >= imax(jmin, 0); --j){
+	for(j = n-1; j >= jminmax; --j){
 		fac = opacity[k];
 		k++;
 		ds = ds_path(b, r, j);
@@ -248,7 +251,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 	if(jmin == -1){
 		jmin_sh = jmin_func(b, r_sh, n_sh);
 
-		for(j = n_sh-1; j >= imax(jmin_sh, 0); --j){
+		for(j = n_sh-1; j >= jminmax_sh; --j){
 			fac = opacity[k];
 			k++;
 			ds = ds_path(b, r_sh, j);
@@ -257,7 +260,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 			tau += dtau;
 			sum += B_nu*exp(tau-tau_fin)*dtau;
 		}
-		for(j = imax(jmin_sh, 0); j < n_sh; j++){
+		for(j = jminmax_sh; j < n_sh; j++){
 			fac = opacity[k];
 			k++;
 			ds = ds_path(b, r_sh, j);
@@ -270,7 +273,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 
 
-	for(j = imax(jmin, 0); j < n; j++){
+	for(j = jminmax; j < n; j++){
 		fac = opacity[k];
 		k++;
 		ds = ds_path(b, r, j);
