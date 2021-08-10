@@ -428,11 +428,12 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 			else{
 				for(k = 0; k < j-1; k++){
 					if(lam[l] >= lam_band[k] && lam[l] < lam_band[k+1]){
+						Trans[l] = (trans_band[k+1]-trans_band[k])/(lam_band[k+1]-lam_band[k])*(lam[l]-lam_band[k])+trans_band[k];
 						break;
 					}
-					Trans[l] = (trans_band[k+1]-trans_band[k])/(lam_band[k+1]-lam_band[k])*(lam[l]-lam_band[k])+trans_band[k];
 				}
 			}
+			printf("Trans[%d] = %f\n", l, Trans[l]);
 		}
 		for(l = 0; l < NNU-1; l++){
 			sum1 += (Trans[l]+Trans[l+1])/(lam[l]+lam[l+1])*(lam[l+1]-lam[l]);
