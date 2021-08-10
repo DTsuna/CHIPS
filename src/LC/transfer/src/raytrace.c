@@ -422,7 +422,7 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 		}
 
 		for(l = 0; l < NNU-1; l++){
-			if(lam[l] <= lam_band[0] && lam[l] >= lam_band[j-1]){
+			if(lam[l] <= lam_band[0] || lam[l] >= lam_band[j-1]){
 				Trans[l] = 0.;
 			}
 			else{
