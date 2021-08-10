@@ -348,11 +348,12 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 	FILE *fp, *fb;
 	double nu[NNU], L_nu[NNU];
 	double lam[NNU];
+	double Trans[NNU];
 	double frac;
 	double lam_band[100], trans_band[100], Lnu_band[100];
 	double dummy[3];
 	double sum1, sum2;
-	int i, j, k, l, lmin;
+	int i, j, k, l;
 	char bands[5][256] = {"./input/band_filters/uband.txt", "./input/band_filters/bband.txt", "./input/band_filters/vband.txt",
 				"./input/band_filters/rband.txt", "./input/band_filters/iband.txt"};
 
@@ -379,6 +380,7 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 	}
 	fclose(fp);
 
+/*
 	for(i = 0; i < 5; i++){
 		j = 0;
 		sum1 = 0.;
@@ -403,6 +405,40 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 			sum1 += (trans_band[k+1]+trans_band[k])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
 			sum2 += (Lnu_band[k+1]+Lnu_band[k])/2.0*(trans_band[k+1]+trans_band[k])/(lam_band[k+1]+lam_band[k])*(lam_band[k+1]-lam_band[k]);
 		}
+		sum2 /= 4.*M_PI*100.*pc*pc;
+		fclose(fb);
+		abmag[i] = -2.5*log10(sum2/sum1)-48.6;
+	}
+*/
+
+	for(i = 0; i < 5; i++){
+		j = 0;
+		sum1 = 0.;
+		sum2 = 0.;
+		fb = fopen(bands[i], "r");
+		while(fscanf(fb, "%lf %lf %lf %lf %lf", lam_band+j, dummy, dummy+1, dummy+2, trans_band+j) != EOF){
+			lam_band[j] *= 1.0e-07;
+			j++;
+		}
+
+		for(l = 0; l < NNU-1; l++){
+			if(lam[l] <= lam_band[0] && lam[l] >= lam_band[j-1]){
+				Trans[l] = 0.;
+			}
+			else{
+				for(k = 0; k < j-1; k++){
+					if(lam[l] >= lam_band[k] && lam[l] < lam_band[k+1]){
+						break;
+					}
+					Trans[l] = (trans_band[k+1]-trans_band[k])/(lam_band[k+1]-lam_band[k])*(lam[l]-lam_band[k])+trans_band[k];
+				}
+			}
+		}
+		for(l = 0; l < NNU-1; l++){
+			sum1 += (Trans[l]+Trans[l+1])/(lam[l]+lam[l+1])*(lam[l+1]-lam[l]);
+			sum2 += (L_nu[l]+L_nu[l+1])/2.*(Trans[l]+Trans[l+1])/(lam[l]+lam[l+1])*(lam[l+1]-lam[l]);
+		}
+
 		sum2 /= 4.*M_PI*100.*pc*pc;
 		fclose(fb);
 		abmag[i] = -2.5*log10(sum2/sum1)-48.6;
