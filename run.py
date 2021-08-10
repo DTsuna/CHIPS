@@ -167,7 +167,7 @@ for Eexp in Eexps:
 	# bolometric light curve
 	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg.txt'
 	# multi-band light curve if requested
-	if calc_multiband:
+	if options.calc_multiband:
 		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg_mag.txt'
 	else:
 		IIn_lc_band_file = ''
