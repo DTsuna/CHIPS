@@ -17,7 +17,7 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*);
+void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 void read_shockprofiles(FILE*, double[], double[], double[], int*);
 
@@ -34,7 +34,7 @@ void read_shockprofiles(FILE*, double[], double[], double[], int*);
 //}
 
 void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, 
-	const char *file_csm, const char *file_inp, const char *file_outp, const char *dir_shockprofiles)
+	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
 	FILE *fp, *fl, *fw, *fnu_time, *fsh;
 	double F_max = 0., F_out = 0.;
@@ -52,6 +52,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int count = 0;
 	int c = 0, cmax = 100;
 	int L_outp_flag = 0, count_nu = 0;
+	int FLNU;
 	double dummy[8];
 	double dr;
 	double CFL = 1.0000000000000000;
@@ -73,6 +74,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 
 	int num_of_threads, i_threads;
 
+	/* OpenMP parameters */
 	if(getenv("OMP_NUM_THREADS") == NULL){
 		num_of_threads = 1;
 	}
@@ -83,6 +85,13 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 		num_of_threads = atoi(getenv("OMP_NUM_THREADS"));
 	}
 
+	/* multi-band flag based on whether the multi-band output file string is empty or not*/
+	if(strlen(file_outp_band) == 0) {
+		FLNU = 0;
+	} else {
+		FLNU = 1;
+	}
+
 #ifdef _OPENMP
 	printf("The number of used threads = %d.\n", num_of_threads);
 #endif
@@ -91,24 +100,11 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
 
-#if FLNU == 1
-	sprintf(filename, "%s", file_outp);
-	for(ii = 0; ii < 512; ii++){
-		if(file_outp[ii] == '.' && file_outp[ii+1] == 't' && file_outp[ii+2] == 'x' && file_outp[ii+3] == 't'){
-			ii++;
-			filename[ii-1] = '_';
-			filename[ii] = 'm';
-			filename[ii+1] = 'a';
-			filename[ii+2] = 'g';
-			filename[ii+3] = '.';
-			filename[ii+4] = 't';
-			filename[ii+5] = 'x';
-			filename[ii+6] = 't';
-			break;
-		}
+	if(FLNU == 1) {
+		sprintf(filename, "%s", file_outp_band);
+		fnu_time = fopen(filename, "w");
+		fprintf(fnu_time, "%s %s %s %s %s %s\n", "time [day]", "U", "B", "V", "R", "I");
 	}
-	fnu_time = fopen(filename, "w");
-#endif
 
 	sprintf(filename, "%s", file_outp);
 	fl = fopen(filename, "w");
@@ -202,12 +198,10 @@ Identify the position of forward shock, and estimate by linear interpolation.
 			}
 		}
 
-#if FLNU == 1
-		if(t+dt > tf[j+1]){
+		if(FLNU == 1 && t+dt > tf[j+1]){
 			L_outp_flag = 1;
 			dt = tf[j+1]-t;
 		}
-#endif
 
 /*Interpolation of r, E, u_fs, F*/
 		r_ini = rf[j]*exp(log(rf[j+1]/rf[j])/log(tf[j+1]/tf[j])*log((t+dt)/tf[j]));
@@ -446,9 +440,8 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		}
 /********************************************************************/
 
-/************************Calculate L_nu******************************/
-#if FLNU == 1
-		if(L_outp_flag == 1){
+/******************Calculate L_nu if requested************************/
+		if(FLNU == 1 && L_outp_flag == 1){
 			if(t/86400. > (double)outp_date_int && j < fsize-1){
 				printf("/*********************************************************/\n");
 				n_sh = 0;
@@ -459,8 +452,8 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
 				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int-outp_date_min);
 				calc_lum(r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag);
-				fprintf(fnu_time, "%e %e %e %e %e %e\n", tf[j+1], abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
-				printf("%e %e %e %e %e %e\n", tf[j+1], abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
+				fprintf(fnu_time, "%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
+				printf("%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				outp_date_int++;
 				fclose(fsh);
 				printf("/*********************************************************/\n");
@@ -468,7 +461,6 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			count_nu++;
 			L_outp_flag = 0;
 		}
-#endif
 /********************************************************************/
 
 
@@ -495,9 +487,9 @@ Output of temperature, radiation energy density, flux as functions of radius.
 	}
 	fclose(fp);
 	fclose(fl);
-#if FLNU == 1
-	fclose(fnu_time);
-#endif
+	if(FLNU == 1){
+		fclose(fnu_time);
+	}
 }
 
 void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[], double E[], double U[], const int nsize)

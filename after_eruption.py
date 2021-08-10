@@ -22,6 +22,7 @@ def parse_command_line():
 	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
 	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Set how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind'.")
+	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally much heavier than obtaining just the bolometric light curve.")
 
 	options, filenames = parser.parse_args()
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
@@ -70,8 +71,14 @@ for Eexp in Eexps:
 	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
 
 	# radiation transfer
+	# bolometric light curve
 	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg.txt'
-	lightcurve.transfer(Eexp, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, dir_name_shockprofiles)
+	# multi-band light curve if requested
+	if calc_multiband:
+		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg_mag.txt'
+	else:
+		IIn_lc_band_file = ''
+	lightcurve.transfer(Eexp, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_name_shockprofiles)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.

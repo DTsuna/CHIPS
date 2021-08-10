@@ -25,11 +25,12 @@ static PyObject* lightcurve_transfer(PyObject* self, PyObject* args, PyObject* k
 	const char* file_csm=NULL;
 	const char* file_shock=NULL;
 	const char* file_lc=NULL;
+	const char* file_lc_band=NULL;
 	const char* dir_name_shockprofiles = NULL;
-	static char* argnames[] = {"Eexp", "Mej", "n", "delta", "r_out", "file_csm", "file_shock", "file_lc", "dir_name_shockprofiles", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "ddddd|ssss", argnames, &Eexp, &Mej, &n, &delta, &r_out, &file_csm, &file_shock, &file_lc, &dir_name_shockprofiles))
+	static char* argnames[] = {"Eexp", "Mej", "n", "delta", "r_out", "file_csm", "file_shock", "file_lc", "file_lc_band", "dir_name_shockprofiles", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "ddddd|sssss", argnames, &Eexp, &Mej, &n, &delta, &r_out, &file_csm, &file_shock, &file_lc, &file_lc_band, &dir_name_shockprofiles))
 		return NULL;
-	rad_transfer_csm(Eexp, Mej, n, delta, r_out, file_csm, file_shock, file_lc, dir_name_shockprofiles);
+	rad_transfer_csm(Eexp, Mej, n, delta, r_out, file_csm, file_shock, file_lc, file_lc_band, dir_name_shockprofiles);
 	return Py_BuildValue("");
 }
 
