@@ -114,7 +114,7 @@ void solver_rev_outp(double x_ini, double int_phys[], double egn[], int *info, F
 		memcpy(y, yout, sizeof(double)*N);
 		rk4(y, N, dx, x, yout, diff_eq);
 		dM = func_dM(x, dx, y[1], yout[1]);
-		fprintf(fp, "%e %e %e %e %e\n", x, yout[0], yout[1], yout[2], yout[3]);
+		fprintf(fp, "%e %e %e %e %e\n", x+dx, yout[0], yout[1], yout[2], yout[3]);
 	}while(M+dM < M_rev);
 
 	dx = dx*(M_rev-M)/dM;
@@ -149,7 +149,7 @@ void solver_for_outp(double int_phys[], double ext_phys[], double egn[], int fla
 			rk4(y, N, dx, x, yout, diff_eq);
 			dM = func_dM(x, dx, y[1], yout[1]);
 			i++;
-			xrec[i] = x;
+			xrec[i] = x+dx;
 			vrec[i] = yout[0];
 			rhorec[i] = yout[1];
 			Trec[i] = yout[2];
@@ -173,7 +173,7 @@ void solver_for_outp(double int_phys[], double ext_phys[], double egn[], int fla
 			rk4(y, N, dx, x, yout, diff_eq);
 			dM = func_dM(x, dx, y[1], yout[1]);
 			i++;
-			xrec[i] = x;
+			xrec[i] = x+dx;
 			vrec[i] = yout[0];
 			rhorec[i] = yout[1];
 			Trec[i] = yout[2];

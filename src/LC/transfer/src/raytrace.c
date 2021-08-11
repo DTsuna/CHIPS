@@ -118,58 +118,6 @@ double Planck_func(double nu, double T)
 
 /************************This subroutine returns I(b, nu)**************************/
 /**********************************************************************************/
-/*
-double integ_ray_tracing(double b, double nu, double r[], double rho[], double T[], double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh)
-{
-	int i, j, jmin, jmin_sh;
-	double B_nu;
-	double fac;
-	double ds;
-	double I = 0.;
-	
-	jmin = jmin_func(b, r, n);
-
-//Integrate intensity from the outermost region
-	for(j = n-1; j >= imax(jmin, 0); --j){
-		fac = alpha_ff_plus_beta_nu(nu, rho[j], T[j]);
-		ds = ds_path(b, r, j);
-		B_nu = Planck_func(nu, T[j]);
-		I = (1.-0.5*fac*ds)/(1.+0.5*fac*ds)*I+fac*B_nu/(1.+0.5*fac*ds)*ds;
-	}
-
-	if(jmin == -1){
-		jmin_sh = jmin_func(b, r_sh, n_sh);
-
-		for(j = n_sh-1; j >= imax(jmin_sh, 0); --j){
-			fac = alpha_ff_plus_beta_nu(nu, rho_sh[j], T_sh[j]);
-			ds = ds_path(b, r_sh, j);
-			B_nu = Planck_func(nu, T_sh[j]);
-			I = (1.-0.5*fac*ds)/(1.+0.5*fac*ds)*I+fac*B_nu/(1.+0.5*fac*ds)*ds;
-		}
-		for(j = imax(jmin_sh, 0); j < n_sh; j++){
-			fac = alpha_ff_plus_beta_nu(nu, rho_sh[j], T_sh[j]);
-			ds = ds_path(b, r_sh, j);
-			B_nu = Planck_func(nu, T_sh[j]);
-			I = (1.-0.5*fac*ds)/(1.+0.5*fac*ds)*I+fac*B_nu/(1.+0.5*fac*ds)*ds;
-		}
-	}
-
-
-
-	for(j = imax(jmin, 0); j < n; j++){
-		fac = alpha_ff_plus_beta_nu(nu, rho[j], T[j]);
-		ds = ds_path(b, r, j);
-		B_nu = Planck_func(nu, T[j]);
-		I = (1.-0.5*fac*ds)/(1.+0.5*fac*ds)*I+fac*B_nu/(1.+0.5*fac*ds)*ds;
-	}
-	if(isnan(I)){
-		printf("b, nu = %e %e\n", b, nu);
-	}
-
-	return I;
-}
-*/
-
 double integ_ray_tracing(double b, double nu, double r[], double rho[], double T[], double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh, opacity op)
 {
 	FILE *fnu;
@@ -330,6 +278,7 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 	
 	I[0] = integ_ray_tracing(b[0], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh, op0);
 
+#pragma omp parallel for
 	for(i = 1; i < NB-1; i++){
 //		b[i] = b[i-1]+db;
 		I[i] = integ_ray_tracing(b[i], nu, r, rho, T, r_sh, rho_sh, T_sh, n, n_sh, op0);
@@ -369,7 +318,6 @@ void calc_lum(double r_init, double r_out, double r[], double rho[], double T[],
 	}
 
 	printf("Started spec calculation.\n");
-#pragma omp parallel for
 	for(i = 0; i < NNU; i++){
 		L_nu[i] = Lum_nu(r_init, r_out, nu[i], r, rho, T, r_sh, rho_sh, T_sh, n, n_sh);
 		printf("L_nu[%d] = %e\n", i, L_nu[i]);
