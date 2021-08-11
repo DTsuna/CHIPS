@@ -129,7 +129,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 	double ds, tau = 0., dtau, tau_fin;
 	double sum = 0.;
 	double I = 0.;
-	double opacity[8192];
+	double opacity[8192], ds_array[8192], Planck[8192];
 	
 	jmin = jmin_func(b, r, n);
 
@@ -138,9 +138,11 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 	for(j = n-1; j >= jminmax; --j){
 		opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
 		fac = opacity[k];
+		ds_array[k] = ds_path(b, r, j);
+		Planck[k] = Planck_func(nu, T[j]);
+		ds = ds_array[k];
+		B_nu = Planck[k];
 		k++;
-		ds = ds_path(b, r, j);
-		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
 		tau += dtau;
 	}
@@ -150,20 +152,25 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 		jminmax_sh = imax(jmin_sh, 0);
 
 		for(j = n_sh-1; j >= jminmax_sh; --j){
-			opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
+			opacity[k] = alpha_p_beta_nu(nu, rho_sh[j], T_sh[j], op);
+			ds_array[k] = ds_path(b, r_sh, j);
+			Planck[k] = Planck_func(nu, T_sh[j]);
 			fac = opacity[k];
+			ds = ds_array[k];
+			B_nu = Planck[k];
 			k++;
-			ds = ds_path(b, r_sh, j);
-			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
 			tau += dtau;
 		}
 		for(j = jminmax_sh; j < n_sh; j++){
-			opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
+			opacity[k] = alpha_p_beta_nu(nu, rho_sh[j], T_sh[j], op);
 			fac = opacity[k];
+			ds_array[k] = ds_path(b, r_sh, j);
+			Planck[k] = Planck_func(nu, T_sh[j]);
+			fac = opacity[k];
+			ds = ds_array[k];
+			B_nu = Planck[k];
 			k++;
-			ds = ds_path(b, r_sh, j);
-			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
 			tau += dtau;
 		}
@@ -174,9 +181,11 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 	for(j = jminmax; j < n; j++){
 		opacity[k] = alpha_p_beta_nu(nu, rho[j], T[j], op);
 		fac = opacity[k];
+		ds_array[k] = ds_path(b, r, j);
+		Planck[k] = Planck_func(nu, T[j]);
+		ds = ds_array[k];
+		B_nu = Planck[k];
 		k++;
-		ds = ds_path(b, r, j);
-		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
 		tau += dtau;
 	}
@@ -188,9 +197,9 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 	for(j = n-1; j >= jminmax; --j){
 		fac = opacity[k];
+		ds = ds_array[k];
+		B_nu = Planck[k];
 		k++;
-		ds = ds_path(b, r, j);
-		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
 		tau += dtau;
 		sum += B_nu*exp(tau-tau_fin)*dtau;
@@ -201,18 +210,18 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 		for(j = n_sh-1; j >= jminmax_sh; --j){
 			fac = opacity[k];
+			ds = ds_array[k];
+			B_nu = Planck[k];
 			k++;
-			ds = ds_path(b, r_sh, j);
-			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
 			tau += dtau;
 			sum += B_nu*exp(tau-tau_fin)*dtau;
 		}
 		for(j = jminmax_sh; j < n_sh; j++){
 			fac = opacity[k];
+			ds = ds_array[k];
+			B_nu = Planck[k];
 			k++;
-			ds = ds_path(b, r_sh, j);
-			B_nu = Planck_func(nu, T_sh[j]);
 			dtau = fac*ds;
 			tau += dtau;
 			sum += B_nu*exp(tau-tau_fin)*dtau;
@@ -223,9 +232,9 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 	for(j = jminmax; j < n; j++){
 		fac = opacity[k];
+		ds = ds_array[k];
+		B_nu = Planck[k];
 		k++;
-		ds = ds_path(b, r, j);
-		B_nu = Planck_func(nu, T[j]);
 		dtau = fac*ds;
 		tau += dtau;
 		sum += B_nu*exp(tau-tau_fin)*dtau;
