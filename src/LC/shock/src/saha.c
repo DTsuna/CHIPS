@@ -44,8 +44,9 @@ void saha(double rho, double U, double *mu, double *T)
 void get_num_density(double rho, double T,  double ndens[])
 {
 	double mu_tmp[2] = {};
-	double x;
+	double x, x_to_3ov2;
 	double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
+	double Boltz_HI, Boltz_HeI, Boltz_HeII;
 
 	mu_tmp[0] = 0.5;
 	mu_tmp[1] = 1.;
