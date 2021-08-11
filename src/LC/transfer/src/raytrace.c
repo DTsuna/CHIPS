@@ -60,8 +60,8 @@ double alpha_p_beta_nu(double nu, double rho, double T, opacity op)
 	get_num_density(rho, T,  ndens);
 	beta = ndens[0]*(SIGMA_TH);
 
-	logT = log10(T);
-	logR = log10(R);
+	double logT = log10(T);
+	double logR = log10(R);
 
 	if(logT < op.T[0]){
 		if(logR < op.R[0]){
