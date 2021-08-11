@@ -60,43 +60,46 @@ double alpha_p_beta_nu(double nu, double rho, double T, opacity op)
 	get_num_density(rho, T,  ndens);
 	beta = ndens[0]*(SIGMA_TH);
 
-	if(log10(T) < op.T[0]){
-		if(log10(R) < op.R[0]){
+	logT = log10(T);
+	logR = log10(R);
+
+	if(logT < op.T[0]){
+		if(logR < op.R[0]){
 			return rho*pow(10., op.kappa[0])+beta;
 		}
-		else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
-			j = dcht(log10(R), op.R, op.jmax);
-			kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
+		else if(logR > op.R[0] && logR < op.R[op.jmax-1]){
+			j = dcht(logR, op.R, op.jmax);
+			kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(logR-op.R[j]);
 			return rho*pow(10., kappa)+beta;
 		}
 		else{
 			return rho*pow(10., op.kappa[op.jmax-1])+beta;
 		}
 	}
-	else if(log10(R) > op.R[op.jmax-1]){
-		i = dcht(log10(T), op.T, op.imax);
+	else if(logR > op.R[op.jmax-1]){
+		i = dcht(logT, op.T, op.imax);
 		kappa = op.kappa[op.jmax*i+op.jmax-1]
-		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(logT-op.T[i]);
 		kappa = pow(10., kappa);
 		kappa *= R/pow(10., op.R[op.jmax-1]);
 		return rho*kappa+beta;
 	}
-	else if(log10(T) > op.T[op.imax-1]){
+	else if(logT > op.T[op.imax-1]){
 		return rho*pow(10., op.kappa[op.jmax*(op.imax-1)])+beta;
 	}
-	else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
-		i = dcht(log10(T), op.T, op.imax);
-		kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+	else if(logT > op.T[0] && logT < op.T[op.imax-1] && logR < op.R[0]){
+		i = dcht(logT, op.T, op.imax);
+		kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(logT-op.T[i]);
 		return rho*pow(10., kappa)+beta;
 	}
 	else{
-		i = dcht(log10(T), op.T, op.imax);
-		j = dcht(log10(R), op.R, op.jmax);
+		i = dcht(logT, op.T, op.imax);
+		j = dcht(logR, op.R, op.jmax);
 		a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
 		b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
 		c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
 			+(op.kappa[op.jmax*i+j]))/((op.T[i+1]-op.T[i])*(op.R[j+1]-op.R[j]));
-		kappa = op.kappa[op.jmax*i+j]+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
+		kappa = op.kappa[op.jmax*i+j]+a*(logT-op.T[i])+b*(logR-op.R[j])+c*(logT-op.T[i])*(logR-op.R[j]);
 		return rho*pow(10., kappa)+beta;
 	}
 }
