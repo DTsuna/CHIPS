@@ -132,7 +132,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 	FILE *fnu;
 	int i, j, jmin, jmin_sh, jmin_ej, inu = 0;
 	int jminmax, jminmax_sh, jminmax_ej;
-	int k = 0, l;
+	int k = 0, l, kmax;
 	double B_nu;
 	double fac;
 	double ds, tau = 0., dtau, tau_fin;
@@ -155,6 +155,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 		dtau = fac*ds;
 		tau += dtau;
 	}
+	kmax = k;
 
 	if(jmin == -1){
 		jmin_sh = jmin_func(b, r_sh, n_sh);
@@ -171,6 +172,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 			dtau = fac*ds;
 			tau += dtau;
 		}
+		kmax = k;
 	
 		if(jmin_sh == -1){
 			jmin_ej = jmin_func(b, r_ej, n_ej);
@@ -187,8 +189,10 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 				tau += dtau;
 //				printf("opacity = %f, ds = %e, i = %d\n", opacity[k]/d_ej[j], ds_array[k], j);
 			}
+			kmax = k;
 			for(j = jminmax_ej; j < n_ej; j++){
-				opacity[k] = alpha_nu(nu, d_ej[j], T_ej[j], op);
+//				opacity[k] = alpha_nu(nu, d_ej[j], T_ej[j], op);
+				opacity[k] = opacity[2*kmax-k-1];
 				fac = opacity[k];
 				ds_array[k] = ds_path(b, r_ej, j);
 				Planck[k] = Planck_func(nu, T_ej[j]);
@@ -204,7 +208,8 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 
 		for(j = jminmax_sh; j < n_sh; j++){
-			opacity[k] = alpha_nu(nu, rho_sh[j], T_sh[j], op)+beta_nu(nu, rho_sh[j], T_sh[j]);
+//			opacity[k] = alpha_nu(nu, rho_sh[j], T_sh[j], op)+beta_nu(nu, rho_sh[j], T_sh[j]);
+			opacity[k] = opacity[2*kmax-k-1];
 			fac = opacity[k];
 			ds_array[k] = ds_path(b, r_sh, j);
 			Planck[k] = Planck_func(nu, T_sh[j]);
@@ -220,7 +225,8 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 
 
 	for(j = jminmax; j < n; j++){
-		opacity[k] = alpha_nu(nu, rho[j], T[j], op)+beta_nu(nu, rho[j], T[j]);
+//		opacity[k] = alpha_nu(nu, rho[j], T[j], op)+beta_nu(nu, rho[j], T[j]);
+		opacity[k] = opacity[2*kmax-k-1];
 		fac = opacity[k];
 		ds_array[k] = ds_path(b, r, j);
 		Planck[k] = Planck_func(nu, T[j]);
