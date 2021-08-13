@@ -14,6 +14,7 @@
 #include "flux.h"
 #include "opacity.h"
 #include "saha.h"
+#include "pars.h"
 
 extern char csm[256];
 
@@ -71,8 +72,13 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	int n_sh;
 	int interval = 50;
 	int outp_date_int = 0, outp_date_min;
+	pars pdt;
 
 	int num_of_threads, i_threads;
+
+
+
+	pdt = setpars(nej, delta, Eexp, Mej, 1.e+7, 1.e+12);
 
 	/* OpenMP parameters */
 	if(getenv("OMP_NUM_THREADS") == NULL){
@@ -451,7 +457,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				fsh = fopen(filename, "r");
 				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
 				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int-outp_date_min);
-				calc_lum(r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag);
+				calc_lum(t, r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag, pdt);
 				fprintf(fnu_time, "%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				printf("%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				outp_date_int++;
@@ -523,6 +529,9 @@ void read_shockprofiles(FILE *f_sh, double r_sh[], double rho_sh[], double T_sh[
 		}
 	}
 	*n_sh = i-1;
+	for(j = 0; j < *n_sh+1; j++){
+//		printf("%.7e %.7e %.7e\n", r_sh[j], rho_sh[j], T_sh[j]);
+	}
 
 	for(j = 0; j < positive-1; j++){
 		rho_sh[j] = (rho_sh[j]+rho_sh[j+1])/2.;
@@ -532,9 +541,14 @@ void read_shockprofiles(FILE *f_sh, double r_sh[], double rho_sh[], double T_sh[
 		r_sh[j] = r_sh[j+1];
 		rho_sh[j] = rho_sh[j+1];
 		T_sh[j] = T_sh[j+1];
+//		printf("%.7e %.7e %.7e\n", r_sh[j], rho_sh[j], T_sh[j]);
 	}
-	for(j = positive-1; j < i-1; j++){
+	for(j = positive-1; j < i-2; j++){
 		rho_sh[j] = (rho_sh[j]+rho_sh[j+1])/2.;
 		T_sh[j] = (T_sh[j]+T_sh[j+1])/2.;
 	}
+	for(j = 0; j < *n_sh; j++){
+//		printf("%.7e %.7e %.7e\n", r_sh[j], rho_sh[j], T_sh[j]);
+	}
+	*n_sh = *n_sh-1;
 }
