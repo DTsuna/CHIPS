@@ -453,10 +453,10 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				n_sh = 0;
 				printf("%e\n", tf[j+1]);
 				sprintf(filename, "%s/profiles%08d.txt", dir_shockprofiles, j+1);
-				printf("Open shock profile: %s/profiles%08d.txt", dir_shockprofiles, j+1);
+				printf("Open shock profile: %s/profiles%08d.txt\n", dir_shockprofiles, j+1);
 				fsh = fopen(filename, "r");
 				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
-				sprintf(filename, "%s/Lnu%08d.txt", dir_shockprofiles, outp_date_int-outp_date_min);
+				sprintf(filename, "%s/Lnu%08d", dir_shockprofiles, outp_date_int-outp_date_min);
 				calc_lum(t, r[0], r_out, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag, pdt);
 				fprintf(fnu_time, "%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				printf("%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);

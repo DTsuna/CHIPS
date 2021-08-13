@@ -306,7 +306,7 @@ double integ_ray_tracing(double b, double nu, double r[], double rho[], double T
 }
 
 double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], double T[], 
-		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej)
+		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, char *filenamenu, int nnu)
 {
 	int i, inu = 0, k, l;
 	double b[NB] = {0.}, db = r_out/(double)((NB)-1);
@@ -315,7 +315,7 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 	double kappa[2000];
 	double nu_opac[2000];
 	FILE *fnu;
-	char filename[512];
+	char filename[512], filename1[512];
 
 /***************************Read nu******************************/
 	opacity op0, op1;
@@ -341,6 +341,9 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 	}
 /****************************************************************/
 
+	sprintf(filename1, "%s_b_vs_I_%05d.txt", filenamenu, nnu);
+	fnu = fopen(filename1, "w");
+
 	b[0] = 0.;
 	b[1] = r_init/100.;
 	fac = pow(r_out/b[1], 1./((double)NB-2.));
@@ -362,6 +365,12 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 		sum += 8.*M_PI*M_PI*0.5*(b[i]*I[i]+b[i+1]*I[i+1])*(b[i+1]-b[i]);
 	}
 
+	for(i = 0; i < NB; i++){
+		fprintf(fnu, "%e %e\n", b[i], I[i]);
+	}
+
+	fclose(fnu);
+
 	return sum;
 }
 
@@ -379,6 +388,7 @@ void calc_lum(double t, double r_init, double r_out, double r[], double rho[], d
 	double sum1, sum2;
 	double A, B;
 	int i, j, k, l;
+	char filename1[512];
 	char bands[5][256] = {"./input/band_filters/uband.txt", "./input/band_filters/bband.txt", "./input/band_filters/vband.txt",
 				"./input/band_filters/rband.txt", "./input/band_filters/iband.txt"};
 	double r_ej[NEJ+1], d_ej[NEJ], T_ej[NEJ];
@@ -416,12 +426,13 @@ void calc_lum(double t, double r_init, double r_out, double r[], double rho[], d
 
 	printf("Started spec calculation.\n");
 	for(i = 0; i < NNU; i++){
-		L_nu[i] = Lum_nu(r_init, r_out, nu[i], r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_sh, n, n_sh, num_ej);
+		L_nu[i] = Lum_nu(r_init, r_out, nu[i], r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_sh, n, n_sh, num_ej, filename, i);
 		printf("L_nu[%d] = %e\n", i, L_nu[i]);
 	}
 	printf("Spec calculation end.\n");
 
-	fp = fopen(filename, "w");
+	sprintf(filename1, "%s.txt", filename);
+	fp = fopen(filename1, "w");
 	for(i = 0; i < NNU; i++){
 		lam[i] = (P_C)/nu[i];
 		fprintf(fp, "%e %e\n", nu[i], L_nu[i]);
