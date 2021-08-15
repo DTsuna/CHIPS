@@ -10,7 +10,7 @@ double alpha_ff_nu(double nu, double rho, double T);
 double beta_nu(double nu, double rho, double T);
 double alpha_nu(double nu, double rho, double T, opacity op);
 double Planck_func(double nu, double T);
-double integ_ray_tracing(double b, double nu, double r[], double rho[], double T[], 
+double integ_ray_tracing(double b, double nu, double *tau_nu, double r[], double rho[], double T[], 
 		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, opacity op);
 double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], double T[], 
 		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, char *filenamenu, int nnu);
