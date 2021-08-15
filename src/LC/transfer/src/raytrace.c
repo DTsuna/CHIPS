@@ -126,6 +126,7 @@ double Planck_func(double nu, double T)
 
 /************************This subroutine returns I(b, nu)**************************/
 /**********************************************************************************/
+/*
 double integ_ray_tracing(double b, double nu, double *tau_nu, double r[], double rho[], double T[], 
 		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, opacity op)
 {
@@ -311,8 +312,115 @@ double integ_ray_tracing(double b, double nu, double *tau_nu, double r[], double
 
 	return sum;
 }
+*/
 
-double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], double T[], 
+double integ_ray_tracing(double b, double nu, double *tau_nu, double F_ini, double r[], double rho[], double T[], 
+		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, opacity op)
+{
+	FILE *fnu;
+	int i, j, jmin, jmin_sh, jmin_ej, inu = 0;
+	int jminmax, jminmax_sh, jminmax_ej;
+	int k = 0, l, kmax;
+	double B_nu;
+	double fac;
+	double ds, tau = 0., dtau, tau_fin;
+	double sum = 0.;
+	double I = 0.;
+	double T_s;
+	double opacity[8192], ds_array[8192], Planck[8192];
+	
+	jmin = jmin_func(b, r, n);
+
+//Integrate intensity from the outermost region
+	jminmax = imax(jmin, 0);
+	if(jmin != -1){
+		for(j = n-1; j >= jminmax; --j){
+			opacity[k] = alpha_nu(nu, rho[j], T[j], op)+beta_nu(nu, rho[j], T[j]);
+			fac = opacity[k];
+			ds_array[k] = ds_path(b, r, j);
+			Planck[k] = Planck_func(nu, T[j]);
+			ds = ds_array[k];
+			B_nu = Planck[k];
+			k++;
+			dtau = fac*ds;
+			tau += dtau;
+		}
+		kmax = k;
+		for(j = jminmax; j < n; j++){
+			opacity[k] = opacity[2*kmax-k-1];
+			fac = opacity[k];
+			ds_array[k] = ds_path(b, r, j);
+			Planck[k] = Planck_func(nu, T[j]);
+			ds = ds_array[k];
+			B_nu = Planck[k];
+			k++;
+			dtau = fac*ds;
+			tau += dtau;
+		}
+
+		tau_fin = tau;
+		tau = 0.;
+		k = 0;
+
+		for(j = n-1; j >= jminmax; --j){
+			fac = opacity[k];
+			ds = ds_array[k];
+			B_nu = Planck[k];
+			k++;
+			dtau = fac*ds;
+			tau += dtau;
+			sum += B_nu*exp(tau-tau_fin)*dtau;
+		}
+		for(j = jminmax; j < n; j++){
+			fac = opacity[k];
+			ds = ds_array[k];
+			B_nu = Planck[k];
+			k++;
+			dtau = fac*ds;
+			tau += dtau;
+			sum += B_nu*exp(tau-tau_fin)*dtau;
+		}
+		*tau_nu = tau_fin;
+
+		return sum;
+	}
+	else{
+		T_s = pow(4./((P_A)*(P_C))*F_ini, 0.25);
+		for(j = jminmax; j < n; j++){
+			opacity[k] = alpha_nu(nu, rho[j], T[j], op)+beta_nu(nu, rho[j], T[j]);
+			fac = opacity[k];
+			ds_array[k] = ds_path(b, r, j);
+			Planck[k] = Planck_func(nu, T[j]);
+			ds = ds_array[k];
+			B_nu = Planck[k];
+			k++;
+			dtau = fac*ds;
+			tau += dtau;
+		}
+
+		tau_fin = tau;
+		tau = 0.;
+		k = 0;
+
+		for(j = jminmax; j < n; j++){
+			fac = opacity[k];
+			ds = ds_array[k];
+			B_nu = Planck[k];
+			k++;
+			dtau = fac*ds;
+			tau += dtau;
+			sum += B_nu*exp(tau-tau_fin)*dtau;
+		}
+		*tau_nu = tau_fin;
+		if(isnan(sum)){
+			printf("T_s = %e\n", T_s);
+		}
+
+		return Planck_func(nu, T_s)*exp(-tau_fin)+sum;
+	}
+}
+
+double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], double rho[], double T[], 
 		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, char *filenamenu, int nnu)
 {
 	int i, inu = 0, k, l;
@@ -359,15 +467,15 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 		b[i] = fac*b[i-1];
 	}
 	
-	I[0] = integ_ray_tracing(b[0], nu, &tau_nu[0], r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
+	I[0] = integ_ray_tracing(b[0], nu, &tau_nu[0], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
 
 #pragma omp parallel for
 	for(i = 1; i < NB-1; i++){
 //		b[i] = b[i-1]+db;
-		I[i] = integ_ray_tracing(b[i], nu, &tau_nu[i], r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
+		I[i] = integ_ray_tracing(b[i], nu, &tau_nu[i], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
 	}
 	b[NB-1] = b[NB-2]+(b[NB-1]-b[NB-2])/2.;
-	I[NB-1] = integ_ray_tracing(b[NB-1], nu, &tau_nu[NB-1], r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
+	I[NB-1] = integ_ray_tracing(b[NB-1], nu, &tau_nu[NB-1], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
 
 	for(i = 0; i < NB-1; i++){
 		sum += 8.*M_PI*M_PI*0.5*(b[i]*I[i]+b[i+1]*I[i+1])*(b[i+1]-b[i]);
@@ -382,7 +490,7 @@ double Lum_nu(double r_init, double r_out, double nu, double r[], double rho[], 
 	return sum;
 }
 
-void calc_lum(double t, double r_init, double r_out, double r[], double rho[], double T[], 
+void calc_lum(double t, double r_init, double r_out, double F_ini, double r[], double rho[], double T[], 
 		double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh, char *filename, double abmag[], pars pdt)
 {
 	const double pc = 3.085677581e+18;
@@ -434,7 +542,7 @@ void calc_lum(double t, double r_init, double r_out, double r[], double rho[], d
 
 	printf("Started spec calculation.\n");
 	for(i = 0; i < NNU; i++){
-		L_nu[i] = Lum_nu(r_init, r_out, nu[i], r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_sh, n, n_sh, num_ej, filename, i);
+		L_nu[i] = Lum_nu(r_init, r_out, nu[i], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_sh, n, n_sh, num_ej, filename, i);
 		printf("L_nu[%d] = %e\n", i, L_nu[i]);
 	}
 	printf("Spec calculation end.\n");
