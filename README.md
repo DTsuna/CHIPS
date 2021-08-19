@@ -59,4 +59,4 @@ We strongly advise to use an analytical CSM model (reference 3) that corrects th
 ## References:
 1. Kuriyama, Shigeyama (2020), A&A, 635, 127 (for mass eruption)
 2. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve)
-3. Tsuna, Takei, Kuriyama, Shigeyama (2021), arXiv: 2104.03694
+3. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
