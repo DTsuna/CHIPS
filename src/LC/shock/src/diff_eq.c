@@ -22,7 +22,6 @@ void diff_eq(double x, double y[], double dydx[])
 		dTdr[1] = func_dTdr(y, kappa, dTdr[0]);
 	}while(fabs(1.-dTdr[1]/dTdr[0]) > eps);
 
-//	dydx[2] = -3.0*kappa*y[1]/(4.0*(P_A)*(P_C)*y[2]*y[2]*y[2])*y[3];
 	dydx[2] = func_dTdr(y, kappa, dTdr[1]);
 	dydx[1] = (-(4.0/3.0*(P_A)*pow(y[2], 3.0)+y[1]*(P_K)/((MU)*(MH)))*dydx[2]+2.0*y[1]*y[0]*y[0]/x)/(P_K*y[2]/((MU)*(MH))-y[0]*y[0]);
 	dydx[0] = -2.0*y[0]/x-(y[0]/y[1])*dydx[1];

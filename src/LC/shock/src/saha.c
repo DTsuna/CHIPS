@@ -2,6 +2,8 @@
 #include "opacity.h"
 #include "constant.h"
 
+extern double X, Y;
+
 void saha(double rho, double U, double *mu, double *T)
 {
 	double GAMMA = 1.6666666666666666;
@@ -62,12 +64,8 @@ void get_num_density(double rho, double T,  double ndens[])
 		n_H = X*rho/MH;
 		n_He = Y/4.*rho/MH;
 		n_e = rho/(mu_tmp[0]*MH)-(X+Y/4.)*rho/MH;
-		//n_HII = pow(x, 1.5)*exp(-CHI_HI/(P_K*T))/(n_e+pow(x, 1.5)*exp(-CHI_HI/(P_K*T)))*n_H;
 		n_HII = x_to_3ov2 * Boltz_HI / (n_e + x_to_3ov2 * Boltz_HI) * n_H;
 		n_HI = n_H-n_HII;
-		//n_HeI = pow(1.+4./n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T))+4./(n_e*n_e)*pow(x, 3.)*exp(-(CHI_HeI+CHI_HeII)/(P_K*T)), -1.)*n_He;
-		//n_HeII = 4.*n_HeI/n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T));
-		//n_HeIII = n_HeII/n_e*pow(x, 1.5)*exp(-CHI_HeII/(P_K*T));
 		n_HeI = n_He / (1.+4./n_e*x_to_3ov2*Boltz_HeI+4./(n_e*n_e)*x_to_3ov2*x_to_3ov2*Boltz_HeI*Boltz_HeII);
 		n_HeII = 4.*n_HeI/n_e* x_to_3ov2 * Boltz_HeI;
 		n_HeIII = n_He - n_HeI - n_HeII;

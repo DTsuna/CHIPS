@@ -2,6 +2,9 @@
 #include "constant.h"
 
 #define SWITCH_OP_FREE_FREE 0
+#define WARN 0
+
+double X, Y;
 
 void set_opacity(const char *openfile, opacity *op)
 {
@@ -16,7 +19,7 @@ void set_opacity(const char *openfile, opacity *op)
 		exit(EXIT_FAILURE);
 	}
 	else{
-//		printf("Opacity file \"%s\" was set.\n", filename);
+		printf("Opacity file \"%s\" was set.\n", filename);
 	}
 	fgets(buf, 256, fp);
 	op->R[0] = atof(strtok(buf, " "));
@@ -67,8 +70,6 @@ double kappa_r(double rho, double T)
 	i = op.imax/2;
 	j = op.jmax/2;
 
-//	printf("r, R = %f, T = %f\n", log10(R), log10(T));
-
 	if(log10(T) < op.T[0]){
 		if(log10(R) < op.R[0]){
 			return pow(10., op.kappa[0]);
@@ -86,8 +87,10 @@ double kappa_r(double rho, double T)
 		i = dcht(log10(T), op.T, op.imax);
 		kappa = op.kappa[op.jmax*i+op.jmax-1]
 		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
-//		printf("WARN (rosseland): Too high density to extrapolate or interpolate opacity...\n");
-//		printf("density: %e log10(R): %f\n", rho, log10(R));
+#if WARN == 1
+		printf("WARN (rosseland): Too high density to extrapolate or interpolate opacity...\n");
+		printf("density: %e log10(R): %f\n", rho, log10(R));
+#endif
 		kappa = pow(10., kappa);
 		kappa *= R/pow(10., op.R[op.jmax-1]);
 		return kappa;
@@ -102,7 +105,7 @@ double kappa_r(double rho, double T)
 		sigma_at_R0 = sigma_sc(pow(10,op.R[0])*pow(T, 1.5),T);
 		kappa = pow(10., kappa)-sigma_at_R0; //absorption opacity at R=R0.
 		kappa = kappa*R*pow(10., -op.R[0]);
-		return kappa+sigma;
+		return fmax(kappa+sigma, sigma);
 	}
 	else{
 		i = dcht(log10(T), op.T, op.imax);
@@ -130,13 +133,14 @@ double sigma_sc(double rho, double T)
 
 	i = op.imax/2;
 	j = op.jmax/2;
-//	printf("s, R = %f, T = %f\n", log10(R), log10(T));
 	if(log10(T) < op.T[0]){
 		return 1.e-08;
 	}
 	else if(log10(R) > op.R[op.jmax-1]){
-//		printf("WARN (scattering): Too high density to extrapolate or interpolate opacity...\n");
-//		printf("density: %e\n", rho);
+#if WARN == 1
+		printf("WARN (scattering): Too high density to extrapolate or interpolate opacity...\n");
+		printf("density: %e\n", rho);
+#endif
 		i = dcht(log10(T), op.T, op.imax);
 		kappa = op.kappa[op.jmax*i+op.jmax-1]
 		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
@@ -177,7 +181,6 @@ double kappa_p(double rho, double T)
 	if(op.imax == 0){
 		set_opacity("./LCFiles/kappa_p.txt", &op);
 	}
-//	printf("p, R = %f, T = %f\n", log10(R), log10(T));
 
 #if SWITCH_OP_FREE_FREE == 0
 	if(log10(T) < op.T[0]){
@@ -198,8 +201,10 @@ double kappa_p(double rho, double T)
 		i = dcht(log10(T), op.T, op.imax);
 		kappa = op.kappa[op.jmax*i+op.jmax-1]
 		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
-//		printf("WARN (planck_mean): Too high density to extrapolate or interpolate opacity...\n");
-//		printf("density: %e log10(R): %f\n", rho, log10(R));
+#if WARN == 1
+		printf("WARN (planck_mean): Too high density to extrapolate or interpolate opacity...\n");
+		printf("density: %e log10(R): %f\n", rho, log10(R));
+#endif
 		kappa = kappa-2.*log10(T)+op.R[op.jmax-1];
 		kappa = pow(10., kappa);
 		kappa *= R/pow(10., op.R[op.jmax-1]);

@@ -97,6 +97,8 @@ void set_phys(double x, double dx, double y[], double phys[], double egn[], int 
 	phys[3] = x+dx;
 }
 
+
+/*Profile output routine.*/
 void solver_rev_outp(double x_ini, double int_phys[], double egn[], int *info, FILE *fp)
 {
 	double x = x_ini, y[N], yout[N];

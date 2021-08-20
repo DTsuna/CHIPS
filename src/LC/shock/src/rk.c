@@ -1,6 +1,7 @@
 #include "rk.h"
 #include <string.h>
 
+/*This subroutine solves an ordinary differential equation by the 4th order (Runge-Kutta method)*/
 void rk4(double y[], int m, double h, double x, double yout[], void(*dervs)(double, double[], double[]))
 {
 	double hh = 0.5*h, xh = x+hh, h6 = h/6.;

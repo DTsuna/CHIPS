@@ -4,10 +4,13 @@
 #include "function.h"
 #include "constant.h"
 #include "pars.h"
+#include "saha.h"
 
 char csm[256];
 extern pars pdt;
+extern double X, Y;
 
+/*Analytical solution of the thin shell model by Moriya et al. (2013)*/
 double r_early(double t)
 {
 	double A, B, C;
@@ -23,7 +26,6 @@ double r_early(double t)
 	s = -(log(rho_out)-log(rho_in))/(log(r_out)-log(r_in));
 	s = 1.5;
 	D = rho_out*pow(r_out, s);
-//	printf("%f %e\n", s, D);
 
 	A = pow(2.*(5.-delta)*(n-5.)*E_ej, (n-3.)/2.);
 	B = pow((3.-delta)*(n-3.)*M_ej, (n-5.)/2.);
@@ -53,6 +55,7 @@ double t_early(double r)
 	return pow(r/C, (n-s)/(n-3.));
 }
 
+/*Set CSM density profile output by the numerical simulation by Kuriyama & Shigeyama (2020)*/
 double rho_csm(double r)
 {
 	static double r_c[1000], rho_c[1000], s;
@@ -68,7 +71,6 @@ double rho_csm(double r)
 		fp = fopen(csm, "r");
 		fgets(filename, 512, fp);
 		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]) != EOF){
-//			rho_c[i]/=3.15e+07;
 			i++;
 		}
 		nsize = i;
@@ -105,34 +107,6 @@ double set_r_ini(const char *file_csm)
 	fclose(fp);
 	return dammy[2];
 }
-
-/*
-double set_r_diff(const char *file_csm)
-{
-	FILE *fp;
-	char filename[256];
-	double dammy[7];
-	double n, s, delta, M_ej, E_ej, kappa, q;
-	double A, g_to_n, rdiff;
-	fp = fopen(file_csm, "r");
-	fgets(filename, 512, fp);
-	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]);
-
-	n = pdt.n;
-	delta = pdt.delta;
-	M_ej = pdt.M_ej;
-	E_ej = pdt.E_ej;
-	kappa = 0.2 * (1.+dammy[5]);
-	A = interp_A(n);
-	s = 1.5;
-	q = dammy[4] * pow(dammy[2], s);
-	g_to_n = pow(2.0*(5.0-delta)*(n-5.0)*E_ej, (n-3.0)/2.0)/pow((3.0-delta)*(n-3.0)*M_ej, (n-5.0)/2.0)/((n-delta)*4.*M_PI);
-//	rdiff = pow(A * g_to_n * pow(q,n-4.), 2./n) * pow(2.*(n-3.)*kappa/3./(n-1.5)/P_C, 2.*(n-3.)/n);
-	rdiff = pow(A * g_to_n * pow(q,n-4.), 2./n) * pow(2.*(n-3.)*kappa/21./(n-1.5)/P_C, 2.*(n-3.)/n);
-	fclose(fp);
-	return rdiff;
-}
-*/
 
 double set_r_diff(const char *file_csm)
 {
@@ -242,9 +216,7 @@ double func_M_csm(double r, double t)
 		for(i = 0; i < 3; i++){
 			fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]);
 		}
-		s = (-(log10(rho_c[1])-log10(rho_c[0]))/(log10(r_c[1])-log10(r_c[0]))-(log10(rho_c[2])-log10(rho_c[1]))/(log10(r_c[2])-log10(r_c[1])))*0.5;
 		s = 1.5;
-//		printf("s = %f\n", s);
 		fclose(fp);
 		flag = 1;
 	}
@@ -340,4 +312,114 @@ void interp_int_e(double n, double *E_rev, double *E_for)
 
 	*E_rev = (array_E_rev[j+1]-array_E_rev[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_E_rev[j];
 	*E_for = (array_E_for[j+1]-array_E_for[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_E_for[j];
+}
+
+void set_abundance(void)
+{
+	double r_c[2], rho_c[2], s;
+	double dammy[5];
+	FILE *fp;
+	char filename[256];
+
+	fp = fopen(csm, "r");
+	fgets(filename, 512, fp);
+	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[0], &dammy[2], &rho_c[0], &dammy[3], &dammy[4]);
+	X = dammy[3];
+	Y = dammy[4];
+	gen_opacity_sc();
+	fclose(fp);
+}
+
+void gen_opacity_sc(void)
+{
+	FILE *fp, *fp1;
+	fp = fopen("./LCFiles/opacity_sc.txt", "w");
+	fp1 = fopen("./LCFiles/mean_ml_wght.txt", "w");
+	double R, T;
+	double op, mu;
+	double x;
+	int i = 0;
+
+	R = 1.0e-008;
+	T = pow(10., 3.20);
+	for(x = -12.00; i < 22; x += 0.5){
+		fprintf(fp, "%1.1f ", x);
+		fprintf(fp1, "%1.1f ", x);
+		i++;
+	}
+	fprintf(fp, "\n");
+	fprintf(fp1, "\n");
+
+	while(T < 1.0e+06){
+		i = 0;
+		fprintf(fp, "%1.2f", log10(T));
+		fprintf(fp1, "%1.2f", log10(T));
+		for(x = -12.0; i < 22; x += 0.5){
+			R = pow(10., x);
+			op = sigma_saha(R, T);
+			sigma_mu_saha(R, T, &op, &mu);
+			fprintf(fp, " %2.3f", log10(op));
+			fprintf(fp1, " %1.5f", mu);
+			i++;
+		}
+		fprintf(fp, "\n");
+		fprintf(fp1, "\n");
+		T *= pow(10.0, 0.050000);
+	}
+
+	fclose(fp);
+	fclose(fp1);
+}
+
+double sigma_saha(double R, double T)
+{
+	double rho = R*pow(T*1.e-06, 3.);
+	double mu_tmp[2] = {};
+	double x;
+	double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
+	mu_tmp[0] = 0.5;
+	mu_tmp[1] = 1.;
+	while(fabs(mu_tmp[1]-mu_tmp[0]) > 1.e-15){
+		mu_tmp[0] = mu_tmp[1];
+		x = 2.*M_PI*P_E*P_K*T/(P_H*P_H);
+		n_H = X*rho/MH;
+		n_He = Y/4.*rho/MH;
+		n_e = rho/(mu_tmp[0]*MH)-(X+Y/4.)*rho/MH;
+		n_HII = pow(x, 1.5)*exp(-CHI_HI/(P_K*T))/(n_e+pow(x, 1.5)*exp(-CHI_HI/(P_K*T)))*n_H;
+		n_HI = n_H-n_HII;
+		n_HeI = pow(1.+4./n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T))+4./(n_e*n_e)*pow(x, 3.)*exp(-(CHI_HeI+CHI_HeII)/(P_K*T)), -1.)*n_He;
+		n_HeII = 4.*n_HeI/n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T));
+		n_HeIII = n_HeII/n_e*pow(x, 1.5)*exp(-CHI_HeII/(P_K*T));
+		mu_tmp[1] = pow(X*(1.+n_HII/n_H)+Y/4.*(1.+n_HeII/n_He+2.*n_HeIII/n_He), -1.);
+		mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
+		mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
+	}
+	return n_e*SIGMA_TH/rho;
+}
+
+void sigma_mu_saha(double R, double T, double *sigma, double *mu)
+{
+	double rho = R*pow(T*1.e-06, 3.);
+	double mu_tmp[2] = {};
+	double x;
+	double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
+	mu_tmp[0] = 0.5;
+	mu_tmp[1] = 1.;
+	while(fabs(mu_tmp[1]-mu_tmp[0]) > 1.e-15){
+		mu_tmp[0] = mu_tmp[1];
+		x = 2.*M_PI*P_E*P_K*T/(P_H*P_H);
+		n_H = X*rho/MH;
+		n_He = Y/4.*rho/MH;
+		n_e = rho/(mu_tmp[0]*MH)-(X+Y/4.)*rho/MH;
+		n_HII = pow(x, 1.5)*exp(-CHI_HI/(P_K*T))/(n_e+pow(x, 1.5)*exp(-CHI_HI/(P_K*T)))*n_H;
+		n_HI = n_H-n_HII;
+		n_HeI = pow(1.+4./n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T))+4./(n_e*n_e)*pow(x, 3.)*exp(-(CHI_HeI+CHI_HeII)/(P_K*T)), -1.)*n_He;
+		n_HeII = 4.*n_HeI/n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T));
+		n_HeIII = n_HeII/n_e*pow(x, 1.5)*exp(-CHI_HeII/(P_K*T));
+		mu_tmp[1] = pow(X*(1.+n_HII/n_H)+Y/4.*(1.+n_HeII/n_He+2.*n_HeIII/n_He), -1.);
+		mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
+		mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
+	}
+	*sigma = n_e*SIGMA_TH/rho;
+	*mu = mu_tmp[1];
 }

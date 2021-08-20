@@ -13,5 +13,9 @@ double p_tot(double[]);
 double v_wind(double);
 double interp_A(double);
 void interp_int_e(double, double*, double*);
+void set_abundance(void);
+void gen_opacity_sc(void);
+double sigma_saha(double R, double T);
+void sigma_mu_saha(double R, double T, double *sigma, double *mu);
 
 #endif

@@ -22,17 +22,6 @@ void rad_transfer_csm(double, double, double, double, double, const char*, const
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 void read_shockprofiles(FILE*, double[], double[], double[], int*);
 
-//int main(void)
-//{
-//	double r_out = 9.9e+15;
-//	char *file_csm = "./inp-data/CSM_1.5.txt";
-//	char *file_inp = "./inp-data/CSM_1.5_profile.txt";
-//
-//
-//	rad_transfer_csm(r_out, file_csm, file_inp);
-//
-//	return 0;
-//}
 
 void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, 
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
@@ -105,6 +94,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
+	set_abundance();
 
 	if(FLNU == 1) {
 		sprintf(filename, "%s", file_outp_band);
@@ -254,38 +244,25 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		}
 
 #ifdef EADD
-		//if(t < tf[0]+t_diff){
-		//	F_ini += E_ini*u_ini+(E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff);
-		//}
-		//else{
-		//	F_ini += E_ini*u_ini;
-		//}
 		F_ini += E_ini*u_ini+(E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff) * exp(1.0 - t/t_diff);
-
 #endif
 
 
-/*
+/************************************************************************************************************
 In the following, integrate radiative transfer equation and energy eqation using operator splitting.
 i)   Integrate source term dE/dt = kappa*rho*(acT^4-E), dU/dt = -kappa*rho(acT^4-E), by implicit Euler method.
 ii)  Integrate energy equation implicitly.
 iii) Integrate 0th moment equation implicitly. Iteration is needed to complete the calculation.
-*/
+************************************************************************************************************/
 
 
-//		for(i = 0; i < n; i++){
-//			printf("E+2*%d = %p, U+2*%d = %p\n", i, E+2*i, i, U+2*i);
-//		}
-
-
-/*
+/************************************************************
 At first, intergrate source term using implicit Euler method.
-*/
+************************************************************/
 //#pragma omp parallel for shared(E, U), private(i)
 		for(i_threads = 0; i_threads < num_of_threads; i_threads++){
 			for(i = i_threads; i < n; i += num_of_threads){
 				itg_src(&E[2*i], &U[2*i], rho[i], dt, tol);
-//				printf("E+2*%d = %p, U+2*%d = %p\n", i, E+2*i, i, U+2*i);
 			}
 		}
 
@@ -356,7 +333,6 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			}
 	
 			err = sqrt(err/(double)n);
-//			printf("err = %e\n", err);
 		}while(err > tol);
 
 		if(flag == 1){
@@ -511,7 +487,6 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[]
 		E[2*i+1] = E[2*i];
 		rho[i] = rho_csm(r[i]+dr/2.);
 		v_w[i] = v_wind(r[i]);
-//		U[2*i] = 1.5*rho[0]*(P_K)*T/(0.62*(MH))*pow(rho[i]/rho[0], 5./3.);
 		U[2*i] = 1.5*rho[i]*(P_K)*T/(1.3*(MH));
 		U[2*i+1] = U[2*i];
 	}
@@ -530,7 +505,6 @@ void read_shockprofiles(FILE *f_sh, double r_sh[], double rho_sh[], double T_sh[
 	}
 	*n_sh = i-1;
 	for(j = 0; j < *n_sh+1; j++){
-//		printf("%.7e %.7e %.7e\n", r_sh[j], rho_sh[j], T_sh[j]);
 	}
 
 	for(j = 0; j < positive-1; j++){
@@ -541,14 +515,10 @@ void read_shockprofiles(FILE *f_sh, double r_sh[], double rho_sh[], double T_sh[
 		r_sh[j] = r_sh[j+1];
 		rho_sh[j] = rho_sh[j+1];
 		T_sh[j] = T_sh[j+1];
-//		printf("%.7e %.7e %.7e\n", r_sh[j], rho_sh[j], T_sh[j]);
 	}
 	for(j = positive-1; j < i-2; j++){
 		rho_sh[j] = (rho_sh[j]+rho_sh[j+1])/2.;
 		T_sh[j] = (T_sh[j]+T_sh[j+1])/2.;
-	}
-	for(j = 0; j < *n_sh; j++){
-//		printf("%.7e %.7e %.7e\n", r_sh[j], rho_sh[j], T_sh[j]);
 	}
 	*n_sh = *n_sh-1;
 }

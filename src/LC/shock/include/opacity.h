@@ -7,9 +7,6 @@
 #include <math.h>
 #include "dcht.h"
 
-#define X 0.737
-#define Y 0.249
-
 typedef struct{
 	double T[128];
 	double R[128];

@@ -58,6 +58,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 
 
 	strcpy(csm, file_csm);
+	set_abundance();
 
 	pdt = setpars(n, delta, E_ej, M_ej, 1.e+07, 1.e+10);	
 
@@ -87,7 +88,9 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 
 
 
-
+/*************************************************************
+Continue calculation when the temperature behind the forward shock drops to ~6,000 K or luminosity < 1e+40 erg/s.
+*************************************************************/
 		do{
 			dt = 0.001*t_exp;
 			if(t_exp+dt > t_fin){
@@ -134,7 +137,6 @@ double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double 
 	static double outp_egn[6];
 
 	t_exp = t_ini;
-//	strcpy(csm, file_csm);
 	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, 0.00);
 	init_egn(r_ini, egn);
 
@@ -177,7 +179,7 @@ double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double 
 
 
 /*
-array[0] = egn[0] = u_rs, array[1] = egn[1] = u_fs, array[2] = r_rs, array[3] = r_fs, array[4] = F_fs.
+array[0] = t_exp, array[1] = egn[0] = u_rs, array[2] = egn[1] = u_fs, array[3] = r_rs, array[4] = r_fs, array[5] = F_fs.
 These values are old, so before calculating the distribution, r_rs, r_fs must be updated, i.e.
 r_rs = r_rs + u_rs*dt, r_fs = r_fs + r_fs*dt.
 */
@@ -258,6 +260,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 		else{
 			break;
 		}
+/*Calculation failure (NaN output)*/
 		if(*info == 1){
 			break;
 		}
