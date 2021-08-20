@@ -30,7 +30,7 @@ def parse_command_line():
 	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally much heavier than obtaining just the bolometric light curve.")
 
 	options, filenames = parser.parse_args()
-	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
+	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.]
 	available_mesa_models = [(mass, 1.) for mass in available_masses]
 	if options.zams_m <= 0 or options.zams_z <= 0 or options.tinj <= 0 or options.finj <= 0:
 		raise ValueError("The input parameters must all be positive.")
