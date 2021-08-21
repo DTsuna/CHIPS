@@ -128,7 +128,6 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	slope = [r/p_in[i+1]*(p_in[i+1]-p_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
 	# narrow down by also requiring outside of this to have a density profile of index ~-1.5.
 	# get a "global density slope" since there exists local numerical fluctuations
-	# FIXME maybe better to just find from outside where the global_slope settles to 1.5, and fitting only outside this radius.
 	outward_global_slope = [r_in[i+10]/rho_in[i+20]*(rho_in[i+20]-rho_in[i+10])/(r_in[i+20]-r_in[i+10]) for i,r in enumerate(r_in) if i<len(r_in)-20]
 	istop = max([i for i in range(len(slope[:-21])) if slope[i]<-100 and outward_global_slope[i+1]>-4.0 and outward_global_slope[i+1]<-1.0])
 	# one cell forward to not include the jumped cell
@@ -225,19 +224,21 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 
 # extract peak luminosity and rise time, defined as the time from (frac*L_peak) to L_peak
 def extract_peak_and_rise_time(LC_file, frac):
-	if frac < 0.01:
-		return ValueError("Frac too small to give meaningful rise and decay times.")
 	time = np.loadtxt(LC_file)[:,0]
 	lum = np.loadtxt(LC_file)[:,1]
 	peaktime = time[np.argmax(lum)]
 	peakL = max(lum)
+	if frac <  lum[0] / peakL:
+		return ValueError("Parameter frac too small to obtain rise time.")
 	risetime = peaktime - time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]<peaktime])]
+	if frac < lum[-1] / peakL:
+		warnings.warn("Parameter frac too small to obtain the decay time accurately...")
 	decaytime = time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
 	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
 
 # calculate the lightcurve of mass eruption
 def get_mass_eruption_lightcurve(outputFile):
-        print('Calculate mass eruption lightcurve')
+        print('Calculate mass eruption lightcurve', file=sys.stderr)
         maxFileSize = 90
         time = np.zeros(maxFileSize)
         luminosity = np.zeros(maxFileSize)
@@ -254,18 +255,15 @@ def get_mass_eruption_lightcurve(outputFile):
                 X = temp[len(temp)-1,5]
                 Y = temp[len(temp)-1,6]
                 Z = 1 - X - Y
-        print('X='+str(X)+' Y='+str(Y)+' Z='+str(Z))
-        print('time(day) luminosity(erg/s) temperature(K)')
+        print('X='+str(X)+' Y='+str(Y)+' Z='+str(Z), file=sys.stderr)
+        print('time(day) luminosity(erg/s) temperature(K)', file=sys.stderr)
 
         for i in range(1,maxFileSize):
                 # Get the hydrodynamical result
                 fileName='EruptionFiles/result%s.txt' % str(i).zfill(2)
                 if os.path.exists(fileName) == False:
                         break
-                #print(str(fileName))
                 data = np.loadtxt(fileName, skiprows=2)
-                #print(str(data[0,:]))
-                #print(len(data))
 
                 # Get the time
                 f = open(fileName, 'r')
@@ -274,7 +272,6 @@ def get_mass_eruption_lightcurve(outputFile):
                 regex = re.compile('[+-]?(?:\d+\.?\d*|\.\d+)(?:(?:[eE][+-]?\d+)|(?:\*10\^[+-]?\d+))?')
                 match = regex.findall(data2)
                 time[i] = match[1]
-                #print('t='+str(time[i]))
 
                 # Calculate luminosity and effective temperautre
                 opacity = np.zeros(len(data))
@@ -299,7 +296,6 @@ def get_mass_eruption_lightcurve(outputFile):
                 temperature[i] = data[photosphere][8]
                 if photosphere == 0:
                         luminosity[i] = 0
-                print('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i]))
         with open(outputFile, mode = 'w') as f:
                 for i in range (1,len(time)):
                         f.write('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i])+'\n')
