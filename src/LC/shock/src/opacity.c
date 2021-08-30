@@ -19,7 +19,7 @@ void set_opacity(const char *openfile, opacity *op)
 		exit(EXIT_FAILURE);
 	}
 	else{
-		printf("Opacity file \"%s\" was set.\n", filename);
+//		printf("Opacity file \"%s\" was set.\n", filename);
 	}
 	fgets(buf, 256, fp);
 	op->R[0] = atof(strtok(buf, " "));

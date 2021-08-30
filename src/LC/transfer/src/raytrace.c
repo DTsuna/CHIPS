@@ -247,7 +247,7 @@ double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], 
 
 /***************************Read nu******************************/
 	opacity op0, op1;
-	fnu = fopen("input/TOPS_multigroup/opacity_table/frequency.txt", "r");
+	fnu = fopen("input/TOPS_multigroup/frequency.txt", "r");
 	while(fscanf(fnu, "%lf", &nu_opac[inu]) != EOF){
 		inu++;
 	}
