@@ -11,7 +11,7 @@ def fopen_op(filename):
 	return R, np.array(temp), kappa
 
 
-def gen_op_tbl_frq(Y, dir_name):
+def gen_op_frq(Y, dir_name):
 	array_Y = np.array([0.0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7])
 	array_Y_dir_name = ['Y{:1.1f}'.format(n) for n in array_Y]
 	size = len(array_Y)
