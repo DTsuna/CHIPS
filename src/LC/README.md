@@ -4,3 +4,4 @@ This directory contains source codes, mainly written in C, to calculate the bolo
 # Developers
 Yuki Takei (Lead), <takei___at___resceu.s.u-tokyo.ac.jp> \
 Daichi Tsuna
+Toshikazu Shigeyama
