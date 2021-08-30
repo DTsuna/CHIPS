@@ -257,9 +257,9 @@ double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], 
 			break;
 		}
 	}
-	sprintf(filename, "./input/TOPS_multigroup/opacity_table/opacity_%05d.txt", i);
+	sprintf(filename, "./LCFiles/opacity_frq/opacity_%05d.txt", i);
 	set_opacity(filename, &op0);
-	sprintf(filename, "./input/TOPS_multigroup/opacity_table/opacity_%05d.txt", i+1);
+	sprintf(filename, "./LCFiles/opacity_frq/opacity_%05d.txt", i+1);
 	set_opacity(filename, &op1);
 	for(k = 0; k < op0.jmax; k++){
 		for(l = 0; l < op0.imax; l++){

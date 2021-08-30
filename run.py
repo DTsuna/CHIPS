@@ -10,6 +10,7 @@ import sys
 from utils import convert
 from utils import utils
 from input.TOPS import gen_op_tbl 
+from input.TOPS_multigroup import gen_op_frq
 import lightcurve
 
 
@@ -156,6 +157,10 @@ opacity_file = 'LCFiles/opacity.txt'
 gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 opacity_file = 'LCFiles/kappa_p.txt'
 gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
+op_freq_dir = 'LCFiles/opacity_frq'
+subprocess.call(["rm", "-rf", op_freq_dir])
+subprocess.call(["mkdir", op_freq_dir])
+gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
 
 for Eexp in Eexps:
