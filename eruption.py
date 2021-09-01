@@ -91,18 +91,14 @@ print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 
 # convert data for hydro in KS20
 file_hydro = 'EruptionFiles/InitForHydro.txt'
-
 convert.convertForHydro(file_me, file_hydro, massCutPoint=options.eruption_innerMr)
-
 
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption.
 # However, the computation will be much slower.
-convert.setSnhydParam(hydroNumMesh, time_CSM, options.inject_duration, options.finj, continueTransfer=False)
-
+convert.setEruptionParam(time_CSM, options.inject_duration, options.finj, continueTransfer=False)
 
 # run eruptive mass-loss rad-hydro calculation
 subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
-
 
 # obtain light curve at mass eruption
 mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'

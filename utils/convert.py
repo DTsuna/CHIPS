@@ -51,7 +51,7 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 	# output file for hydro
 	path = outputFile
 	size = hydroNumMesh # number of mesh
-	if massCutByHand < 0.0:
+	if massCutPoint < 0.0:
 		massCut = h.he_core_mass + 0.2 # In solar mass unit
 	else:
 		print('massCut =' + str(massCut))
@@ -162,7 +162,7 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 	#	f.write('zone m_r(Msun) m_r(g)  dmass(g) radius(cm) density(g/cm^3) pressure(erg/cm^3) temperature(K) h1 he3 he4 c12 n14 o16 ne20 mg24 si28 s32 ar36 ca40 ti44 cr48 cr56 fe52 fe54 fe56 ni56\n')
 		for i in range(0, originalSize):
 			f.write(str(i + 1) + ' ' + str(originalMr[i]) + ' ' + str(originalMrCgs[i]) + ' ' + str(originalDmass[i]) + ' ' + str(originalRadius[i]) + ' ' + str(originalDensity[i]) + ' ' + str(originalPressure[i]) + ' ' + str(originalTemperature[i]))
-			for j in xrange(0,elemNum):
+			for j in range(0,elemNum):
 				f.write(' ' + str(originalX[j][i]))
 			f.write('\n')
 	##################################################################
@@ -319,7 +319,7 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 			f.write('\n')
 
 
-def setSnhydParam(hydroNumMesh, timeToCC, injectDuration, injectEnergyFraction, injectEnergy = -1.0, continueTransfer=False):
+def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMesh=10000, injectEnergy=-1.0, continueTransfer=False):
 	if injectEnergy < 0.0:
 		# use injectedEnergyFraction instead
 		flag = 1
