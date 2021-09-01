@@ -154,9 +154,9 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 		    missing_elem.append('ni56') if 'ni56' not in missing_elem else None
 
 	if len(missing_elem) > 0:
-		print('Warning: Attribute %s is not found and thus ignored...' % ', '.join(missing_elem)
+		print('Warning: Attribute %s is not found and thus ignored...' % ', '.join(missing_elem))
 
-	"""########################### debug part ###########################
+	########################### debug part ###########################
 	with open(path, mode = 'w') as f:
 	#	f.write('j =' + str(originalSize) + '\n')
 	#	f.write('zone m_r(Msun) m_r(g)  dmass(g) radius(cm) density(g/cm^3) pressure(erg/cm^3) temperature(K) h1 he3 he4 c12 n14 o16 ne20 mg24 si28 s32 ar36 ca40 ti44 cr48 cr56 fe52 fe54 fe56 ni56\n')
@@ -165,7 +165,7 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 			for j in xrange(0,elemNum):
 				f.write(' ' + str(originalX[j][i]))
 			f.write('\n')
-	"""##################################################################
+	##################################################################
 
 
 	# extract envelope and set lower limit on x
@@ -207,7 +207,7 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 	del originalX
 	gc.collect()
 
-	"""########################### debug part ###########################
+	########################### debug part ###########################
 	with open(path, mode = 'w') as f:
 	#	f.write('j =' + str(originalSize) + '\n')
 	#	f.write('zone m_r(Msun) m_r(g)  dmass(g) radius(cm) density(g/cm^3) pressure(erg/cm^3) temperature(K) h1 he3 he4 c12 n14 o16 ne20 mg24 si28 s32 ar36 ca40 ti44 cr48 cr56 fe52 fe54 fe56 ni56\n')
@@ -216,7 +216,7 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 			for j in range(0,elemNum):
 				f.write(' ' + str(cuttedX[j][i]))
 			f.write('\n')
-	"""##################################################################
+	##################################################################
 
 
 	# remesh profile for hydro
