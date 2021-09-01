@@ -1,5 +1,4 @@
 #include <math.h>
-#include <omp.h>
 #include "constant.h"
 #include "function.h"
 #include "opacity.h"
@@ -21,13 +20,11 @@ void matrix_E(double r[], double E[], double U[], double rho[], double dt, doubl
 	double Xfac[nsize];
 	int i;
 
-//#pragma omp parallel for
 	for(i = 0; i < nsize; i++){
 		saha(rho[i], U[2*i+1], mu+i, T_g+i);
 		rhom[i] = rho_csm(r[i]);
 	}
 
-//#pragma omp parallel for
 	for(i = 1; i < nsize; i++){
 		kappa[i] = kappa_r(rhom[i], (T_g[i-1]+T_g[i])/2.0);
 		drm[i] = (r[i+1]-r[i-1])/2.;

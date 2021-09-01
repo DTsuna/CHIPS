@@ -6,8 +6,12 @@
 #include "function.h"
 #include "pars.h"
 #include <stdio.h>
-#include <omp.h>
 #include <math.h>
+
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
+
 
 int imax(int a, int b)
 {

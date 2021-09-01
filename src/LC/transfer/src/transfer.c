@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <omp.h>
 #include <string.h>
 #include <stdlib.h>
 #include <time.h>
@@ -15,6 +14,10 @@
 #include "opacity.h"
 #include "saha.h"
 #include "pars.h"
+
+#ifdef _OPENMP
+	#include <omp.h>
+#endif
 
 extern char csm[256];
 
