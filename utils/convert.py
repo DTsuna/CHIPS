@@ -335,8 +335,3 @@ def setSnhydParam(hydroNumMesh, timeToCC, injectDuration, injectEnergyFraction, 
 	with open('src/eruption/hydro/eruptPara.d', mode = 'w') as f2:
 		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer\n')
 		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + '\n')
-
-
-
-
-

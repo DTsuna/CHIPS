@@ -90,6 +90,7 @@ else:
 	time_CSM = utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
 print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 
+
 #################################################################
 #                                                               #
 #               Eruptive mass loss model of KS20                #
@@ -97,20 +98,13 @@ print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 #################################################################
 
 
-
 # convert data for hydro in KS20
 file_hydro = 'EruptionFiles/InitForHydro.txt'
-
-subprocess.call(["rm", "src/eruption/f/inclmn.f"])
-subprocess.call(["rm", "src/eruption/f/eruptPara.d"])
-subprocess.call(["rm", "EruptionFiles/InitForHydro.txt"])
-
 convert.convertForHydro(file_me, file_hydro, options.eruption_innerMr)
 
 
 # energy injection timescale
 injectDuration = 1e3 # unit in second
-
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption.
 # However, the computation will be much slower.
 convert.setSnhydParam(hydroNumMesh, time_CSM, inject_duration, options.finj, continueTransfer=False)
