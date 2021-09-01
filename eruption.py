@@ -99,11 +99,9 @@ subprocess.call(["rm", "EruptionFiles/InitForHydro.txt"])
 convert.convertForHydro(file_me, file_hydro, massCutPoint=options.eruption_innerMr)
 
 
-# Stop radiative transfer calculation from well after mass eruption.
-# If true, radiative transfer scheme is activated even after the eruption.
-continueTransfer = False
-# FIXME remove extra argument of 0, True
-convert.setSnhydParam(hydroNumMesh, time_CSM, 0, options.inject_duration, True, options.finj, continueTransfer)
+# continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption.
+# However, the computation will be much slower.
+convert.setSnhydParam(hydroNumMesh, time_CSM, options.inject_duration, options.finj, continueTransfer=False)
 
 
 # run eruptive mass-loss rad-hydro calculation

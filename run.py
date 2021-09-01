@@ -83,7 +83,6 @@ else:
 	os.chdir("../")
 
 	# find data file at mass eruption and core collapse. 
-	# FIXME we set the mass eruption to 5 years before collapse
 	file_cc = mesa_dir+'/pre_ccsn.data'
 	file_me = utils.find_mass_eruption(glob.glob(mesa_dir+'/LOGS_to_si_burn/profile*.data'), file_cc, options.tinj)
 
@@ -112,11 +111,9 @@ convert.convertForHydro(file_me, file_hydro, options.eruption_innerMr)
 # energy injection timescale
 injectDuration = 1e3 # unit in second
 
-# Stop radiative transfer calculation from well after mass eruption.
-# If true, radiative transfer scheme is activated even after the eruption.
-continueTransfer = False
-# FIXME remove extra argument of 0, True
-convert.setSnhydParam(hydroNumMesh, time_CSM, 0, injectDuration, True, options.finj, continueTransfer)
+# continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption.
+# However, the computation will be much slower.
+convert.setSnhydParam(hydroNumMesh, time_CSM, inject_duration, options.finj, continueTransfer=False)
 
 
 # run eruptive mass-loss rad-hydro calculation

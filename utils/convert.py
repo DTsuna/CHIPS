@@ -319,8 +319,9 @@ def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, log
 			f.write('\n')
 
 
-def setSnhydParam(hydroNumMesh, timeToCC, injectedEnergy, injectDuration, ScaledByEnvelopeEnergy, injectedEnergyRate, continueTransfer):
-	if ScaledByEnvelopeEnergy == True:
+def setSnhydParam(hydroNumMesh, timeToCC, injectDuration, injectEnergyFraction, injectEnergy = -1.0, continueTransfer=False):
+	if injectEnergy < 0.0:
+		# use injectedEnergyFraction instead
 		flag = 1
 	else:
 		flag = 0
@@ -332,8 +333,8 @@ def setSnhydParam(hydroNumMesh, timeToCC, injectedEnergy, injectDuration, Scaled
 		f.write('      integer mn, nelem\n')
 		f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19 )\n')
 	with open('src/eruption/hydro/eruptPara.d', mode = 'w') as f2:
-		f2.write('TimeToCC InjectedEnergy InjectDuration ScaledByEnvelopeEnergy injectedEnergyRate\n')
-		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectedEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectedEnergyRate) + ' ' + str(flag2) + '\n')
+		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer\n')
+		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + '\n')
 
 
 
