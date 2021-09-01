@@ -36,8 +36,8 @@ static PyObject* lightcurve_transfer(PyObject* self, PyObject* args, PyObject* k
 
 // definition of all methods of this module
 static PyMethodDef lightcurve_methods[] = {
-	{"shock", lightcurve_shock, METH_VARARGS | METH_KEYWORDS},
-	{"transfer", lightcurve_transfer, METH_VARARGS | METH_KEYWORDS},
+	{"shock", (PyCFunction) lightcurve_shock, METH_VARARGS | METH_KEYWORDS},
+	{"transfer", (PyCFunction) lightcurve_transfer, METH_VARARGS | METH_KEYWORDS},
 	{NULL, NULL}
 };
 
