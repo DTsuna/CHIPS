@@ -40,6 +40,9 @@ def parse_command_line():
 	if options.skip_mesa and (options.zams_m,options.zams_z) not in available_mesa_models:
 		print("(M, Z) = (%.1f Msun, %.1f Zsun) not available. Running mesa calculation instead..." % (options.zams_m,options.zams_z))
 		options.skip_mesa = False
+	# set default value if explosion energy is empty
+	if not options.Eexp:
+		options.Eexp = [1e51, 3e51, 1e52]
 
 	return options, filenames
 
@@ -139,7 +142,6 @@ Y_He, r_edge = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_me, analyti
 
 # extract the ejecta parameters
 Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, r_edge)
-Eexps = [1e51, 3e51, 1e52]
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'
@@ -152,8 +154,11 @@ subprocess.call(["mkdir", op_freq_dir])
 gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
 
-for Eexp in Eexps:
+for Eexp in options.Eexp:
 	# luminosity at shock
+	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eexp)
+	subprocess.call(["rm", "-r", dir_name_shockprofiles])
+	subprocess.call(["mkdir", dir_name_shockprofiles])
 	shock_file = 'LCFiles/shock_output_'+str(Eexp)+'erg.txt'
 	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
 

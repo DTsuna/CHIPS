@@ -20,6 +20,7 @@ def parse_command_line():
 	)
 	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
+	parser.add_option("--Eexp", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
 	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
 	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Set how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind'.")
@@ -32,6 +33,9 @@ def parse_command_line():
 		raise ValueError('stellar model not available')
 	if options.profile_at_cc == None:
 		raise ValueError('the density profile at core-collapse (EruptionFiles/intermediate??.txt) is a required argument')
+	# set default value if explosion energy is empty
+	if not options.Eexp:
+		options.Eexp = [1e51, 3e51, 1e52]
 
 	return options, filenames
 
@@ -55,7 +59,6 @@ Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me,
 
 # extract the ejecta parameters
 Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file, r_edge)
-Eexps = [1e51, 3e51, 1e52]
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'
@@ -67,7 +70,7 @@ subprocess.call(["rm", "-rf", op_freq_dir])
 subprocess.call(["mkdir", op_freq_dir])
 gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
-for Eexp in Eexps:
+for Eexp in options.Eexp:
 	# luminosity at shock
 	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eexp)
 	subprocess.call(["rm", "-r", dir_name_shockprofiles])
