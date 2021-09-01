@@ -1,8 +1,8 @@
 FC	:=	gfortran
 FFLAGS	:=	-fno-automatic -fno-range-check
-PROG	:=	../../eruption
+PROG	:=	eruption
 
-TARGETS	:=	hydro eos	
+TARGETS	:=	src/eruption/hydro src/eruption/eos	
 
 CPPS	=	$(shell find $(TARGETS) -name '*.o')
 
@@ -20,6 +20,8 @@ $(PROG):
 		make; \
 	)\
 	done
+	cd src/LC; \
+	python3 lcsetup.py install --user
 
 clean:
 	rm -f $(PROG) $(OBJS)
