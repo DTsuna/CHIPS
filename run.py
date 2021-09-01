@@ -24,6 +24,8 @@ def parse_command_line():
 	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
 	parser.add_option("--tinj", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years.")
 	parser.add_option("--finj", metavar = "float", type = "float", default=0.3, help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (default: 0.3).")
+	parser.add_option("--Eexp", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
+	parser.add_option("--eruption-innerMr", metavar = "float", type = "float", default=-1.0, help = "The innermost mass coordinate where the energy is injected. If a negative value is given, it sets by default to just outside the helium core.")
 	parser.add_option("--inlist-file", metavar = "filename", help = "Inlist file with the ZAMS mass and metallicity information.")
 	parser.add_option("--skip-mesa", action = "store_true", help = "Use stellar models pre-computed for input to the mass eruption code.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
@@ -96,35 +98,22 @@ print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 
 # convert data for hydro in KS20
 file_hydro = 'EruptionFiles/InitForHydro.txt'
-hydroNumMesh = 10000
-logscaleRemesh = False
-
-massCutByHand = False # If true, massCutPoint is used. If false, helium core is cutted automatically.
-massCutPoint = 1.3 # unit in Msun
 
 subprocess.call(["rm", "src/eruption/f/inclmn.f"])
 subprocess.call(["rm", "src/eruption/f/eruptPara.d"])
 subprocess.call(["rm", "EruptionFiles/InitForHydro.txt"])
 
-convert.convertForHydro(file_me, file_hydro, hydroNumMesh, massCutByHand, massCutPoint, logscaleRemesh)
+convert.convertForHydro(file_me, file_hydro, options.eruption_innerMr)
 
 
-# decide energy injection timescale and luminosity
+# energy injection timescale
 injectDuration = 1e3 # unit in second
-injectedEnergyRate = options.finj # around 0.3 is recommended
 
 # Stop radiative transfer calculation from well after mass eruption.
 # If true, radiative transfer scheme is activated even after the eruption.
 continueTransfer = False
 # FIXME remove extra argument of 0, True
-convert.setSnhydParam(hydroNumMesh, time_CSM, 0, injectDuration, True, injectedEnergyRate, continueTransfer)
-
-
-# compile eruptive mass-loss rad-hydro calculation (It will be modified to use gfortran later. (Comment by Kuriyama))
-os.chdir("src/eruption")
-subprocess.call(["make", "clean"])
-subprocess.call("make")
-os.chdir("../../")
+convert.setSnhydParam(hydroNumMesh, time_CSM, 0, injectDuration, True, options.finj, continueTransfer)
 
 
 # run eruptive mass-loss rad-hydro calculation

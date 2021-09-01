@@ -39,7 +39,7 @@ def getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms):
                 sys.exit(1)
         return CommonR
 
-def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutPoint, logscaleRemesh):
+def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, logscaleRemesh=False):
 
         #################################################################
         ##################### Input Parameters ##########################
@@ -51,12 +51,12 @@ def convertForHydro(inputFile, outputFile, hydroNumMesh, massCutByHand, massCutP
         # output file for hydro
         path = outputFile
         size = hydroNumMesh # number of mesh
-        if massCutByHand == False:
+        if massCutByHand < 0.0:
                 massCut = h.he_core_mass + 0.2 # In solar mass unit
-        if massCutByHand == True:
+	else:
+                print('massCut =' + str(massCut))
                 massCut = massCutPoint
 
-        print('massCut =' + str(massCut))
         if logscaleRemesh == True:
                 print('use logscale remesh')
         if logscaleRemesh == False:

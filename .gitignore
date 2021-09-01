@@ -5,4 +5,5 @@ src/eruption/f/eruptPara.d
 src/eruption/f/inclmn.f
 EruptionFiles/
 LCFiles/
+eruption
 example_make_pre_ccsn/
