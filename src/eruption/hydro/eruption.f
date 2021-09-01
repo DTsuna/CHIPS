@@ -1,4 +1,4 @@
-      program snhyd
+      program eruption
 cexpl   one dimensional lagrangian hydrodynamic scheme.
 c---  initial data is required.
 
@@ -8,8 +8,8 @@ c---  initial data is required.
       common/nickel/ni
       common / neutrn / tmns
       real*8 msol, kh, eje, AU
-      character*20 hyd, lightc
       character*128 filename 
+      character*20 hyd
       parameter ( msol = 1.989e33, kh = 8.3147515e7, AU=1.495978707e13 )
       real*8 dmass(mn), encm(mn), encmg(mn), tp(100)
       real*8 taum(mn), pm(mn), um(mn), arm(mn), gm(mn), g1m(mn)
@@ -71,9 +71,6 @@ c---  initial data is required.
          am(k) = 4.d0*k
  5       continue
       alpha = 0.d0
-      open(17,file='EruptionFiles/start.time',status='unknown')
-      write(17,*)'just starting'
-      close(17)
       open(18,file='src/eruption/hydro/para1.d',status='old')
       read(18,*)
       read(18,*)istart,ihydm, jw, iout, idev
@@ -83,7 +80,6 @@ c---  initial data is required.
       read(18,*)ntp,(tp(k),k=1,ntp)
       read(18,*)
       read(18,*)hyd
-      read(18,*)lightc
       write(*,*)' iout = ',iout
       close(18)
 
@@ -169,13 +165,6 @@ c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
       call riemnt( n,ihyd,gl,gr,g1l,g1r,psl,psr,taup,taum,usl,
      *     usr,pn)
-      open (11,file='EruptionFiles/hyd.d',
-     $               status='unknown',form='formatted')
-      WRITe(11,'(''total energy ='',1pe12.4,''erg, total mass =''
-     $     ,e12.4,'' Msun'')')te, encm(n)/1.989e33
-      close(11)
-      open (12,file='EruptionFiles/lightc.d',
-     $               status='unknown',form='formatted')
       dt = 0.d0
       kp = 1
       do 9 kpp = 1, ntp
@@ -340,7 +329,7 @@ c      call grow(n, finish, dt, time, encmg)
         end do
         close(98)
         finish = .true.
-        go to 99
+        stop
       end if
 
       if(ihyd.ge.0)then
@@ -374,17 +363,9 @@ c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 
       kp1 = max(kp-1,1)
       if(time.eq.tp(kp1)) then
-         open (11,file='EruptionFiles/hyd.d',
-     $           access='append',form='formatted')
-!         call output(n, alpha, ihyd, time, dt)
-         close(11)
       end if
 !      if(u(n).gt.2.d9.and.iarrv.eq.0)then
       if(u(n).gt.1.d9.and.iarrv.eq.0)then
-         open (11,file='EruptionFiles/hyd.d',
-     $        access='append',form='formatted')
-!         call output(n, alpha, ihyd, time, dt)
-         close(11)
          iarrv = 1
          print *,"shock breaks out at t=",time
       end if
@@ -409,11 +390,6 @@ c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
 c$$$ 10   continue 
       finish = .true.
       call output(n, alpha, ihyd, time, dt)
- 99   close(12)
-      close(11)
       write(*,*)"at 99"
-      open(19,file='EruptionFiles/finish.time',status='unknown')
-      write(19,*)'just finished'
-      close(19)
       stop' normal end.'
       end

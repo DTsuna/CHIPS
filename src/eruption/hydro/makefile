@@ -6,6 +6,7 @@ FFLAGS	:=	-fno-automatic -fno-range-check
 OBJDIR	:=	obj
 
 
+NOMAKE	:=	nomake%
 CPPS	:=	$(shell find * -name '*.f')
 SRCS	:=	$(filter-out $(NOMAKE), $(CPPS))
 DIRS	:=	$(dir $(SRCS))
