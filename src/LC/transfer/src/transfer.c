@@ -173,7 +173,7 @@ Here, dr = r[N]-r[N-1] must be fixed.
 for i = 0, 1, ..., n-1, 
 X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 */
-	while(t < tf[2*fsize-1]){
+	while(t < tf[2*fsize-1] + r_out/P_C){
 
 /*
 dt does not necesarrily satisfy CFL condition.
@@ -244,7 +244,7 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		}
 
 #ifdef EADD
-		F_ini += E_ini*u_ini+(E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff) * exp(1.0 - t/t_diff);
+		F_ini += E_ini*u_ini+(E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff) * exp(-t/t_diff - 0.5*t*t/t_diff/t_diff) * sqrt(2./M_E/M_PI) / (1.-erf(1./sqrt(2.)));
 #endif
 
 
