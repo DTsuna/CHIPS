@@ -29,7 +29,7 @@ def parse_command_line():
 	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.]
 	available_mesa_models = [(mass, 1.) for mass in available_masses]
 	if options.zams_m <= 0 or options.zams_z <= 0 or options.tinj <= 0 or options.finj <= 0:
-		raise ValueError("The input parameters must all be positive.")
+		raise ValueError("The input parameters zams_m, zams_z, tinj, finj must all be positive.")
 	if options.skip_mesa and (options.zams_m,options.zams_z) not in available_mesa_models:
 		print("(M, Z) = (%.1f Msun, %.1f Zsun) not available. Running mesa calculation instead..." % (options.zams_m,options.zams_z))
 		options.skip_mesa = False
@@ -39,11 +39,8 @@ def parse_command_line():
 # get command line arguments
 options, filenames = parse_command_line()
 
-
 if options.skip_mesa:
 	file_cc = 'input/mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
-	file_me = file_cc 
-	time_CSM = options.tinj
 else:
 	#################################################################
 	#								#
@@ -52,16 +49,30 @@ else:
 	#################################################################
 
 	# edit the file with the given input zams mass and metallicity
-	# FIXME this doesn't work for inlist file without these parameters set.
+	# NOTE the inlist file needs to already contain "initial_mass", "initial_z" and "Zbase", and "filename_for_profile_when_terminate".
 	for line in fileinput.input(options.inlist_file, inplace=1):
+		initial_mass_flag = 0
+		initial_z_flag = 0
+		Zbase_flag = 0
+		ccfile_flag = 0
 		if 'initial_mass' in line:
+			initial_mass_flag = 1
 			print("      initial_mass = %f" % float(options.zams_m))
 		elif 'initial_z' in line:
+			initial_z_flag = 1
 			print("      initial_z = %f" % (0.014*float(options.zams_z)))
 		elif 'Zbase' in line:
+			Zbase_flag = 1
 			print("      Zbase = %f" % (0.014*float(options.zams_z)))
+		elif 'filename_for_profile_when_terminate' in line:
+			ccfile_flag = 1
+			# extract filename for pre-ccSN model
+			preSN_filename = line.split()[-1].split('=')[-1].strip('\'') 
+			print(line.rstrip())
 		else:
 			print(line.rstrip())
+	
+	assert (initial_mass_flag, initial_z_flag, Zbase_flag, ccfile_flag) == (1, 1, 1, 1), "arguments (initial_mass, initial_z, Zbase, filename_for_profile_when_terminate) all have to be included in the inlist file" 
 
 	# compile mesa script
 	mesa_dir = os.path.dirname(options.inlist_file)
@@ -72,14 +83,8 @@ else:
 	subprocess.call("./rn")
 	os.chdir("../")
 
-	# find data file at mass eruption and core collapse. 
-	# FIXME we set the mass eruption to 5 years before collapse
-	file_cc = mesa_dir+'/pre_ccsn.data'
-	file_me = utils.find_mass_eruption(glob.glob(mesa_dir+'/LOGS_to_si_burn/profile*.data'), file_cc, options.tinj)
-
-	# obtain the time from end of rad-hydro calculation to core-collapse (in years)
-	time_CSM = utils.get_mass_eruption_to_core_collapse(file_me, file_cc)
-print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
+	# find data file at mass eruption, assumed to be same as core collapse. 
+	file_cc = mesa_dir + '/' + preSN_filename
 
 
 #################################################################
@@ -91,11 +96,11 @@ print("from mass eruption to core collapse: %e yrs" % time_CSM, file=sys.stderr)
 
 # convert data for hydro in KS20
 file_hydro = 'EruptionFiles/InitForHydro.txt'
-convert.convertForHydro(file_me, file_hydro, massCutPoint=options.eruption_innerMr)
+convert.convertForHydro(file_cc, file_hydro, massCutPoint=options.eruption_innerMr)
 
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption.
 # However, the computation will be much slower.
-convert.setEruptionParam(time_CSM, options.inject_duration, options.finj, continueTransfer=False)
+convert.setEruptionParam(options.tinj, options.inject_duration, options.finj, continueTransfer=False)
 
 # run eruptive mass-loss rad-hydro calculation
 subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
