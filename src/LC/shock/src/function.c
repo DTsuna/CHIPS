@@ -69,7 +69,7 @@ double rho_csm(double r)
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
-		fgets(filename, 512, fp);
+		fgets(filename, sizeof(filename), fp);
 		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]) != EOF){
 			i++;
 		}
@@ -211,7 +211,7 @@ double func_M_csm(double r, double t)
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
-		fgets(filename, 256, fp);
+		fgets(filename, sizeof(filename), fp);
 		printf("%s\n", filename);
 		for(i = 0; i < 3; i++){
 			fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]);
@@ -247,7 +247,7 @@ double v_wind(double r)
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
-		fgets(filename, 512, fp);
+		fgets(filename, sizeof(double), fp);
 		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &v_c[i], &dammy[2], &dammy[3], &dammy[4]) != EOF){
 			i++;
 		}
@@ -322,7 +322,7 @@ void set_abundance(void)
 	char filename[256];
 
 	fp = fopen(csm, "r");
-	fgets(filename, 512, fp);
+	fgets(filename, sizeof(filename), fp);
 	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[0], &dammy[2], &rho_c[0], &dammy[3], &dammy[4]);
 	X = dammy[3];
 	Y = dammy[4];
