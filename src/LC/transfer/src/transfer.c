@@ -29,9 +29,9 @@ void read_shockprofiles(FILE*, double[], double[], double[], int*);
 void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, 
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
-	FILE *fp, *fl, *fw, *fnu_time, *fsh;
+	FILE *fp, *fl, *fnu_time, *fsh;
 	double F_max = 0., F_out = 0.;
-	double r_eff, T_eff, r_eff_interp, T_color;
+	double r_eff, r_eff_interp, T_color;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double T_g[NSIZE], mu[NSIZE], F[NSIZE];
 	double kappa_s, kappa_a;
@@ -40,9 +40,8 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double err = 0., tol = 1.e-06;
 	double rho_ed[2];
 	double tf[20000], rf[20000], Ff[20000], Ef[20000], uf[20000];
-	int i = 0, ii = 0, j = 0, k, l, n = NSIZE, fsize, flag = 0;
+	int i = 0, ii = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
-	int count = 0;
 	int c = 0, cmax = 100;
 	int L_outp_flag = 0, count_nu = 0;
 	int FLNU;
@@ -51,7 +50,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double CFL = 1.0000000000000000;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
-	char filename[1024], profiles[1024];
+	char filename[1024];
 	double g, A, q;
 	double gam = 4./3.;
 	double E_rev, E_for;
@@ -60,9 +59,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	double F_mean;
 	double r_sh[2000], T_sh[2000], rho_sh[2000];
 	double abmag[5];
-	char *cat_str = "mag_";
 	int n_sh;
-	int interval = 50;
 	int outp_date_int = 0, outp_date_min;
 	pars pdt;
 

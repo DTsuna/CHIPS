@@ -114,7 +114,7 @@ double set_r_diff(const char *file_csm)
 	char filename[256];
 	double dammy[7];
 	double n, s, delta, M_ej, E_ej, kappa, q;
-	double A, g_to_n, rdiff;
+	double A, g_to_n;
 	double v_sh;
 	double *rho, *r, *dr, *tau, tau_tot = 0.;
 	int i = 0, j;
@@ -236,7 +236,7 @@ double p_tot(double y[])
 
 double v_wind(double r)
 {
-	static double r_c[1000], v_c[1000], s;
+	static double r_c[1000], v_c[1000];
 	static int flag = 0, nsize;
 
 	int i = 0;
@@ -316,7 +316,7 @@ void interp_int_e(double n, double *E_rev, double *E_for)
 
 void set_abundance(void)
 {
-	double r_c[2], rho_c[2], s;
+	double r_c[2], rho_c[2];
 	double dammy[5];
 	FILE *fp;
 	char filename[256];

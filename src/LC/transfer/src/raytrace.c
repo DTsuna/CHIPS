@@ -65,7 +65,7 @@ double beta_nu(double nu, double rho, double T)
 double alpha_nu(double nu, double rho, double T, opacity op)
 {
 	int i, j;
-	double a, b, c, d;
+	double a, b, c;
 	double kappa;
 	double R = rho/sqrt(T)/T;
 
@@ -133,15 +133,13 @@ double Planck_func(double nu, double T)
 double integ_ray_tracing(double b, double nu, double *tau_nu, double F_ini, double r[], double rho[], double T[], 
 		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, opacity op)
 {
-	FILE *fnu;
-	int i, j, jmin, jmin_sh, jmin_ej, inu = 0;
-	int jminmax, jminmax_sh, jminmax_ej;
-	int k = 0, l, kmax;
+	int j, jmin;
+	int jminmax;
+	int k = 0, kmax;
 	double B_nu;
 	double fac;
 	double ds, tau = 0., dtau, tau_fin;
 	double sum = 0.;
-	double I = 0.;
 	double T_s;
 	double opacity[8192], ds_array[8192], Planck[8192];
 	
@@ -240,7 +238,7 @@ double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], 
 		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, char *filenamenu, int nnu)
 {
 	int i, inu = 0, k, l;
-	double b[NB] = {0.}, db = r_out/(double)((NB)-1);
+	double b[NB] = {0.};
 	double I[NB], sum = 0.;
 	double tau_nu[NB];
 	double fac;
@@ -314,7 +312,7 @@ void calc_lum(double t, double r_init, double r_out, double F_ini, double r[], d
 	double lam[NNU];
 	double Trans[NNU];
 	double frac;
-	double lam_band[100], trans_band[100], Lnu_band[100];
+	double lam_band[100], trans_band[100];
 	double dummy[3];
 	double sum1, sum2;
 	double A, B;
