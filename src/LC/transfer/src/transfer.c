@@ -434,8 +434,9 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
 				sprintf(filename, "%s/Lnu%08d", dir_shockprofiles, outp_date_int-outp_date_min);
 				calc_lum(t, r[0], r_out, F_ini, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag, pdt);
-				fprintf(fnu_time, "%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
-				printf("%e %e %e %e %e %e\n", tf[j+1]/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
+				// add light-travel time between shock and outer edge, since the ray tracing assumes speed of light is infinite
+				fprintf(fnu_time, "%e %e %e %e %e %e\n", (tf[j+1]+(r_out-r_ini)/P_C)/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
+				printf("%e %e %e %e %e %e\n", (tf[j+1]+(r_out-r_ini)/P_C)/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				outp_date_int++;
 				fclose(fsh);
 				printf("/*********************************************************/\n");
