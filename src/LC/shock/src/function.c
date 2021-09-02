@@ -247,7 +247,7 @@ double v_wind(double r)
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
-		fgets(filename, sizeof(double), fp);
+		fgets(filename, sizeof(filename), fp);
 		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &v_c[i], &dammy[2], &dammy[3], &dammy[4]) != EOF){
 			i++;
 		}
