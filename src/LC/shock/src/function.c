@@ -101,7 +101,7 @@ double set_r_ini(const char *file_csm)
 	char filename[256];
 	double dammy[7];
 	fp = fopen(file_csm, "r");
-	fgets(filename, 512, fp);
+	fgets(filename, sizeof(filename), fp);
 	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]);
 
 	fclose(fp);
@@ -125,7 +125,7 @@ double set_r_diff(const char *file_csm)
 	dr = (double*)calloc(20000, sizeof(double));
 
 	fp = fopen(file_csm, "r");
-	fgets(filename, 512, fp);
+	fgets(filename, sizeof(filename), fp);
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r[i], &dammy[3], &rho[i], &dammy[5], &dammy[6]) != EOF){
 		if(i != 0){
 			kappa = 0.2 * (1.+dammy[5]);
