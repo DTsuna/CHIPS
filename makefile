@@ -21,7 +21,7 @@ $(PROG):
 	)\
 	done
 	cd src/LC; \
-	python3 lcsetup.py install --user
+	python3 lcsetup.py install
 
 clean:
 	rm -f $(PROG) $(OBJS)
