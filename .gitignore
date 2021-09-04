@@ -1,8 +1,8 @@
 build/
 src/eruption/hydro/obj/
 src/eruption/eos/obj/
-src/eruption/f/eruptPara.d
-src/eruption/f/inclmn.f
+src/eruption/hydro/eruptPara.d
+src/eruption/hydro/inclmn.f
 EruptionFiles/
 LCFiles/
 eruption
