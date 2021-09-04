@@ -1,9 +1,8 @@
 build/
-src/eruption/f/obj/
-src/eruption/f90/obj/
+src/eruption/hydro/obj/
+src/eruption/eos/obj/
 src/eruption/f/eruptPara.d
 src/eruption/f/inclmn.f
 EruptionFiles/
 LCFiles/
 eruption
-example_make_pre_ccsn/
