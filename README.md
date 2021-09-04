@@ -36,6 +36,13 @@ For the argument --stellar-model, one can read in their MESA stellar model gener
 
 Our sample models cover stars of solar metallicity with ZAMS mass range 13-26 Msun, with 1 Msun interval up to 20 Msun and 2 Msun interval from 20 to 26 Msun. The pre-SN models are in a zip file in the directory input/mesa_models/. Once you un-zip this file, you will find MESA data files with the naming showing the mass and metallicity at ZAMS.
 
+Although this is not the recommended way, one can also do the MESA calculation inside run.py with additional arguments --run-mesa and --mesa-path
+
+
+	python run.py --tinj 5 --finj 0.3 --Eexp 1e51 --stellar-model /output/MESA/model --run-mesa --mesa-path /path/to/execution/directory --analytical-CSM 
+
+The argument --stellar-model should be the output file from this MESA calculation that one would like to be using as input for CHIPS. The argument --mesa-path should specify the relative path to where the calling scripts (mk, rn) for the MESA calculation is.
+
 We strongly advise to use an analytical CSM model (reference 3) that corrects the artifical shock-compressions that arise from the adiabatic mass eruption code. This can be done with the argument --analytical-CSM.
 
 
