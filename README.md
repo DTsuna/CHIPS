@@ -1,10 +1,10 @@
 # Complete History of Interaction-Powered Supernovae (CHIPS)
 
-CHIPS is a tool for obtaining the whole history of the progenitors of
+CHIPS is a tool for simulating the circumstellar matter and light curves of
 interaction-powered transients. Coupling the MESA stellar evolution
-code and several codes implemented by the authors, the user can obtain the
+code and codes implemented by the authors, the user can obtain the
 circumstellar matter profile and light curves of the interaction-powered
-supernovae, for a selected mass and metallicity of the progenitor star.
+supernovae.
 
 ## What can CHIPS do?
 
