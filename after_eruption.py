@@ -54,22 +54,25 @@ file_me = file_cc
 
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
+# remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
-Y_He, r_edge = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM, steady_wind = options.steady_wind)
+Y_He = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM, steady_wind = options.steady_wind)
 
 # extract the ejecta parameters
-Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file, r_edge)
+Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file)
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'
 gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 opacity_file = 'LCFiles/kappa_p.txt'
 gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
-op_freq_dir = 'LCFiles/opacity_frq'
-subprocess.call(["rm", "-rf", op_freq_dir])
-subprocess.call(["mkdir", op_freq_dir])
-gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
+# if multi-band is called, generate frequency-dependent opacity table as well
+if options.calc_multiband:
+	op_freq_dir = 'LCFiles/opacity_frq'
+	subprocess.call(["mkdir", "-p", op_freq_dir])
+	gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
+# calculate light curve
 for Eexp in options.Eexp:
 	# luminosity at shock
 	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eexp)

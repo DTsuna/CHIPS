@@ -105,12 +105,13 @@ utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
 
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
+# remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
 profile_at_cc = 'EruptionFiles/atCCSN.txt'
-Y_He, r_edge = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
+Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
 
 # extract the ejecta parameters
-Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, r_edge)
+Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'

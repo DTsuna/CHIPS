@@ -28,9 +28,10 @@ RSUN = 6.96e+10
 G = 6.6743e-8
 
 # for CSM density profile fitting
-nmax = 12.
 def CSMprof_func(r, r_break, rho_break, yrho):
+	nmax = 12.
 	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nmax/yrho) ) /2. )**(-yrho) )
+
 
 # find mesa model when mass eruption occurs
 def find_mass_eruption(data_files, data_file_at_core_collapse, time_till_collapse):
@@ -52,27 +53,32 @@ def get_mass_eruption_to_core_collapse(data_file_at_mass_eruption, data_file_at_
 def remnant_from_CO(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
 		Mrem = 0.03357 * CO_core_mass + 1.31780
-	else:
+	elif (CO_core_mass > 6.357 and CO_core_mass < 7.311):
 		Mrem = 10.**(-0.02466*CO_core_mass+1.28070)
+	else:
+		Mrem = 10.**(0.01940*CO_core_mass+0.98462)
 	return Mrem
 
 
 # extractor of envelope profile from the script 
 def cc_param_extractor(data_file):
 	data = mr.MesaData(data_file)
+	r_star = data.photosphere_r * RSUN
 	total_mass = data.star_mass
 	CO_core_mass = data.c_core_mass
-	return total_mass, CO_core_mass
+	return r_star, total_mass, CO_core_mass
 
 
 # ejecta calculation script
-# r_edge is the edge of the ejecta, i.e. start of the CSM
-def calculate_ejecta(data_file, file_at_cc, file_CSM, r_edge):
+def calculate_ejecta(data_file, file_at_cc, file_CSM):
+	# extract total mass and CO core mass of the progenitor
+	r_star, total_mass, CO_core_mass = cc_param_extractor(data_file)
+	# extract density and pressure profile inside the star
 	renv = np.loadtxt(file_at_cc, skiprows=1)[:,2]
 	rhoenv = np.loadtxt(file_at_cc, skiprows=1)[:,4]
 	penv =  np.loadtxt(file_at_cc, skiprows=1)[:,7]
-	lgrhoenv = [math.log(rho) for i, rho in enumerate(rhoenv) if renv[i]<r_edge]
-	lgpenv = [math.log(p) for i, p in enumerate(penv) if renv[i]<r_edge]
+	lgrhoenv = [math.log(rho) for i, rho in enumerate(rhoenv) if renv[i]<r_star]
+	lgpenv = [math.log(p) for i, p in enumerate(penv) if renv[i]<r_star]
 	# obtain polytropic index from fitting rho vs p at envelope. We fit with P = K*rho^(1+1/N), where N is the polytripic index.
 	gamma = np.polyfit(lgrhoenv, lgpenv, 1)[0]
 	Npol = 1./(gamma-1.)
@@ -80,14 +86,12 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM, r_edge):
 	beta = 0.19
 	n = (Npol+1.+3.*beta*Npol)/(beta*Npol)
 	assert n>5, "Ejecta index should be >5, now %e" % n
-	# set delta to 1 for now
+	# set delta to 1
 	delta = 1.0
-	# ejecta mass
-	total_mass, CO_core_mass = cc_param_extractor(data_file)
-	remnant_mass = remnant_from_CO(CO_core_mass)
 	# obtain CSM mass from CSM file
 	MrCSM = np.loadtxt(file_CSM, skiprows=1)[:,1]
 	CSM_mass = (MrCSM[-1] - MrCSM[0]) / MSUN 
+	remnant_mass = remnant_from_CO(CO_core_mass)
 	Mej = total_mass - remnant_mass - CSM_mass
 	assert Mej > 0.0
 	print("Mej:%f Msun, n:%f, delta:%f" % (Mej, n, delta), file=sys.stderr)
@@ -150,9 +154,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	counter = 0
 	for i, r in enumerate(r_out):
 		if r < rstop:
-			# we fix the density profile as rho\propto r^(-1.5) inside the radius where the CSM density become
-			# unreliable due to artificial shocks. this profile is merely a guess: but should be somewhat accurate
-			# well close to the stellar surface
+			# we fix the density profile where the CSM density become unreliable due to artificial shocks.
 			if analytical_CSM and scipy_exists:
 				rho_out[i] = math.exp(CSMprof_func(math.log(r), r_break, rho_break, yrho))
 			else:
@@ -179,12 +181,11 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			X_out[i] = CSM[index, 5]*(1.-fraction) + CSM[index+1,5]*(fraction)
 			Y_out[i] = CSM[index, 6]*(1.-fraction) + CSM[index+1,6]*(fraction)
 			# for next step
-			Y_avrg = (Y_avrg*last_Mr + Y_out[i]*(Mr_out[i]-last_Mr))/Mr_out[i]
 			last_Mr = Mr_out[i]
 		else:
 			# use a profile that connects to the wind profile with a Gaussian drop 
 			if steady_wind == 'RSGwind':
-				rho_out[i] = rho_in[-1]*math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi) * (1./r**2)
+				rho_out[i] = (rho_in[-1]-wind_Mdot_vw/(4.*math.pi*r_in[-1]**2)) * math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi*r**2)
 				v_out[i] = v_wind
 			# or connect a wind profile to the edge of the erupted CSM profile
 			elif steady_wind == 'attach':
@@ -195,7 +196,6 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			X_out[i] = X_edge 
 			Y_out[i] = Y_edge 
 			# for next step
-			Y_avrg = (Y_avrg*last_Mr + Y_out[i]*(Mr_out[i]-last_Mr))/Mr_out[i]
 			last_Mr = Mr_out[i]
 	
 	# obtain Mr at r < rstop
@@ -219,8 +219,10 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		plt.tight_layout()
 		plt.savefig('LCFiles/CSM_comparison.png')
 
-	# extract Y_avrg, needed for opacity calculation, and start of CSM, needed to set end of ejecta for ejecta calculation
-	return Y_avrg, max(r_out[0], rstop)
+	# extract Y_avrg, needed for opacity calculation
+	Y_avrg = np.inner(Y_out[1:], np.diff(Mr_out))/ (Mr_Out[-1]-Mr_out[0])
+	return Y_avrg
+
 
 # extract peak luminosity and rise time, defined as the time from (frac*L_peak) to L_peak
 def extract_peak_and_rise_time(LC_file, frac):
@@ -235,6 +237,7 @@ def extract_peak_and_rise_time(LC_file, frac):
 		warnings.warn("Parameter frac too small to obtain the decay time accurately...")
 	decaytime = time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
 	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
+
 
 # calculate the lightcurve of mass eruption
 def get_mass_eruption_lightcurve(outputFile):
