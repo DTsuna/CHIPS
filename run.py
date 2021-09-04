@@ -16,86 +16,59 @@ import lightcurve
 
 def parse_command_line():
 	parser = OptionParser(
-		description = '''Execution script. The MESA calculation will be conducted by running the code with ZAMS mass/Z and inlist file as arguments, For example, to calculate the evolution of a 15Msun star with metallicity 0.02 (~ solar), with inlist file containing these parameters, run the following:\n
-		python run.py --zams-m 15 --zams-z 0.02 --inlist-file /path/to/inlist_file
+		description = '''Execution script. The MESA calculation will be conducted by running the code with ZAMS mass/Z and inlist file as arguments, For example, to calculate the interaction-powered supernova of a ZAMS 15Msun, solar metallicity star with tinj=10yrs, finj=0.5, and explosion energy 1e51 ergs, run the following:\n
+		python run.py --tinj 10 --finj 0.5 --Eexp 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data --analytical-CSM
 		'''
 	)
-	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
-	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
-	parser.add_option("--tinj", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years.")
-	parser.add_option("--finj", metavar = "float", type = "float", default=0.3, help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (default: 0.3).")
+	parser.add_option("--tinj", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years (required).")
+	parser.add_option("--finj", metavar = "float", type = "float", help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (required).")
 	parser.add_option("--Eexp", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
-	parser.add_option("--eruption-innerMr", metavar = "float", type = "float", default=-1.0, help = "The innermost mass coordinate where the energy is injected. If a negative value is given, it sets by default to just outside the helium core.")
-	parser.add_option("--inlist-file", metavar = "filename", help = "Inlist file with the ZAMS mass and metallicity information.")
-	parser.add_option("--skip-mesa", action = "store_true", help = "Use stellar models pre-computed for input to the mass eruption code.")
+	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
+	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
+	parser.add_option("--mesa-path", metavar = "string", type = "string", help = "Path to the execution files of MESA.")
+	parser.add_option("--eruption-innerMr", metavar = "float", type = "float", default=-1.0, help = "The innermost mass coordinate where the energy is injected. If no argument or a negative value is given, it sets by default to just outside the helium core.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
-	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Set how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind'.")
-	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally much heavier than obtaining just the bolometric light curve.")
+	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Specify how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind' (default: RSGwind). 'attach' simply connects a wind profile to the outermost cell profile, while 'RSGwind' smoothly connects a red supergiant wind to the erupted material.")
+	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve.")
 
 	options, filenames = parser.parse_args()
-	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.]
-	available_mesa_models = [(mass, 1.) for mass in available_masses]
-	if options.zams_m <= 0 or options.zams_z <= 0 or options.tinj <= 0 or options.finj <= 0:
-		raise ValueError("The input parameters zams_m, zams_z, tinj, finj must all be positive.")
-	if options.skip_mesa and (options.zams_m,options.zams_z) not in available_mesa_models:
-		print("(M, Z) = (%.1f Msun, %.1f Zsun) not available. Running mesa calculation instead..." % (options.zams_m,options.zams_z))
-		options.skip_mesa = False
+
+	# sanity checks
+	assert options.stellar_model is not None, "A stellar model file for input to CHIPS has to be provided."
+	if options.tinj is None or options.finj is None:
+		raise ValueError("Parameters tinj and finj needs to be provided.")
+	if options.run_mesa:
+		assert options.mesa_path is not None, "A valid existing directory has to be guveb for --mesa-path if --run-mesa is called."
+	if options.tinj <= 0 or options.finj <= 0:
+		raise ValueError("The input parameters tinj, finj, Eexp must all be positive.")
 	# set default value if explosion energy is empty
 	if not options.Eexp:
 		options.Eexp = [1e51, 3e51, 1e52]
 
 	return options, filenames
 
+
 # get command line arguments
 options, filenames = parse_command_line()
 
 
-if options.skip_mesa:
-	file_cc = 'input/mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
-else:
+if options.run_mesa:
 	#################################################################
-	#								#
 	#			MESA calculation			#
-	#								#
 	#################################################################
-
-	# edit the file with the given input zams mass and metallicity
-	# NOTE the inlist file needs to already contain "initial_mass", "initial_z" and "Zbase", and "filename_for_profile_when_terminate".
-	for line in fileinput.input(options.inlist_file, inplace=1):
-		initial_mass_flag = 0
-		initial_z_flag = 0
-		Zbase_flag = 0
-		ccfile_flag = 0
-		if 'initial_mass' in line:
-			initial_mass_flag = 1
-			print("      initial_mass = %f" % float(options.zams_m))
-		elif 'initial_z' in line:
-			initial_z_flag = 1
-			print("      initial_z = %f" % (0.014*float(options.zams_z)))
-		elif 'Zbase' in line:
-			Zbase_flag = 1
-			print("      Zbase = %f" % (0.014*float(options.zams_z)))
-		elif 'filename_for_profile_when_terminate' in line:
-			ccfile_flag = 1
-			# extract filename for pre-ccSN model
-			preSN_filename = line.split()[-1].split('=')[-1].strip('\'') 
-			print(line.rstrip())
-		else:
-			print(line.rstrip())
-	
-	assert (initial_mass_flag, initial_z_flag, Zbase_flag, ccfile_flag) == (1, 1, 1, 1), "arguments (initial_mass, initial_z, Zbase, filename_for_profile_when_terminate) all have to be included in the inlist file" 
 
 	# compile mesa script
-	mesa_dir = os.path.dirname(options.inlist_file)
-	os.chdir(mesa_dir)
+	orig_path = os.getcwd()
+	os.chdir(options.mesa_path)
 	subprocess.call("./mk")
-
 	# run mesa script
 	subprocess.call("./rn")
-	os.chdir("../")
+	os.chdir(orig_path)
+	# find desired stellar model file as input to the mass eruption calculation.
+	file_cc = options.stellar_model
 
-	# find data file at mass eruption and core collapse. 
-	file_cc = mesa_dir + '/' + preSN_filename
+else:
+	file_cc = options.stellar_model
 
 
 #################################################################
@@ -144,12 +117,13 @@ opacity_file = 'LCFiles/opacity.txt'
 gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 opacity_file = 'LCFiles/kappa_p.txt'
 gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
-op_freq_dir = 'LCFiles/opacity_frq'
-subprocess.call(["rm", "-rf", op_freq_dir])
-subprocess.call(["mkdir", op_freq_dir])
-gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
+# if multi-band is called, generate frequency-dependent opacity table as well
+if options.calc_multiband:
+	op_freq_dir = 'LCFiles/opacity_frq'
+	subprocess.call(["mkdir", "-p", op_freq_dir])
+	gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
-
+# calculate light curve
 for Eexp in options.Eexp:
 	# luminosity at shock
 	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eexp)
