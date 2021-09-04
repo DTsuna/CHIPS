@@ -39,7 +39,7 @@ def getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms):
 		sys.exit(1)
 	return CommonR
 
-def convertForHydro(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, logscaleRemesh=False):
+def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, logscaleRemesh=False):
 
 	#################################################################
 	##################### Input Parameters ##########################

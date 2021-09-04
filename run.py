@@ -38,9 +38,9 @@ def parse_command_line():
 	if options.tinj is None or options.finj is None:
 		raise ValueError("Parameters tinj and finj needs to be provided.")
 	if options.run_mesa:
-		assert options.mesa_path is not None, "A valid existing directory has to be guveb for --mesa-path if --run-mesa is called."
+		assert options.mesa_path is not None, "A valid existing directory has to be given for --mesa-path if --run-mesa is called."
 	if options.tinj <= 0 or options.finj <= 0:
-		raise ValueError("The input parameters tinj, finj, Eexp must all be positive.")
+		raise ValueError("The input parameters tinj, finj must both be positive.")
 	# set default value if explosion energy is empty
 	if not options.Eexp:
 		options.Eexp = [1e51, 3e51, 1e52]
@@ -78,14 +78,13 @@ else:
 #################################################################
 
 
-# convert data for hydro in KS20
-file_hydro = 'EruptionFiles/InitForHydro.txt'
-convert.convertForHydro(file_cc, file_hydro, options.eruption_innerMr)
+# convert data for eruption calculation
+file_hydro = 'EruptionFiles/InitForEruption.txt'
+convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr)
 
 # energy injection timescale
 inject_duration = 1e3 # unit in second
-# continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption.
-# However, the computation will be much slower.
+# continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption. However, the computation will be much slower.
 convert.setEruptionParam(options.tinj, inject_duration, options.finj, continueTransfer=False)
 
 # run eruptive mass-loss rad-hydro calculation
