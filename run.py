@@ -79,7 +79,7 @@ else:
 
 
 # convert data for eruption calculation
-file_hydro = 'EruptionFiles/InitForEruption.txt'
+file_eruption = 'EruptionFiles/InitForHydro.txt'
 convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr)
 
 # energy injection timescale
