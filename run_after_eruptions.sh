@@ -9,7 +9,7 @@ for f in 0.3 0.4 0.5 0.6 0.8; do
 		cd ${mass}Msun_finj${f}_t${t}yr_${today}_${name}
 		cp /home/chips/CHIPS/testRun/${mass}Msun_finj${f}_*/*/intermediate${t}yr.txt EruptionFiles/ #FIXME CHANGE THIS IF DIFFERENT PATH
 		mv EruptionFiles/intermediate${t}yr.txt EruptionFiles/${mass}Msun_finj${f}_intermediate${t}yr.txt
-		python3 after_eruption.py --zams-m ${mass} --zams-z 1 --profile-at-cc EruptionFiles//${mass}Msun_finj${f}_intermediate${t}yr.txt --analytical-CSM
+		python3 after_eruption.py --stellar-model input/mesa_models/${mass}Msun_Z0.014_preccsn.data --profile-at-cc EruptionFiles//${mass}Msun_finj${f}_intermediate${t}yr.txt --analytical-CSM
 		cd ../
 	done
 done

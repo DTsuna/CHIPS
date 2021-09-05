@@ -15,23 +15,20 @@ from input.TOPS_multigroup import gen_op_frq
 def parse_command_line():
 	parser = OptionParser(
 		description = '''Execution script. e.g.,\n
-		python run.py --zams-m 15 --zams-z 1 --profile-at-cc EruptionFiles/intermediate??yr.txt
+		python run.py --Eexp 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data --profile-at-cc EruptionFiles/intermediate??yr.txt --analytical-CSM
 		'''
 	)
-	parser.add_option("--zams-m", metavar = "float", type = "float", help = "Initial mass in units of solar mass.")
-	parser.add_option("--zams-z", metavar = "float", type = "float", help = "Initial metallicity in units of solar metallicity (Z=0.014).")
 	parser.add_option("--Eexp", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
+	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
-	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Set how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind'.")
-	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally much heavier than obtaining just the bolometric light curve.")
+	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Specify how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind' (default: RSGwind). 'attach' simply connects a wind profile to the outermost cell profile, while 'RSGwind' smoothly connects a red supergiant wind to the erupted material.")
+	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve.")
 
 	options, filenames = parser.parse_args()
-	available_masses = [13.,14.,15.,16.,17.,18.,19.,20.,22.,24.,26.,28.,30.]
-	available_mesa_models = [(mass, 1.) for mass in available_masses]
-	if (options.zams_m,options.zams_z) not in available_mesa_models:
-		raise ValueError('stellar model not available')
-	if options.profile_at_cc == None:
+	# sanity checks
+	assert options.stellar_model is not None, "A stellar model file for input to CHIPS has to be provided."
+	if options.profile_at_cc is None:
 		raise ValueError('the density profile at core-collapse (EruptionFiles/intermediate??.txt) is a required argument')
 	# set default value if explosion energy is empty
 	if not options.Eexp:
@@ -42,9 +39,7 @@ def parse_command_line():
 # get command line arguments
 options, filenames = parse_command_line()
 
-
-file_cc = 'input/mesa_models/'+str(int(options.zams_m))+'Msun_Z'+str(0.014*options.zams_z)+'_preccsn.data'
-file_me = file_cc 
+file_cc = options.stellar_model 
 
 #################################################################
 #								#
@@ -56,7 +51,7 @@ file_me = file_cc
 r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
-Y_He = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_me, analytical_CSM = options.analytical_CSM, steady_wind = options.steady_wind)
+Y_He = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind = options.steady_wind)
 
 # extract the ejecta parameters
 Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file)
