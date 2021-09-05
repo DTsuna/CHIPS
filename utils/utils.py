@@ -235,7 +235,7 @@ def extract_peak_and_rise_time(LC_file, frac):
 	risetime = peaktime - time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]<peaktime])]
 	if frac < lum[-1] / peakL:
 		warnings.warn("Parameter frac too small to obtain the decay time accurately...")
-	decaytime = time[np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
+	decaytime = time[np.argmax(lum) - 1 + np.argmin([abs(L-peakL*frac) for i,L in enumerate(lum) if time[i]>peaktime])] - peaktime
 	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
 
 
