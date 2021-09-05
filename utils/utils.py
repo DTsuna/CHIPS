@@ -220,7 +220,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		plt.savefig('LCFiles/CSM_comparison.png')
 
 	# extract Y_avrg, needed for opacity calculation
-	Y_avrg = np.inner(Y_out[1:], np.diff(Mr_out))/ (Mr_Out[-1]-Mr_out[0])
+	Y_avrg = np.inner(Y_out[1:], np.diff(Mr_out))/ (Mr_out[-1]-Mr_out[0])
 	return Y_avrg
 
 
