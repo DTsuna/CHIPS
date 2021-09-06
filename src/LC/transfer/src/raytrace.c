@@ -130,8 +130,7 @@ double Planck_func(double nu, double T)
 
 /************************This subroutine returns I(b, nu)**************************/
 /**********************************************************************************/
-double integ_ray_tracing(double b, double nu, double *tau_nu, double F_ini, double r[], double rho[], double T[], 
-		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, opacity op)
+double integ_ray_tracing(double b, double nu, double *tau_nu, double F_ini, double r[], double rho[], double T[], int n, opacity op)
 {
 	int j, jmin;
 	int jminmax;
@@ -234,8 +233,7 @@ double integ_ray_tracing(double b, double nu, double *tau_nu, double F_ini, doub
 	}
 }
 
-double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], double rho[], double T[], 
-		double r_sh[], double rho_sh[], double T_sh[], double r_ej[], double d_ej[], double T_ej[], int n, int n_sh, int n_ej, char *filenamenu, int nnu)
+double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], double rho[], double T[], int n, char *filenamenu, int nnu)
 {
 	int i, inu = 0, k, l;
 	double b[NB] = {0.};
@@ -281,14 +279,14 @@ double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], 
 		b[i] = fac*b[i-1];
 	}
 	
-	I[0] = integ_ray_tracing(b[0], nu, &tau_nu[0], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
+	I[0] = integ_ray_tracing(b[0], nu, &tau_nu[0], F_ini, r, rho, T, n, op0);
 
 #pragma omp parallel for
 	for(i = 1; i < NB-1; i++){
-		I[i] = integ_ray_tracing(b[i], nu, &tau_nu[i], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
+		I[i] = integ_ray_tracing(b[i], nu, &tau_nu[i], F_ini, r, rho, T, n, op0);
 	}
 	b[NB-1] = b[NB-2]+(b[NB-1]-b[NB-2])/2.;
-	I[NB-1] = integ_ray_tracing(b[NB-1], nu, &tau_nu[NB-1], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_ej, n, n_sh, n_ej, op0);
+	I[NB-1] = integ_ray_tracing(b[NB-1], nu, &tau_nu[NB-1], F_ini, r, rho, T, n, op0);
 
 	for(i = 0; i < NB-1; i++){
 		sum += 8.*M_PI*M_PI*0.5*(b[i]*I[i]+b[i+1]*I[i+1])*(b[i+1]-b[i]);
@@ -303,8 +301,7 @@ double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], 
 	return sum;
 }
 
-void calc_lum(double t, double r_init, double r_out, double F_ini, double r[], double rho[], double T[], 
-		double r_sh[], double rho_sh[], double T_sh[], int n, int n_sh, char *filename, double abmag[], pars pdt)
+void calc_lum(double t, double r_init, double r_out, double F_ini, double r[], double rho[], double T[], int n, char *filename, double abmag[], pars pdt)
 {
 	const double pc = 3.085677581e+18;
 	FILE *fp, *fb;
@@ -320,30 +317,9 @@ void calc_lum(double t, double r_init, double r_out, double F_ini, double r[], d
 	char filename1[512];
 	char bands[5][256] = {"./input/band_filters/uband.txt", "./input/band_filters/bband.txt", "./input/band_filters/vband.txt",
 				"./input/band_filters/rband.txt", "./input/band_filters/iband.txt"};
-	double r_ej[NEJ+1], d_ej[NEJ], T_ej[NEJ];
-	int num_ej = NEJ;
 
 	A = 1./(4.*M_PI*(pdt.n-pdt.delta))*pow(2.*(5.-pdt.delta)*(pdt.n-5.)*pdt.E_ej, (pdt.delta-3.)/2.)/pow((3.-pdt.delta)*(pdt.n-3.)*pdt.M_ej, (pdt.delta-5.)/2.);
 	B = 1./(4.*M_PI*(pdt.n-pdt.delta))*pow(2.*(5.-pdt.delta)*(pdt.n-5.)*pdt.E_ej, (pdt.n-3.)/2.)/pow((3.-pdt.delta)*(pdt.n-3.)*pdt.M_ej, (pdt.n-5.)/2.);
-
-
-	for(i = 0; i < num_ej+1; i++){
-		r_ej[i] = ((double)i)*r_sh[0]/(double)num_ej;
-	}
-	for(i = 0; i < num_ej; i++){
-		if(r_ej[i+1] < pdt.v_t*t){
-			d_ej[i] = 3.*A/(3.-pdt.delta)*(pow(r_ej[i+1]/t, 3.-pdt.delta)-pow(r_ej[i]/t, 3.-pdt.delta))/(r_ej[i+1]*r_ej[i+1]*r_ej[i+1]-r_ej[i]*r_ej[i]*r_ej[i]);
-		}
-		else if(r_ej[i+1] >= pdt.v_t*t && r_ej[i] < pdt.v_t*t){
-			d_ej[i] = 3.*A/(3.-pdt.delta)*(pow(pdt.v_t, 3.-pdt.delta)-pow(r_ej[i]/t, 3.-pdt.delta))
-				+3.*B/(3.-pdt.n)*(pow(r_ej[i+1]/t, 3.-pdt.n)-pow(pdt.v_t, 3.-pdt.n));
-			d_ej[i] = d_ej[i]/(r_ej[i+1]*r_ej[i+1]*r_ej[i+1]-r_ej[i]*r_ej[i]*r_ej[i]);
-		}
-		else{
-			d_ej[i] = 3.*B/(3.-pdt.n)*(pow(r_ej[i+1]/t, 3.-pdt.n)-pow(r_ej[i]/t, 3.-pdt.n))/(r_ej[i+1]*r_ej[i+1]*r_ej[i+1]-r_ej[i]*r_ej[i]*r_ej[i]);
-		}
-		T_ej[i] = 2000.;
-	}
 
 	nu[0] = (P_C)/(2.9e-05); //corresponds to lambda = 290 nm;
 	nu[NNU-1] = (P_C)/(1.e-04); //corresponds to lambda = 1000 nm;
@@ -355,7 +331,7 @@ void calc_lum(double t, double r_init, double r_out, double F_ini, double r[], d
 
 	printf("Started spec calculation.\n");
 	for(i = 0; i < NNU; i++){
-		L_nu[i] = Lum_nu(r_init, r_out, nu[i], F_ini, r, rho, T, r_sh, rho_sh, T_sh, r_ej, d_ej, T_sh, n, n_sh, num_ej, filename, i);
+		L_nu[i] = Lum_nu(r_init, r_out, nu[i], F_ini, r, rho, T, n, filename, i);
 		printf("L_nu[%d] = %e\n", i, L_nu[i]);
 	}
 	printf("Spec calculation end.\n");

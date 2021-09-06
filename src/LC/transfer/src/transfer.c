@@ -23,13 +23,12 @@ extern char csm[256];
 
 void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
-void read_shockprofiles(FILE*, double[], double[], double[], int*);
 
 
 void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r_out,
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
-	FILE *fp, *fl, *fnu_time, *fsh;
+	FILE *fp, *fl, *fnu_time;
 	double F_max = 0., F_out = 0.;
 	double r_eff, r_eff_interp, T_color;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
@@ -57,9 +56,7 @@ void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r
 	double t_diff;
 	double E_to_T;
 	double F_mean;
-	double r_sh[2000], T_sh[2000], rho_sh[2000];
 	double abmag[5];
-	int n_sh;
 	int outp_date_int = 0, outp_date_min;
 	pars pdt;
 
@@ -426,19 +423,13 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		if(FLNU == 1 && L_outp_flag == 1){
 			if(t/86400. > (double)outp_date_int && j < fsize-1){
 				printf("/*********************************************************/\n");
-				n_sh = 0;
 				printf("%e\n", tf[j+1]);
-				sprintf(filename, "%s/profiles%08d.txt", dir_shockprofiles, j+1);
-				printf("Open shock profile: %s/profiles%08d.txt\n", dir_shockprofiles, j+1);
-				fsh = fopen(filename, "r");
-				read_shockprofiles(fsh, r_sh, rho_sh, T_sh, &n_sh);
 				sprintf(filename, "%s/Lnu%08d", dir_shockprofiles, outp_date_int-outp_date_min);
-				calc_lum(t, r[0], r_out, F_ini, r, rho, T_g, r_sh, rho_sh, T_sh, n, n_sh, filename, abmag, pdt);
+				calc_lum(t, r[0], r_out, F_ini, r, rho, T_g, n, filename, abmag, pdt);
 				// add light-travel time between shock and outer edge, since the ray tracing assumes speed of light is infinite
 				fprintf(fnu_time, "%e %e %e %e %e %e\n", (tf[j+1]+(r_out-r_ini)/P_C)/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				printf("%e %e %e %e %e %e\n", (tf[j+1]+(r_out-r_ini)/P_C)/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
 				outp_date_int++;
-				fclose(fsh);
 				printf("/*********************************************************/\n");
 			}
 			count_nu++;
@@ -492,34 +483,4 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[]
 		U[2*i+1] = U[2*i];
 	}
 	r[nsize] = r[nsize-1]+dr;
-}
-
-void read_shockprofiles(FILE *f_sh, double r_sh[], double rho_sh[], double T_sh[], int *n_sh)
-{
-	int i = 0, j, positive = 0;
-	double dummy[2];
-	while(fscanf(f_sh, "%lf %lf %lf %lf %lf", r_sh+i, dummy, rho_sh+i, T_sh+i, dummy+1) != EOF){
-		i++;
-		if(dummy[0] > 0.){
-			positive++;
-		}
-	}
-	*n_sh = i-1;
-	for(j = 0; j < *n_sh+1; j++){
-	}
-
-	for(j = 0; j < positive-1; j++){
-		rho_sh[j] = (rho_sh[j]+rho_sh[j+1])/2.;
-		T_sh[j] = (T_sh[j]+T_sh[j+1])/2.;
-	}
-	for(j = positive-1; j < i-1; j++){
-		r_sh[j] = r_sh[j+1];
-		rho_sh[j] = rho_sh[j+1];
-		T_sh[j] = T_sh[j+1];
-	}
-	for(j = positive-1; j < i-2; j++){
-		rho_sh[j] = (rho_sh[j]+rho_sh[j+1])/2.;
-		T_sh[j] = (T_sh[j]+T_sh[j+1])/2.;
-	}
-	*n_sh = *n_sh-1;
 }

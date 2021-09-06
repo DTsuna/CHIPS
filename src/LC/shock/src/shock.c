@@ -14,11 +14,11 @@ extern pars pdt;
 extern double t_exp;
 extern char csm[256];
 
-double *calc_init_dist(double, double, double, double, double, double, const char*, const char*);
-double *calc_dist(double[], double, double, double, double, double, const char*, const char*, int*, int*);
+double *calc_init_dist(double, double, double, double, double, double, const char*);
+double *calc_dist(double[], double, double, double, double, double, const char*, int*);
 void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
-void shock_csm(double, double, double, double, const char*, const char*, const char*);
+void shock_csm(double, double, double, double, const char*, const char*);
 
 void init_egn(double r_ini, double egn[])
 {
@@ -44,13 +44,13 @@ array[0] = t_exp.
 array[1] = egn[0] = u_rs, array[2] = egn[1] = u_fs, array[3] = r_rs, array[4] = r_fs, array[5] = F_fs.
 */
 
-void shock_csm(double E_ej, double M_ej, double n, double delta, const char *file_csm, const char *file_outp, const char *dir_shockprofiles)
+void shock_csm(double E_ej, double M_ej, double n, double delta, const char *file_csm, const char *file_outp)
 {
 	double *array;
 	double dt = 8640.;
 	double t_ini, t_fin = 400.*86400.;
 	double r_ini, r_ini_diff;
-	int info, f = 0;
+	int info;
 	int flag = 1;
 	int c = 0;
 	FILE *fp;
@@ -63,7 +63,6 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	pdt = setpars(n, delta, E_ej, M_ej, 1.e+07, 1.e+10);	
 
 	while(flag == 1){
-		f = 0;
 		fp = fopen(file_outp, "w");
 		r_ini = set_r_ini(file_csm);
 		r_ini_diff = set_r_diff(file_csm);
@@ -74,7 +73,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 
 
 /**************************1st step**************************/
-		array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm, dir_shockprofiles);
+		array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm);
 		egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 		boundary(array[4], y, egn, 1, &info);
 
@@ -96,7 +95,7 @@ Continue calculation when the temperature behind the forward shock drops to ~6,0
 			if(t_exp+dt > t_fin){
 				dt = t_fin-t_exp;
 			}
-			array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm, dir_shockprofiles, &info, &f);
+			array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm, &info);
 			egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 			boundary(array[4], y, egn, 1, &info);
 			if(info == 1){
@@ -125,7 +124,7 @@ Continue calculation when the temperature behind the forward shock drops to ~6,0
 	}
 }
 
-double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, double r_ini, const char *file_csm, const char *dir_shockprofiles)
+double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, double r_ini, const char *file_csm)
 {
 	const int nsize = 4;
 	int i, j, info = 0;
@@ -184,7 +183,7 @@ These values are old, so before calculating the distribution, r_rs, r_fs must be
 r_rs = r_rs + u_rs*dt, r_fs = r_fs + r_fs*dt.
 */
 
-double *calc_dist(double array[], double E_ej, double M_ej, double n, double delta, double dt, const char *file_csm, const char *dir_shockprofiles, int *info, int *f)
+double *calc_dist(double array[], double E_ej, double M_ej, double n, double delta, double dt, const char *file_csm, int *info)
 {
 	const int nsize = 3, cmax = 100;
 	int i, j, c = 0;
@@ -195,10 +194,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 	double phys[2*4], physfd[4];
 	double J[16];
 	static double outp_egn[6];
-	FILE *fp;
-	char filename[512], profiles[512];
 
-	strcpy(filename, dir_shockprofiles);
 	memcpy(egn_old, egn, sizeof(double)*4);
 
 	strcpy(csm, file_csm);
@@ -273,15 +269,8 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 		*info = 1;
 	}
 	
-	sprintf(profiles, "/profiles%08d.txt", *f);
-	strcat(filename, profiles);
-	fp = fopen(filename, "w");
-	solver_outp(r_ini, phys, egn, 1, info, fp);
-
 	outp_egn[0] = t_exp; outp_egn[1] = egn[0]; outp_egn[2] = egn[1];
 	outp_egn[3] = r_ini; outp_egn[4] = egn[3]; outp_egn[5] = egn[2];
-	*f = *f+1;
-	fclose(fp);
 
 	return outp_egn;
 }

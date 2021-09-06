@@ -70,11 +70,13 @@ if options.calc_multiband:
 # calculate light curve
 for Eej in options.Eej:
 	# luminosity at shock
-	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eej)
-	subprocess.call(["rm", "-r", dir_name_shockprofiles])
-	subprocess.call(["mkdir", dir_name_shockprofiles])
+	if options.calc_multiband:
+		dir_name_shockprofiles = "LCFiles/SpecFiles_"+str(Eej)
+		subprocess.call(["rm", "-r", dir_name_shockprofiles])
+		subprocess.call(["mkdir", dir_name_shockprofiles])
+	
 	shock_file = 'LCFiles/shock_output_'+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
+	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file)
 
 	# radiation transfer
 	# bolometric light curve
