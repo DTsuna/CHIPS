@@ -15,10 +15,10 @@ from input.TOPS_multigroup import gen_op_frq
 def parse_command_line():
 	parser = OptionParser(
 		description = '''Execution script. e.g.,\n
-		python run.py --Eexp 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data --profile-at-cc EruptionFiles/intermediate??yr.txt --analytical-CSM
+		python run.py --Eej 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data --profile-at-cc EruptionFiles/intermediate??yr.txt --analytical-CSM
 		'''
 	)
-	parser.add_option("--Eexp", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
+	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
@@ -31,8 +31,8 @@ def parse_command_line():
 	if options.profile_at_cc is None:
 		raise ValueError('the density profile at core-collapse (EruptionFiles/intermediate??.txt) is a required argument')
 	# set default value if explosion energy is empty
-	if not options.Eexp:
-		options.Eexp = [1e51, 3e51, 1e52]
+	if not options.Eej:
+		options.Eej = [1e51, 3e51, 1e52]
 
 	return options, filenames
 
@@ -68,23 +68,23 @@ if options.calc_multiband:
 	gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
 # calculate light curve
-for Eexp in options.Eexp:
+for Eej in options.Eej:
 	# luminosity at shock
-	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eexp)
+	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eej)
 	subprocess.call(["rm", "-r", dir_name_shockprofiles])
 	subprocess.call(["mkdir", dir_name_shockprofiles])
-	shock_file = 'LCFiles/shock_output_'+str(Eexp)+'erg.txt'
-	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
+	shock_file = 'LCFiles/shock_output_'+str(Eej)+'erg.txt'
+	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
 
 	# radiation transfer
 	# bolometric light curve
-	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg.txt'
+	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg.txt'
 	# multi-band light curve if requested
 	if options.calc_multiband:
-		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg_mag.txt'
+		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg_mag.txt'
 	else:
 		IIn_lc_band_file = ''
-	lightcurve.transfer(Eexp, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_name_shockprofiles)
+	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_name_shockprofiles)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.

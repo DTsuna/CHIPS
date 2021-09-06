@@ -26,7 +26,7 @@ void init_E_U(double, double, double[], double[], double[], double[], double[], 
 void read_shockprofiles(FILE*, double[], double[], double[], int*);
 
 
-void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double r_out, 
+void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r_out,
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
 	FILE *fp, *fl, *fnu_time, *fsh;
@@ -67,7 +67,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 
 
 
-	pdt = setpars(nej, delta, Eexp, Mej, 1.e+7, 1.e+12);
+	pdt = setpars(nej, delta, Eej, Mej, 1.e+7, 1.e+12);
 
 	/* OpenMP parameters */
 	if(getenv("OMP_NUM_THREADS") == NULL){
@@ -152,7 +152,7 @@ void rad_transfer_csm(double Eexp, double Mej, double nej, double delta, double 
 	A = interp_A(nej);
 	interp_int_e(nej, &E_rev, &E_for);
 	g = 1./(4.*M_PI*(nej-delta))*pow(2.*(5.-delta)*(nej-5.), (nej-3.)/2.)/pow((3.-delta)*(nej-3.), (nej-5.)/2.);
-	g *= pow(Eexp/Mej, (nej-3.)/2.);
+	g *= pow(Eej/Mej, (nej-3.)/2.);
 	g *= Mej;
 //g -> g^nej
 	q = rho_csm(rf[0])*pow(rf[0], 1.5);

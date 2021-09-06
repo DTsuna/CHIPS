@@ -17,12 +17,12 @@ import lightcurve
 def parse_command_line():
 	parser = OptionParser(
 		description = '''Execution script. The MESA calculation will be conducted by running the code with ZAMS mass/Z and inlist file as arguments, For example, to calculate the interaction-powered supernova of a ZAMS 15Msun, solar metallicity star with tinj=10yrs, finj=0.5, and explosion energy 1e51 ergs, run the following:\n
-		python run.py --tinj 10 --finj 0.5 --Eexp 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data --analytical-CSM
+		python run.py --tinj 10 --finj 0.5 --Eej 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data --analytical-CSM
 		'''
 	)
 	parser.add_option("--tinj", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years (required).")
 	parser.add_option("--finj", metavar = "float", type = "float", help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (required).")
-	parser.add_option("--Eexp", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
+	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
 	parser.add_option("--mesa-path", metavar = "string", type = "string", help = "Path to the execution files of MESA.")
@@ -42,8 +42,8 @@ def parse_command_line():
 	if options.tinj <= 0 or options.finj <= 0:
 		raise ValueError("The input parameters tinj, finj must both be positive.")
 	# set default value if explosion energy is empty
-	if not options.Eexp:
-		options.Eexp = [1e51, 3e51, 1e52]
+	if not options.Eej:
+		options.Eej = [1e51, 3e51, 1e52]
 
 	return options, filenames
 
@@ -124,23 +124,23 @@ if options.calc_multiband:
 	gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
 # calculate light curve
-for Eexp in options.Eexp:
+for Eej in options.Eej:
 	# luminosity at shock
-	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eexp)
+	dir_name_shockprofiles = "LCFiles/ShockProfilesandSpecFiles_"+str(Eej)
 	subprocess.call(["rm", "-r", dir_name_shockprofiles])
 	subprocess.call(["mkdir", dir_name_shockprofiles])
-	shock_file = 'LCFiles/shock_output_'+str(Eexp)+'erg.txt'
-	lightcurve.shock(Eexp, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
+	shock_file = 'LCFiles/shock_output_'+str(Eej)+'erg.txt'
+	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
 
 	# radiation transfer
 	# bolometric light curve
-	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg.txt'
+	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg.txt'
 	# multi-band light curve if requested
 	if options.calc_multiband:
-		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eexp)+'erg_mag.txt'
+		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg_mag.txt'
 	else:
 		IIn_lc_band_file = ''
-	lightcurve.transfer(Eexp, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_name_shockprofiles)
+	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_name_shockprofiles)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
