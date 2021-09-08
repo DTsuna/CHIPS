@@ -277,6 +277,10 @@ At first, intergrate source term using implicit Euler method.
 			}
 			dt *= 0.5;
 			fprintf(stderr, "iteration failure (source term). Too large time step.");
+			if(dt < 1.e-05){
+				fprintf(stderr, "Too small time interval. end.\n");
+				exit(EXIT_FAILURE);
+			}
 			continue;
 		}
 		else{
