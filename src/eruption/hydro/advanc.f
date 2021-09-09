@@ -32,14 +32,11 @@
 
       write(*,*)"innerCell in advanc.f =",innerCell
 
-
-!     rad(2) = orad(2)+dt*(us(2)+nu(2))-odt*onu(2)
       rad(2) = 1d-15
 
       rad(innerCell) = boundr
 
-c$$$      rad(2) = orad(2)+dt*us(2)
-      do j = innerCell+1, n 
+      do j = innerCell+1, n
          nu(j) = vis*max(u(j)-u(j+1),0.d0)
          rad(j) = orad(j)+dt*(us(j)+nu(j))-odt*onu(j)
          radm = 0.5*(rad(j)+rad(j-1))
@@ -56,15 +53,8 @@ c$$$      rad(2) = orad(2)+dt*us(2)
       enddo
       tau(1) = tau(4)
       tau(2) = tau(3)
-c$$$      tau(n-1) = tau(n-2)
-c$$$      tau(n) = tau(n-2)
       rad(1) = -rad(3)
-c$$$      rad(n) = orad(n)+dt*us(n)
-c$$$      a = rad(n)**ial1
-c$$$      a1 = rad(n-1)**ial1
-c$$$      aa1 = a-a1
-c$$$      tau(n) = 4.d0*pi*aa1/((alpha+1.d0)*dmass(n))
-      
+
       call grav(n,encmg)
       do 20 j = innerCell+1, n
          r2 = rad(j)*rad(j)
@@ -74,8 +64,7 @@ c$$$      tau(n) = 4.d0*pi*aa1/((alpha+1.d0)*dmass(n))
 
       u(innerCell)  = 0.d0
       us(innerCell) = 0.d0
-!      ps(3) = (p(3)+p(4))/2	
-      !ps(3) = 1.097d+23	
+      !ps(3) = 1.097d+23
 
       do 30 j = innerCell+1, n
          r2 = rad(j)*rad(j)
@@ -85,13 +74,6 @@ c$$$      tau(n) = 4.d0*pi*aa1/((alpha+1.d0)*dmass(n))
          ab = (r2+or2+rad(j)*orad(j))/3.d0
          ab1 = (r21+or21+rad(j-1)*orad(j-1))/3.d0
          grvm = 0.5d0*(grv(j)+ogrv(j))
-c$$$         u(j) = ou(j)+2.*pi*(ab+ab1)*dt/dmass(j)
-c$$$     $        *(ps(j-1)+nu(j-1)*ou(j-1)/otau(j-1)
-c$$$     $        -ps(j)-nu(j)*ou(j)/otau(j))
-c$$$     $        + dt*grvm 
-c$$$         e(j) = oe(j)+4.*pi*dt/dmass(j)*(ab1*(us(j-1)*ps(j-1)
-c$$$     $        +nu(j-1)*oe(j-1)/otau(j-1))
-c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
          u(j) = ou(j)+2.*pi*(ab+ab1)*dt/dmass(j)
      $        *(ps(j-1)-ps(j))
      $        +dt*grvm
@@ -106,7 +88,7 @@ c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
         do kk = 3,2+e_in_cell
           e(kk) = e(kk) + (e_charge/e_in_cell)/dmass(kk)
         end do
-      end if 
+      end if
 
 
       if(time.gt.5.d1.and.time.lt.5.d1+injection_time)then
@@ -117,29 +99,17 @@ c$$$     &        -ab*(us(j)*ps(j)+nu(j)*oe(j)/otau(j)))
      $    (5.d1+injection_time-time)
           write(*,*)"e_charge=",e_charge
         end if
-        do kk = 3,2+e_in_cell 
+        do kk = 3,2+e_in_cell
           e(kk) = e(kk) + (e_charge/e_in_cell)/dmass(kk)
         end do
       end if
 
 
-c$$$      u(n) = u(n-1)
-c$$$      e(n) = e(n-1)
-
       do 40 i = 1, 2
          u(i) = -u(5-i)
          ar(i) = -ar(5-i)
          e(i) = e(5-i)
-c         u(i+n-2) = u(n-2)
-c         e(i+n-2) = e(n-2)
  40   continue
       odt = dt
-c$$$      do j = n-nadd, n-1
-c$$$         test = 2.d0*tau(j)/(tau(j-1)+tau(j+1))
-c$$$         if(test.lt.1d-1)then
-c$$$            rad(j) = (0.5*rad(j)+0.5*rad(j+1))
-c$$$            rad(j-1) = (0.5*rad(j-1)+0.5*rad(j-2))
-c$$$         end if
-c$$$      enddo
       return
       end

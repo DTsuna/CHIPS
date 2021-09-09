@@ -1,5 +1,5 @@
       subroutine radtra(nn, istep, dt, time, dedlt, kap, icell)
- 
+
       include 'inclm1.f'
       include 'inclcnst.f'
       include 'inclold.f'
@@ -53,14 +53,6 @@ c     normalization factor
       data irad / 1 /
       data kapg / 0.03d0 /
 
-c$$$      do j = nn, 3, -1
-c$$$         if(tauo(j).gt.1d-3)then
-c$$$            n = j
-c$$$            go to 996
-c$$$         end if
-c$$$      enddo
-c$$$ 996  n = min(n,nn-2)
-
 
       n = nn
       eps = 1e-6
@@ -69,8 +61,6 @@ c$$$ 996  n = min(n,nn-2)
          write(6,*)' radtra starts now '
          mni = 0.d0
          do i = icell+2, n
-c            if(encm(i).gt.0.5*1.989d33)then
-c             if(encm(i).gt.0.075*1.989d33)then
             mni = mni + dmass(i)*x(i,3)
             if(x(i,3).eq.0.d0)then
                ni = i
@@ -133,21 +123,6 @@ c           lum(i) = st*dmass(i)*1d-2
          srce(j) = 0.d0
          srceni(j) = 0.d0
       enddo
-!      do i = 3, ni
-!         if(taug(i).lt.30)then
-!            extauo = exp(-taug(i))
-!         else
-!            extauo = 0
-!         end if
-!         if(2.d0*taug(3)-taug(i).lt.30)then
-!            extaui = exp(-2.d0*taug(3)+taug(i))
-!         else
-!            extaui = 0
-!         end if
-!         extau = 0.5d0*(extauo+extaui)
-!         srceni(i) = st*(1.0-0.96*extau)*x(i,3)
-c         srceni(i) = st*(1.0-0.96*extau)*0.075*1.989d33/encm(ni)
-!      enddo
 
       do j = icell+2, n
          j1 = j - 1
@@ -200,8 +175,6 @@ c     iteration starts here
          a22 = -alpha1*(4.0*df(icell+2)*btl4+dr1*ddf*(t4-btl4))
          b1 = -dt/dmass(icell+2)
          b2 = alpha1*(4.0*t4*df(icell+2)+(t4-btl4)*ddf*dr1)
-!         c1 = (lum(3)-bluml)/dmass(3)*dt + (eu(3)-oeu(3))
-!     $        +0.5d0*(p(3)+op(3))*(tau(3)-otau(3))-srce(3)*dt
          c1 = (lum(icell+2)-bluml)/dmass(icell+2)*dt +
      $      (eu(icell+2)-oeu(icell+2))
      $        -srce(icell+2)*dt
@@ -229,14 +202,11 @@ c     iteration starts here
             t4m = t2m*t2m
             tt2 = t2+t2m+2*temp(j)*temp(j-1)
             tt4 = 0.0625*tt2*tt2
-c            tt4 = t2*t2m
             mgr = 0.5*(dmass(j)+dmass(j-1))
             kapj = 0.5*(kap(j)+kap(j-1))
             alpha = 64.d0*pi*pi*sigma*radj4/(mgr*kapj)
             beta = 4.d0*pi*radj2*radn2/(mgr*kapj)
-c            write(6,*)lum(j),temp(j), j, it,istep
             r = abs(beta*(t4-t4m)/tt4)
-c            r = abs(beta*(t4-t4m)/t4m)
             df(j) = (2.0+r)/(6.0+3.0*r+r*r)
             ddf = -r*(4.0+r)/(6.0+3.0*r+r*r)**2
             dr = 4.0*beta*temp(j)*temp(j-1)*(t2-temp(j)
@@ -246,7 +216,6 @@ c            r = abs(beta*(t4-t4m)/t4m)
      $             *temp(j-1)+t2m)/tt4
             end if
 
-c            dr = 4.d0*beta*t4/t4m
             a11 = 1.0/dmass(j)*dt
             deu=eu(j)-oeu(j)
             a12 = dedlt(j)
@@ -254,8 +223,6 @@ c            dr = 4.d0*beta*t4/t4m
             a22 = -alpha*(4.0*df(j)*t4m+ddf*dr*(t4-t4m))
             b1 = -1.0/dmass(j)*dt
             b2 = alpha*(4.0*t4*df(j)+(t4-t4m)*ddf*dr)
-!            c1 = (lum(j) - lum(j-1))/dmass(j)*dt + deu
-!     $           +0.5d0*(p(j)+op(j))*(tau(j)-otau(j))-srce(j)*dt
             c1 = (lum(j) - lum(j-1))/dmass(j)*dt + deu
      $           -srce(j)*dt
             c1 = (lum(j) - lum(j-1))/dmass(j)*dt + deu
@@ -263,10 +230,6 @@ c            dr = 4.d0*beta*t4/t4m
      &          + alpha*df(j)*(t4-t4m)
             detm = b1*b2-a12*(a21-gam2(j-1)*a22)
             detmi = 1.d0/detm
-c            if(j.eq.30)write(*,'(i4,1p6e10.2)')
-c     $       j,(lum(j) - lum(j-1))/dmass(j)*dt, deu,-srce(j)*dt
-c     $           ,lum(j-1)/radn2/radn2,alpha*df(j)*(t4-t4m),srceni(j)*dt
-c     $           j,a11, a12, b1, c1, a21, a22, b2, c2
             gam1(j) = a11*b2*detmi
             gam2(j) = a11*(a22*gam2(j-1)-a21)*detmi
             lgam1(j) = (b2*c1+a12*(a22*lgam2(j-1)-c2))*detmi
@@ -275,16 +238,7 @@ c     $           j,a11, a12, b1, c1, a21, a22, b2, c2
          enddo
          t2n = temp(n)*temp(n)
          t4n = t2n*t2n
-c         ft = -exp(-opdept(n-1)**2)+0.5/(3.0*opdept(n-1)+0.25)
 
-c$$$         bgam = 8.0*pi*radn2*t4n*sigma/lum(n)
-c$$$         dll(n) = (gam1(n)*bgam-gam1(n)-4.0*bgam*lgam1(n))/
-c$$$     &        (gam1(n)/lum(n)+4.0*bgam)
-c$$$         dltemp(n) =(1.0-bgam-lgam1(n)/lum(n))/(gam1(n)/lum(n)+4.0*bgam)
-c$$$         bgam = 8.0*pi*t4n*sigma
-c$$$         dll(n) = (bgam-lum(n)/radn2-4.0*bgam*lgam2(n))/
-c$$$     $        (1.d0+4.0*bgam*gam2(n))i
-!         dll(n)=(lum(n-1)-lum(n)-lgam1(n))/(1.d0+gam1(n)) 
          dll(n) = (radn2*16.d0*pi*sigma*temp(n)**4)
      $    /3.d0/((kap(n)*dmass(n)/4.d0/pi/radn2)+2.d0/3.d0) - lum(n)
          dltemp(n) = -gam2(n)*dll(n)-lgam2(n)
@@ -297,7 +251,7 @@ c$$$     $        (1.d0+4.0*bgam*gam2(n))i
          tesl = 0.d0
          do j = icell+2, n
             temp(j) = max(t_min,temp(j)*(1.0+max(-0.1d0,dltemp(j))))
-c$$$            print *,"dT(",j,")/T=",dltemp(j),"dl=",dll(j)
+
             ts = sqrt(temp(j))
             t2 = temp(j)*temp(j)
             lum(j) = lum(j)+dll(j)
@@ -318,11 +272,9 @@ c$$$            print *,"dT(",j,")/T=",dltemp(j),"dl=",dll(j)
          enddo
          temp(icell) = temp(icell+3)
          temp(icell+1) = temp(icell+2)
-!         call eos(n,0,dedlt,kap)
          call eoshelm_e(n,dedlt,temp,e,tau,p,x,grv,rad,eu,g,g1,cs,u,mn,
      $           nelem,time)
          iter = iter + 1
-c        convergence test
          tesm = max(test,tesl)
          if(test.gt.tesl)then
            which = 1
@@ -336,22 +288,9 @@ c        convergence test
          end if
 
 
-
-c$$$         print *,"test@",iter,"=",test,tesl
-!         write(*,*)"*****************************"
-!         write(*,*)"radtra iteration iter =",iter
-!         write(*,*)"lum(n)=",lum(n)
-!         write(*,*)"gam12lgam12atn",gam1(n),gam2(n),lgam1(n),lgam2(n)
-!         write(*,*)"         k         temp(k)
-!     $               dltemp(k)"
-!         do j = n - 10 , n
-!           write(*,*),j,temp(j),dltemp(j),kap(j)
-!         end do
-!         write(*,*)"*****************************"
          if(tesm.lt.eps)goto 400
       enddo
  400  continue
-c     if(iter.ge.40)write(6,*)'no of iterations',iter,istep
       if(istep.eq.0)then
          open(84,file='EruptionFiles/rtReport.d', status='unknown')
          write(84,*)"*****rtReport*****"
@@ -375,16 +314,10 @@ c     if(iter.ge.40)write(6,*)'no of iterations',iter,istep
             if(abs(dltemp(j)).gt.epsl.and.tauo(j).gt.1d-2)then
                write(*,'(i4,1p6e12.4)')j,temp(j),lum(j),dltemp(j),dll(j)
      $              ,eu(j),oeu(j)
-c               temp(j) = 0.5d0*(temp(j-1)+temp(j+1))
-c               eu(j) = oeu(j) + srce(j)*dt
             end if
          enddo
          stop
-c         call eos(n,1,dedlt,kap)
       endif
-c$$$      if(tesm.gt.epsl)write(6,498)(j,df(j),dltemp(j),temp(j)
-c$$$     &     ,opdept(j),lum(j), dll(j),j = 1,n)
-c$$$      if(tesm.gt.epsl)stop' due to large errors in radtra'
 498   format(' no',7x,'rho',4x,'dltemp',9x,' t',7x,' tau',5x,'lum'
      &       ,7x,'  dll',/,(i5,1p6e11.3))
 

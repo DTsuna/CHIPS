@@ -8,7 +8,7 @@ c---  initial data is required.
       common/nickel/ni
       common / neutrn / tmns
       real*8 msol, kh, eje, AU
-      character*128 filename 
+      character*128 filename
       character*20 hyd
       parameter ( msol = 1.989e33, kh = 8.3147515e7, AU=1.495978707e13 )
       real*8 dmass(mn), encm(mn), encmg(mn), tp(100)
@@ -54,7 +54,7 @@ c---  initial data is required.
       real*8 fixedRad
       integer year
       ! Calculate only ejecta after dynamcal time if true.
-      logical EjectaOnly 
+      logical EjectaOnly
       EjectaOnly = .true.
       dummyInt = 3
       year = 1
@@ -83,7 +83,7 @@ c---  initial data is required.
       write(*,*)' iout = ',iout
       close(18)
 
-        
+
       open(21,file='src/eruption/hydro/eruptPara.d',status='old')
       read(21,*)
       read(21,*)time_to_cc, e_charge_tot, injection_time,
@@ -96,11 +96,8 @@ c---  initial data is required.
       open(66,file='EruptionFiles/passage@0.1AU.txt',form='formatted')
       write(66,*)' no. time radius mass density velocity pressure'
      $     ,' temperature'
-c$$$      do k = 1, ntp
-c$$$         tp(k) = tp(k)*8.64d4
-c$$$      enddo
+
 cexpl  construct the initial model
-c      time = 0.d0
       call init(n, hyd, alpha, cut, istart, time, encmg, eje, nadd,
      $                    dynamicalTime)
       do jj = 1, 90
@@ -109,13 +106,12 @@ c      time = 0.d0
       do jj = 1, 9
         when_out(jj+90) = (dynamicalTime*2/90.d0)*89.d0+
      $  ((time_to_cc -(dynamicalTime*2/90.d0)*89.d0)/9.d0)*jj
-      end do 
+      end do
       write(*,*)"********* OUTPUT TIME ***********"
       do jj = 1, 99
         write(*,*),jj,when_out(jj)
       end do
 
-!      dynamicalTime = 1.d3
 
 
       boundr = (rad(3)+rad(4))/2.d0
@@ -138,15 +134,15 @@ c      time = 0.d0
 
       if(scaleDepositionFlag)e_charge_tot = -1.d0*te*scalingRate
       write(*,*)time_to_cc, e_charge_tot, injection_time
-c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
+
 
       open(97, file='EruptionFiles/parameter.txt'
      $       ,status='unknown',form='formatted')
       write(97,*)"time_to_cc injected_energy inject_duration"
       write(97,*)time_to_cc, e_charge_tot, injection_time
       close(97)
-      
-!      call eos(n,1,cv,kap)
+
+
       call eoshelm(n,cv,temp,e,tau,p,x,
      %        grv,rad,eu,g,g1,cs,u,mn,nelem,time,dummyInt)
 
@@ -173,10 +169,10 @@ c$$$      if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
             go to 95
          end if
  9    continue
+
 cexpl  start the hydrodynamical calculation
  95   write(*,*)'calculation starts here'
       ihyd = istart
-c$$$      do 10 ihyd = istart, ihydm
       do while(time.le.tp(ntp))
       print *,time,ihyd,dt
       write(*,*)"fixedCell=",fixedCell
@@ -227,7 +223,7 @@ c$$$      do 10 ihyd = istart, ihydm
       innerCell = 3
         if(ejectaCut.eq.1)then
         innerCell = fixedCell
-      end if 
+      end if
       call cournt( n, dtcfac, time, dtc ,innerCell)
       dt = min(tp(kp)-time,dtc)
       if(dt.lt.dtc)kp = kp+1
@@ -255,7 +251,6 @@ c$$$      do 10 ihyd = istart, ihydm
       call advanc(n,alpha,nadd,dt,dmass,encmg,time,boundr,
      $                e_charge_tot,injection_time,innerCell)
 
-c      call grow(n, finish, dt, time, encmg)
       time = time + dt
       write(*,*)"timetocc=",time_to_cc
 
@@ -270,7 +265,7 @@ c      call grow(n, finish, dt, time, encmg)
       innerCell = 3
       if(ejectaCut.eq.1)then
         innerCell = fixedCell
-      end if      
+      end if
       call eoshelm(n,cv,temp,e,tau,p,x,grv,rad,eu,g,g1,cs,u,mn,
      $   nelem,time,innerCell)
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
@@ -321,7 +316,7 @@ c      call grow(n, finish, dt, time, encmg)
      $               ,form='formatted')
         write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H X_He
      $ P[erg/cc]"
-        do jj = output_init, n 
+        do jj = output_init, n
            write(98,'(i0, e18.10, e18.10, e18.10,
      $                   e18.10, e18.10, e18.10, e18.10)'),jj,
      $encm(jj)-encm(output_init-1),rad(jj),u(jj),
@@ -333,8 +328,7 @@ c      call grow(n, finish, dt, time, encmg)
       end if
 
       if(ihyd.ge.0)then
-!      if(ihyd/iout*iout.eq.ihyd)then
-c$$$         jw = iphoto
+
          call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
          write(*,'(''total energy ='',1pe12.4,''erg, etherm =''
      $        ,e12.4,'' erg'')')te, tet
@@ -358,13 +352,11 @@ c$$$         jw = iphoto
      $        j=max(fixedCell,jw-10),max(20+fixedCell,min(jw+10,n)))
          end if
 
-c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
       endif
 
       kp1 = max(kp-1,1)
       if(time.eq.tp(kp1)) then
       end if
-!      if(u(n).gt.2.d9.and.iarrv.eq.0)then
       if(u(n).gt.1.d9.and.iarrv.eq.0)then
          iarrv = 1
          print *,"shock breaks out at t=",time
@@ -379,7 +371,6 @@ c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
             end if
          enddo
          if(jn.lt.n)then
-!               jw = jw+(jn-n)
             n = jn
             print *,"n changes to",n," rho(j)=",1.d0/tau(n+1),
      $              " rho(j-1)=",1.d0/tau(n)
@@ -387,7 +378,6 @@ c$$$         if(idev.ne.0)call view(nna,idev,time,rad,tau,p,u,ye,lum,temp)
       endif
       ihyd = ihyd+1
       enddo
-c$$$ 10   continue 
       finish = .true.
       call output(n, alpha, ihyd, time, dt)
       write(*,*)"at 99"

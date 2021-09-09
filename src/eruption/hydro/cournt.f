@@ -19,12 +19,9 @@
          if(dtcc.ne.dtcc_old)meshc = i
          if(dtcr.ne.dtcr_old)meshr = i
 
-c         write(*,'(1p4e12.4,i4)')rad(i),rad(i-1),dtcc,dtcr,i
-c         if(time.gt.7.d0)write(*,'(1p4e12.4,i4)')rad(i),rad(i-1),dtcc,dtcr,i
       enddo
 !      write(*,*)'Time step is decided by mesh',mesh
 
-c      ------- get time step by applying safety factors to rates
       dtc = min(dtcfac/dtcc,1/dtcr)
       if(dtcfac/dtcc.lt.1/dtcr)then
         write(*,*)'Time step is decided by mesh',meshc
@@ -32,10 +29,5 @@ c      ------- get time step by applying safety factors to rates
       if(dtcfac/dtcc.gt.1/dtcr)then
         write(*,*)'Time step is decided by mesh',meshr
       end if
-c$$$      if(time.gt.0.d0)then
-c$$$         dtc = min(0.0025d0*time, dtcfac/dtcc)
-c$$$      else
-c         dtc = dtcfac/dtcc
-c      endif
       return
       end

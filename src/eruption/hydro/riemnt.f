@@ -1,9 +1,9 @@
-c
+
 cn    name:     r i e m n t
-c
 c---- solve the riemann problem by newton's method
       subroutine riemnt( n, ihyd, gl, gr, g1l, g1r, pl, pr, taul, taur,
      *     vell, velr, pn)
+
 c$ use omp_lib
       include 'inclm1.f'
       include 'omp_lib.h'
@@ -33,17 +33,6 @@ c---- initial guess for resolved pressure
  10   continue
       ps(n) = pn
 
-!      call omp_set_num_threads(12)
-
-c$OMP PARALLEL
-c$OMP& PRIVATE(i,it,gslc,gsrc,psl,psr,alp,psla,arp,psra,ggl,
-c$OMP&                 pslg,fgm,wlg,ggr,psrg,wrg,fdel,delps,
-c$OMP&                 error,ga,pa,va)
-c$OMP DO
-      do 20 i = 2, n
-!         if(ihyd.le.1000)then
-!         write(*,*)'THREAD=',omp_get_thread_num()
-!         end if
          do 30 it = 1, maxrmn
             gslc = gl(i)+2.d0*(1.d0-gb(i)/g1b(i))*(gb(i)-1.d0)
      &           *(ps(i)-pl(i))/(ps(i)+pl(i))
@@ -60,6 +49,7 @@ c$OMP DO
             arp = 0.5d0*(g1r(i)-1.d0)/g1r(i)
             psra = psr**arp
             if(psla.ge.1.d0)then
+
 cexpl -------- for shock wave
                ggl = -sign(0.5d0,-abs(gsl(i)/gl(i)-1.d0))+0.5d0
                pslg = psl*ggl
@@ -74,6 +64,7 @@ cexpl -------- for shock wave
      &              +0.5d0*ggl*wlg/(fgm+undflw)*(gsl(i)-gl(i)+undflw)/
      &              (pl(i)*((1.d0-psl)**2+undflw)*(gl(i)-1.d0))
             else
+
 cexpl -------- for rarefaction wave
                wl(i) = sqrt(pl(i)/taul(i)*g1l(i))*alp*
      &              (1.d0-psl+undflw)/(1.d0-psla+undflw)
@@ -82,6 +73,7 @@ cexpl -------- for rarefaction wave
      &              /(1.d0-psla+undflw)**2
             endif
             if(psra.ge.1.d0)then
+
 cexpl -------- for shock wave
                ggr = -sign(0.5d0,-abs(gsr(i)/gr(i)-1.d0))+0.5d0
                psrg = psr*ggr
@@ -96,6 +88,7 @@ cexpl -------- for shock wave
      &              +0.5d0*wrg*ggr/fgm*(gsr(i)-gr(i)+undflw)
      &              /(pr(i)*((1.d0-psr)**2+undflw)*(gr(i)-1.d0))
             else
+
 cexpl -------- for rarefaction wave
                wr(i) = sqrt(pr(i)/taur(i)*g1r(i))*arp*
      &              (1.d0-psr+undflw)/(1.d0-psra+undflw)
@@ -114,10 +107,6 @@ cexpl -------- for rarefaction wave
 
             ps(i) = psprev(i)+max(-0.9d0*ps(i),delps)
 
-!            if(i.eq.499.and.it.eq.1)then
-!              write(*,*)"error ps",wl(i),wr(i),vell(i),velr(i),
-!     &                                 pl(i),pr(i)
-!            end if
 
             error = abs(delps/ps(i))
             if(i.eq.n)then

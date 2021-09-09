@@ -31,7 +31,6 @@
       DO 15 J = 3, N-2
          TFLAT = ABS(ABS(P(J+1)-P(J-1))
      $        /ABS(1D-99+(P(J+2)-P(J-2))-1.D0))
-c         if(j.le.5)print *,j,tflat
          IF(TFLAT.LT.1D-2)then
             FLAT(J) = 1
          end if

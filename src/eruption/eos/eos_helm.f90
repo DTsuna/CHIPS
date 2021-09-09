@@ -9,7 +9,7 @@
 ! Don't forget to set temp_trial, den_row(1), abundance, epsilon_temp, e_th
 
 ! tests the eos routine
-! 
+!
 ! ionmax  = number of isotopes in the network
 ! xmass   = mass fraction of isotope i
 ! aion    = number of nucleons in isotope i
@@ -67,18 +67,10 @@
 
 
 !      call omp_set_num_threads(12)
-!$OMP PARALLEL SHARED(temp_ar,p_ar,eu_ar,g_ar,&
-!$OMP&                g1_ar,dedlt_ar,cs_ar,tau_ar,&
-!$OMP&                u_ar,e_ar,rad_ar,grv_ar,x_ar,aion,zion,&
-!$OMP&                n) PRIVATE(k,j,i,xmass,temp,den,abar,zbar,&
-!$OMP&                temp_trial,e_th,epsilon_temp,d_temp,beta,error,&
-!$OMP&                te, dt, pref, muie, p, arad)
-!$OMP DO
       write(*,*)"innerCell in eoshelm", innerCell
       do k = innerCell, n
        do j = 1, ionmax
         xmass(j) = x_ar(k,j)
-!        write(*,*) 'x', xmass(j)
        end do
 
        arad = 7.56464e-15
@@ -89,9 +81,6 @@
 
 ! set the input vector. pipeline is only 1 element long in this example
        temp_trial = temp_ar(k)
-!       if(k.lt.n)then
-!         rn = sqrt(((rad_ar(k+1)**2.d0)+(rad_ar(k)**2.d0)+rad_ar(k)*rad_ar(k+1))/3.d0)
-!       end if
        if(k.le.n)then
          rn = rad_ar(k)
        end if
@@ -113,12 +102,6 @@
 ! set the how accurate answer we demand
        epsilon_temp = 1.0d-4
 
-!       write(*,*) 'k=',k
-!       write(*,*) 'tenp_tiral=',temp_trial
-!       write(*,*) 'e_th=',e_th
-!       write(*,*) 'den=',den_row(1)
-!       write(*,*) 'abar=',abar_row(1)
-!       write(*,*) 'zbar=',zbar_row(1)
 
 ! start to calculate
 
@@ -126,24 +109,15 @@
 ! calculation i = 1
        temp_row(1) = temp_trial
        i = 1
-!       write(*,*) 'loop',k,temp_row(1)
 
        error = 0
        call helmeos(k,error)
        if(error.ne.0)then
          write(*,*)"error",error,"before itteration at cell",k
-!         open(81,file='EruptionFiles/eos_Report.d', access='append')
-!         write(81,*),k,time,"before iter"
-!         close(81)
        end if
-!       write(*,*),omp_get_thread_num()
-
-!       write(*,*)k,e_th,etot_row(1),det_row(1)
 
 
        d_temp = (e_th - etot_row(1))/(det_row(1))
-!       write(*,*) '*****************calculation start****************'
-!       write(*,*) 'trial =' ,i, 'temperature =' ,temp_row(1), 'e_th_tiral =' ,etot_row(1)
        i = i + 1
 
 ! calculation i > 1
@@ -153,12 +127,8 @@
           call helmeos(k,error)
           if(error.ne.0)then
             write(*,*)"error",error ,"during itteration at cell",k
-!            open(81,file='EruptionFiles/eos_Report.d', access='append')
-!            write(81,*),k,time,"during iter"
-!            close(81)
           end if
           d_temp = (e_th - etot_row(1))/(det_row(1))
-!          write(*,*) 'trial =' ,i, 'temperature =' ,temp_row(1), 'e_th_tiral =' ,etot_row(1)
           i = i + 1
           if(i.gt.100)then
             write(*,*)"eoshelm failed to converge!"
@@ -209,8 +179,6 @@
           dedlt_ar(k) = 1.5d0*dkh*(1.0d0/abar + 0.5)*temp_ar(k)+4.0d0*(temp_ar(k)**4)*tau_ar(k)*arad
           cs_ar(k) = sqrt(g1_ar(k)*p_ar(k)*tau_ar(k))
 
-!          write(*,*)"gamma(",k,")=",g1_ar(k)
-!          write(*,*)"t(eoshelm)=",temp_ar(k),"t(eos)=",te,"p(eoshelm=)",p_ar(k),"p(eos)=",p
        end if
        if(temp_ar(k).lt.100.d0.or.thnegative.eq.1)then
          temp_ar(k) = 100.d0
@@ -239,7 +207,7 @@
        g1_ar(2) = g1_ar(3)
        dedlt_ar(2) = dedlt_ar(3)
        cs_ar(2) = cs_ar(3)
-       temp_ar(1) = temp_ar(4) 
+       temp_ar(1) = temp_ar(4)
        p_ar(1) = p_ar(4)
        eu_ar(1) = eu_ar(4)
        e_ar(1) = e_ar(4)
@@ -251,7 +219,7 @@
 
 
       return
-      end   
+      end
 
 
 
@@ -303,7 +271,6 @@
                   fddt(i,j),fdtt(i,j),fddtt(i,j)
         enddo
        enddo
-!       write(6,*) 'read main table'
 
 
 ! read the pressure derivative with density table
@@ -312,7 +279,6 @@
          read(19,*) dpdf(i,j),dpdfd(i,j),dpdft(i,j),dpdfdt(i,j)
         enddo
        enddo
-!       write(6,*) 'read dpdd table'
 
 ! read the electron chemical potential table
        do j=1,jmax
@@ -320,7 +286,7 @@
          read(19,*) ef(i,j),efd(i,j),eft(i,j),efdt(i,j)
         enddo
        enddo
-!       write(6,*) 'read eta table'
+
 
 ! read the number density table
        do j=1,jmax
@@ -328,7 +294,7 @@
          read(19,*) xf(i,j),xfd(i,j),xft(i,j),xfdt(i,j)
         enddo
        enddo
-!       write(6,*) 'read xne table'
+
 
 ! close the file
       close(unit=19)
@@ -360,16 +326,6 @@
         dd3i_sav(i) = dd3i
        enddo
 
-
-
-!      write(6,*)
-!      write(6,*) 'finished reading eos table'
-!      write(6,04) 'imax=',imax,' jmax=',jmax
-!04    format(1x,4(a,i4))
-!      write(6,03) 'temp(1)   =',t(1),' temp(jmax)   =',t(jmax)
-!      write(6,03) 'ye*den(1) =',d(1),' ye*den(imax) =',d(imax)
-!03    format(1x,4(a,1pe11.3))
-!      write(6,*)
 
       return
       end
@@ -473,15 +429,6 @@
         dd3i_sav_ion(i) = dd3i
        enddo
 
-
-!      write(6,*)
-!      write(6,*) 'finished reading eos ion table'
-!      write(6,04) 'imax=',imax,' jmax=',jmax
-!04    format(1x,4(a,i4))
-!      write(6,03) 'temp(1)     =',tion(1),' temp(jmax)     =',tion(jmax)
-!      write(6,03) 'ytot*den(1) =',dion(1),' ytot*den(imax) =',dion(imax)
-!03    format(1x,4(a,1pe11.3))
-!      write(6,*)
 
       return
       end
@@ -673,9 +620,6 @@
       eosfail = .false.
       do j=jlo_eos,jhi_eos
 
-!       if (temp_row(j) .le. 0.0) stop 'temp less than 0 in helmeos'
-!       if (den_row(j)  .le. 0.0) stop 'den less than 0 in helmeos'
-
        temp  = temp_row(j)
        den   = den_row(j)
        abar  = abar_row(j)
@@ -735,11 +679,6 @@
         z       = x * s * sqrt(s)
         y       = log(z)
 
-!        y       = 1.0d0/(abar*kt)
-!        yy      = y * sqrt(y)
-!        z       = xni * sifac * yy
-!        etaion  = log(z)
-
 
         sion    = (pion*deni + eion)*tempi + kergavo * ytot1 * y
         dsiondd = (dpiondd*deni - pion*deni*deni + deiondd)*tempi &
@@ -775,7 +714,7 @@
          return
         end if
         if (temp .lt. t(1)) then
-         write(6,01) 'temp=',temp,' t(1)=',t(1), 'den=',den 
+         write(6,01) 'temp=',temp,' t(1)=',t(1), 'den=',den
          write(6,*) 'temp too cold, off gridi at',kk
          error = 2
          write(6,*) 'setting eosfail to true and returning'
@@ -894,14 +833,6 @@
         ddsi1mt = -ddpsi1(mxt)*dti_sav(jat)
         ddsi2mt =  ddpsi2(mxt)
 
-!        ddsi0d =   ddpsi0(xd)*dd2i_sav(iat)
-!        ddsi1d =   ddpsi1(xd)*ddi_sav(iat)
-!        ddsi2d =   ddpsi2(xd)
-
-!        ddsi0md =  ddpsi0(mxd)*dd2i_sav(iat)
-!        ddsi1md = -ddpsi1(mxd)*ddi_sav(iat)
-!        ddsi2md =  ddpsi2(mxd)
-
 
 ! the free energy
         free  = h5(iat,jat, &
@@ -919,10 +850,6 @@
                 dsi0t,  dsi1t,  dsi2t,  dsi0mt,  dsi1mt,  dsi2mt, &
                 si0d,   si1d,   si2d,   si0md,   si1md,   si2md)
 
-! derivative with respect to density**2
-!        df_dd = h5(iat,jat,
-!     1          si0t,   si1t,   si2t,   si0mt,   si1mt,   si2mt,
-!     2          ddsi0d, ddsi1d, ddsi2d, ddsi0md, ddsi1md, ddsi2md)
 
 ! derivative with respect to temperature**2
         df_tt = h5(iat,jat, &
@@ -1083,7 +1010,6 @@
         x       = din * din
         pele    = x * df_d
         dpepdt  = x * df_dt
-!        dpepdd  = ye * (x * df_dd + 2.0d0 * din * df_d)
         s       = dpepdd/ye - 2.0d0 * din * df_d
         dpepda  = -ytot1 * (2.0d0 * pele + s * din)
         dpepdz  = den*ytot1*(2.0d0 * din * df_d  +  s)
@@ -1195,15 +1121,8 @@
         y   = erad + eion + eele + ecoul
         z   = srad + sion + sele + scoul
 
-!        write(6,*) x,y,z
-!        if (x .le. 0.0 .or. y .le. 0.0 .or. z .le. 0.0) then
         if (x .le. 0.0 .or. y .le. 0.0) then
-!        if (x .le. 0.0) then
 
-!         write(6,*)
-!         write(6,*) 'coulomb corrections are causing a negative pressure'
-!         write(6,*) 'setting all coulomb corrections to zero'
-!         write(6,*)
 
          pcoul    = 0.0d0
          dpcouldd = 0.0d0
@@ -1669,5 +1588,3 @@
 
       return
       end
-
-

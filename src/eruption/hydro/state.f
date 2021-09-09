@@ -22,12 +22,10 @@
       call avrge(n,dt,dmass)
 
       do j = 2, n
-         psl(j) = pp(j) 
+         psl(j) = pp(j)
      $        + dt*sqrt(g1p(j)*pp(j)/taup(j))*grv(j)
-         psr(j) = pm(j) 
+         psr(j) = pm(j)
      $        - dt*sqrt(g1m(j)*pm(j)/taum(j))*grv(j+1)
-c$$$         usl(j) = up(j)
-c$$$         usr(j) = um(j)
          usl(j) = ur(j) + 2.0*(arp(j)*up(j)-ar(j)*ur(j))/(arp(j)+ar(j))
          usr(j) = ul(j+1) + 2.0*(arm(j)*um(j)-ar(j)*ul(j+1))
      $           /(arm(j)+ar(j))
@@ -36,7 +34,5 @@ c$$$         usr(j) = um(j)
       psr(1) = psl(3)
       usl(1) = -usr(3)
       usr(1) = -usl(3)
-c$$$      usl(2) = 0
-c$$$      usr(2) = 0
       return
       end

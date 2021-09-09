@@ -58,7 +58,6 @@ cex    xi(j) <==> xi(j+1/2)
       dxi2 = dxi(n)+dxi(n-1)
       pint(n-1) = (dxi(n)*p(n-1)+dxi(n-1)*p(n))/dxi2
       uint(n-1) = (dxi(n)*u(n-1)+dxi(n-1)*u(n))/dxi2
-c      uint(n-1) = uint(n-2)
       tauint(n-1) = (dxi(n)*tau(n-1)+dxi(n-1)*tau(n))/dxi2
       arint(n-1) = (dxi(n)*ar(n-1)+dxi(n-1)*ar(n))/dxi2
       gint(n-1) = (dxi(n)*g(n-1)+dxi(n-1)*g(n))/dxi2
@@ -66,7 +65,6 @@ c      uint(n-1) = uint(n-2)
       dxi2n = 2.d0*dxi(n)+dxi(n-1)
       pint(n) = (dxi(n)*p(n-1)+dxi2n*p(n))/dxi2
       uint(n) = (dxi(n)*u(n-1)+dxi2n*u(n))/dxi2
-c      uint(n) = uint(n-2)
       arint(n) = (dxi(n)*ar(n-1)+dxi2n*ar(n))/dxi2
       tauint(n) = (dxi(n)*tau(n-1)+dxi2n*tau(n))/dxi2
       gint(n) = (dxi(n)*g(n-1)+dxi2n*g(n))/dxi2
@@ -79,12 +77,5 @@ c      uint(n) = uint(n-2)
          gint(i) = gint(4-i)
          g1int(i) = g1int(4-i)
  30   continue
-c$$$      pint(1) = 0.5*(p(1)+p(2))
-c$$$      uint(1) = 0.5*(u(1)+u(2))
-c$$$      arint(1) = 0.5*(ar(1)+ar(2))
-c$$$      tauint(1) = 0.5*(tau(1)+tau(2))
-c$$$      gint(1) = 0.5*(g(1)+g(2))
-c$$$      g1int(1) = 0.5*(g1(1)+g1(2))
-c      write(*,'(i4,1p2e12.4)')(i,p(i),pint(i),i=1,10)
       return
       end

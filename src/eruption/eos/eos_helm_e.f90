@@ -7,7 +7,6 @@
 ! Don't forget to set temp_trial, den_row(1), abundance, epsilon_temp, e_th
 
 ! tests the eos routine
-! 
 ! ionmax  = number of isotopes in the network
 ! xmass   = mass fraction of isotope i
 ! aion    = number of nucleons in isotope i
@@ -110,63 +109,14 @@
          muie = 1.d0/abar + 0.5d0
          eu_ar(k) = 1.5d0*dkh*temp_row(1)*muie + &
               radcons*(temp_row(1)**4.d0)/den_row(1)
-         e_ar(k)  = eu_ar(k) + 0.5d0*u_ar(k)**2 + grv_ar(k)*rad_ar(k) 
+         e_ar(k)  = eu_ar(k) + 0.5d0*u_ar(k)**2 + grv_ar(k)*rad_ar(k)
          p_ar(k)  = muie*dkh*den_row(1)*temp_row(1) + &
                       radcons*(temp_row(1)**4.d0)/3.d0
          dedlt_ar(k) = 1.5d0*dkh*(1.0d0/abar + 0.5d0)* &
                    temp_ar(k)+4.0d0*(temp_ar(k)**4.d0)*tau_ar(k)*radcons
-         
+
        end if
-!       beta = (1.0d0/abar + 0.5)*dkh*temp_ar(k)/(p_ar(k)*tau_ar(k))
-!       g_ar(k) = p_ar(k)*tau_ar(k)/eu_ar(k) + 1.0d0
-!       g1_ar(k) = (8.0d0 - 3.0d0*beta)/(6.0d0 - 3.0d0*beta)
-!       cs_ar(k) = sqrt(g1_ar(k)*p_ar(k)*tau_ar(k))
 
-
-
-!       dedlt_ar(k) = 1.5d0*dkh*(1.0d0/abar + 0.5d0)* &
-!              temp_ar(k)+4.0d0*(temp_ar(k)**4.d0)*tau_ar(k)*radcons
-!       write(*,*)"dedlt_ar(k)",k,dedlt_ar(k)
-!       write(*,*)"dedlt_ar(k)",k,dedlt_ar(k)
-!       write(*,*)"p_ar(k)",p_ar(k),k
-      
-!       eu_ar(k) = etot_row(1)
-!       d_temp = (e_th - etot_row(1))/(det_row(1))
-!       write(*,*) '*****************calculation start****************'
-!       write(*,*) 'trial =' ,i, 'temperature =' ,temp_row(1), 'e_th_tiral =' ,etot_row(1)
-!       write(*,*) 'det_row(1)=',det_row(1), 'e_th=',e_th, 'etot_row(1)=',etot_row(1), 'd_temp=' ,d_temp
-!       pause
-!       i = i + 1
-
-! calculation i > 1
-!       do while (abs(d_temp) > epsilon_temp)
-!          temp_row(1) = temp_row(1) + d_temp
-!          call helmeos_e
-!          d_temp = (e_th - etot_row(1))/(det_row(1))
-!          write(*,*) 'trial =' ,i, 'temperature =' ,temp_row(1), 'e_th_tiral =' ,etot_row(1)
-!          pause
-!          i = i + 1
-!       end do
-! end of calculation
-
-
-!!引数に値を渡す!
-!       temp_ar(k) = temp_row(1)
-!       p_ar(k) = ptot_row(1)
-!       eu_ar(k) = etot_row(1)
-!       beta = (1.0d0/abar + 0.5)*dkh*temp_ar(k)/(p_ar(k)*tau_ar(k))
-!       g_ar(k) = p_ar(k)*tau_ar(k)/eu_ar(k) + 1.0d0
-!       g1_ar(k) = (8.0d0 - 3.0d0*beta)/(6.0d0 - 3.0d0*beta)
-!       dedlt(k) = 1.5d0*dkh*(1.0d0/abar + 0.5)*temp_ar(k) + 4.0d0*(temp_ar(k)**4)*tau_ar(k)
-!       cs_ar(k) = sqrt(g1_ar(k)*p_ar(k)*tau_ar(k))
-
-! write out the results
-!       call pretty_eos_out_e('helm:  ')
-!       write(*,*) '**********************result**********************'
-!       write(*,*) 'temperature =',temp_row(1)
-!       write(*,*) 'e_th        =',etot_row(1)
-!       write(*,*) 'pressure    =',ptot_row(1)
-!       write(*,*) '********************program end*******************'
 
       end do
       g_ar(2) = g_ar(3)
@@ -186,7 +136,7 @@
       p_ar(2) = p_ar(3)
       p_ar(1) = p_ar(4)
       return
-      end   
+      end
 
 
 
@@ -237,7 +187,6 @@
                   fddt(i,j),fdtt(i,j),fddtt(i,j)
         enddo
        enddo
-!       write(6,*) 'read main table'
 
 
 ! read the pressure derivative with density table
@@ -246,7 +195,6 @@
          read(19,*) dpdf(i,j),dpdfd(i,j),dpdft(i,j),dpdfdt(i,j)
         enddo
        enddo
-!       write(6,*) 'read dpdd table'
 
 ! read the electron chemical potential table
        do j=1,jmax
@@ -254,7 +202,6 @@
          read(19,*) ef(i,j),efd(i,j),eft(i,j),efdt(i,j)
         enddo
        enddo
-!       write(6,*) 'read eta table'
 
 ! read the number density table
        do j=1,jmax
@@ -262,7 +209,6 @@
          read(19,*) xf(i,j),xfd(i,j),xft(i,j),xfdt(i,j)
         enddo
        enddo
-!       write(6,*) 'read xne table'
 
 ! close the file
       close(unit=19)
@@ -296,14 +242,6 @@
 
 
 
-!      write(6,*)
-!      write(6,*) 'finished reading eos table'
-!      write(6,04) 'imax=',imax,' jmax=',jmax
-!04    format(1x,4(a,i4))
-!      write(6,03) 'temp(1)   =',t(1),' temp(jmax)   =',t(jmax)
-!      write(6,03) 'ye*den(1) =',d(1),' ye*den(imax) =',d(imax)
-!03    format(1x,4(a,1pe11.3))
-!      write(6,*)
 
       return
       end
@@ -407,15 +345,6 @@
         dd3i_sav_ion(i) = dd3i
        enddo
 
-
-!      write(6,*)
-!      write(6,*) 'finished reading eos ion table'
-!      write(6,04) 'imax=',imax,' jmax=',jmax
-!04    format(1x,4(a,i4))
-!      write(6,03) 'temp(1)     =',tion(1),' temp(jmax)     =',tion(jmax)
-!      write(6,03) 'ytot*den(1) =',dion(1),' ytot*den(imax) =',dion(imax)
-!03    format(1x,4(a,1pe11.3))
-!      write(6,*)
 
       return
       end
@@ -605,9 +534,6 @@
       eosfail = .false.
       do j=jlo_eos,jhi_eos
 
-!       if (temp_row(j) .le. 0.0) stop 'temp less than 0 in helmeos_e'
-!       if (den_row(j)  .le. 0.0) stop 'den less than 0 in helmeos_e'
-
        temp  = temp_row(j)
        den   = den_row(j)
        abar  = abar_row(j)
@@ -669,12 +595,6 @@
         z       = x * s * sqrt(s)
         y       = log(z)
 
-!        y       = 1.0d0/(abar*kt)
-!        yy      = y * sqrt(y)
-!        z       = xni * sifac * yy
-!        etaion  = log(z)
-
-
         sion    = (pion*deni + eion)*tempi + kergavo * ytot1 * y
         dsiondd = (dpiondd*deni - pion*deni*deni + deiondd)*tempi &
                    - kergavo * deni * ytot1
@@ -701,33 +621,21 @@
 
 ! bomb proof the input
         if (temp .gt. t(jmax)) then
-!         write(6,01) 'temp=',temp,' t(jmax)=',t(jmax)
-!         write(6,*) 'temp too hot, off grid at',k
-!         write(6,*) 'setting eosfail to true and returning'
          error = 1
          eosfail = .true.
          return
         end if
         if (temp .lt. t(1)) then
-!         write(6,01) 'temp=',temp,' t(1)=',t(1)
-!         write(6,*) 'temp too cold, off grid at',k
-!         write(6,*) 'setting eosfail to true and returning'
          error = 1
          eosfail = .true.
          return
         end if
         if (din  .gt. d(imax)) then
-!         write(6,01) 'den*ye=',din,' d(imax)=',d(imax)
-!         write(6,*) 'ye*den too big, off grid at',k
-!         write(6,*) 'setting eosfail to true and returning'
          error = 1
          eosfail = .true.
          return
         end if
         if (din  .lt. d(1)) then
-!         write(6,01) 'ye*den=',din,' d(1)=',d(1)
-!         write(6,*) 'ye*den too small, off grid at',k
-!         write(6,*) 'setting eosfail to true and returning'
          error = 1
          eosfail = .true.
          return
@@ -828,13 +736,6 @@
         ddsi1mt = -ddpsi1(mxt)*dti_sav(jat)
         ddsi2mt =  ddpsi2(mxt)
 
-!        ddsi0d =   ddpsi0(xd)*dd2i_sav(iat)
-!        ddsi1d =   ddpsi1(xd)*ddi_sav(iat)
-!        ddsi2d =   ddpsi2(xd)
-
-!        ddsi0md =  ddpsi0(mxd)*dd2i_sav(iat)
-!        ddsi1md = -ddpsi1(mxd)*ddi_sav(iat)
-!        ddsi2md =  ddpsi2(mxd)
 
 
 ! the free energy
@@ -852,11 +753,6 @@
         df_t = h5(iat,jat, &
                 dsi0t,  dsi1t,  dsi2t,  dsi0mt,  dsi1mt,  dsi2mt, &
                 si0d,   si1d,   si2d,   si0md,   si1md,   si2md)
-
-! derivative with respect to density**2
-!        df_dd = h5(iat,jat,
-!     1          si0t,   si1t,   si2t,   si0mt,   si1mt,   si2mt,
-!     2          ddsi0d, ddsi1d, ddsi2d, ddsi0md, ddsi1md, ddsi2md)
 
 ! derivative with respect to temperature**2
         df_tt = h5(iat,jat, &
@@ -1129,15 +1025,8 @@
         y   = erad + eion + eele + ecoul
         z   = srad + sion + sele + scoul
 
-!        write(6,*) x,y,z
-!        if (x .le. 0.0 .or. y .le. 0.0 .or. z .le. 0.0) then
         if (x .le. 0.0 .or. y .le. 0.0) then
-!        if (x .le. 0.0) then
 
-!         write(6,*)
-!         write(6,*) 'coulomb corrections are causing a negative pressure'
-!         write(6,*) 'setting all coulomb corrections to zero'
-!         write(6,*)
 
          pcoul    = 0.0d0
          dpcouldd = 0.0d0
@@ -1603,5 +1492,3 @@
 
       return
       end
-
-
