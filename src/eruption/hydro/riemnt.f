@@ -32,7 +32,8 @@ c---- initial guess for resolved pressure
          g1b(i) = 0.5d0*(g1l(i)+g1r(i))
  10   continue
       ps(n) = pn
-
+      
+      do 20 i = 2, n
          do 30 it = 1, maxrmn
             gslc = gl(i)+2.d0*(1.d0-gb(i)/g1b(i))*(gb(i)-1.d0)
      &           *(ps(i)-pl(i))/(ps(i)+pl(i))
