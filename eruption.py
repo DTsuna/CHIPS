@@ -95,8 +95,8 @@ else:
 
 
 # convert data for hydro in KS20
-file_hydro = 'EruptionFiles/InitForEruption.txt'
-convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr)
+file_eruption = 'EruptionFiles/InitForEruption.txt'
+convert.convertForEruption(file_cc, file_eruption, massCutPoint=options.eruption_innerMr)
 
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption.
 # However, the computation will be much slower.
