@@ -126,9 +126,9 @@ if options.calc_multiband:
 # calculate light curve
 for Eej in options.Eej:
 	# luminosity at shock
-	dir_name_shockprofiles = "LCFiles/SpecFiles_"+str(Eej)
+	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	shock_file = 'LCFiles/shock_output_'+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_name_shockprofiles)
+	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file, dir_Lnu)
 
 	# radiation transfer
 	# bolometric light curve
@@ -136,11 +136,11 @@ for Eej in options.Eej:
 	# multi-band light curve if requested
 	if options.calc_multiband:
 		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg_mag.txt'
-		subprocess.call(["rm", "-r", dir_name_shockprofiles])
-		subprocess.call(["mkdir", dir_name_shockprofiles])
+		subprocess.call(["rm", "-r", dir_Lnu])
+		subprocess.call(["mkdir", dir_Lnu])
 	else:
 		IIn_lc_band_file = ''
-	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_name_shockprofiles)
+	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
