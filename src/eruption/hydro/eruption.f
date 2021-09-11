@@ -190,7 +190,6 @@ cexpl  start the hydrodynamical calculation
             boundr = rad(fixedCell)
             ejectaCut = 1
             write(*,*)"fixedcell=",fixedCell,"at",rad(fixedCell)
-!            pause
           end if
         end if
       end if
