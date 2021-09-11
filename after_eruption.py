@@ -1,15 +1,11 @@
-from __future__ import print_function
-import glob
 from optparse import OptionParser
-import sys
 import subprocess
 
 # our modules
 from utils import utils
-from utils import mag
-import lightcurve
 from input.TOPS import gen_op_tbl 
 from input.TOPS_multigroup import gen_op_frq
+import lightcurve
 
 
 def parse_command_line():

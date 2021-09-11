@@ -1,10 +1,7 @@
-from __future__ import print_function
-import fileinput
 import glob
 from optparse import OptionParser
 import os
 import subprocess
-import sys
 
 # our modules
 from utils import convert
