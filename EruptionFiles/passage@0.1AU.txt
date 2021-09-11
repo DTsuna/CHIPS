@@ -1,1 +1,0 @@
-  no. time radius mass density velocity pressure temperature
