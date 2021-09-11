@@ -264,11 +264,6 @@
                        dd,dd2,ddi,dd2i,dd3i
 
 
-! open the file (use softlinks to input the desired table)
-
-       open(unit=19,file='helm_iontable.dat',status='old')
-
-
 ! for the standard table
        tion_lo   = 3.0d0
        tion_hi   = 13.0d0
