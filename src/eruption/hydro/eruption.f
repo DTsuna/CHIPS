@@ -93,9 +93,6 @@ c---  initial data is required.
       if(scaleDeposition.eq.1)scaleDepositionFlag = .true.
       write(*,*)time_to_cc, e_charge_tot, injection_time,
      $          scaleDepositionFlag, scalingRate, continueTransfer
-      open(66,file='EruptionFiles/passage@0.1AU.txt',form='formatted')
-      write(66,*)' no. time radius mass density velocity pressure'
-     $     ,' temperature'
 
 cexpl  construct the initial model
       call init(n, hyd, alpha, cut, istart, time, encmg, eje, nadd,

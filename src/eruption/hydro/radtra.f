@@ -297,12 +297,6 @@ c     iteration starts here
          close(84)
       end if
 
-      if(istep.eq.0)then
-         open(82,file='EruptionFiles/rtDebuger.d', status='unknown')
-         write(82,*)"*****rtDebuger*****"
-         close(82)
-      end if
-
       if(test.gt.epsl)then
          open(84,file='EruptionFiles/rtReport.d', access='append')
          write(84,*),test,istep,time,which,error_n,which_temp
