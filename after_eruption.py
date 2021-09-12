@@ -72,10 +72,10 @@ for Eej in options.Eej:
 	# radiation transfer
 	# bolometric light curve
 	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg.txt'
+	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	# multi-band light curve if requested
 	if options.calc_multiband:
 		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg_mag.txt'
-		dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 		subprocess.call(["rm", "-r", dir_Lnu])
 		subprocess.call(["mkdir", dir_Lnu])
 	else:
