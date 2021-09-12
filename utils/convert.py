@@ -54,8 +54,8 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 	if massCutPoint < 0.0:
 		massCut = h.he_core_mass + 0.2 # In solar mass unit
 	else:
-		print('massCut =' + str(massCut))
 		massCut = massCutPoint
+		print('massCut has been manually set to:' + str(massCut) + 'Msun')
 
 	if logscaleRemesh == True:
 		print('use logscale remesh')
