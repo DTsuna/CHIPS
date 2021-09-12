@@ -369,7 +369,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		}
 
 		/* exit when luminosity is less than 1e41 ergs, or forward shock reached outer edge */
-		if((F_out < F_max*0.1 && 4.*M_PI*r[n-1]*r[n-1]*F_out < 1.e+41) || r_ini > 0.99*rout){
+		if((F_out < F_max*0.1 && 4.*M_PI*r[n-1]*r[n-1]*F_out < 1.e+41) || r_ini > 0.99*r_out){
 			break;
 		}
 
