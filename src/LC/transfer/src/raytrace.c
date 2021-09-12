@@ -312,14 +312,10 @@ void calc_lum(double t, double r_init, double r_out, double F_ini, double r[], d
 	double lam_band[100], trans_band[100];
 	double dummy[3];
 	double sum1, sum2;
-	double A, B;
 	int i, j, k, l;
 	char filename1[512];
 	char bands[5][256] = {"./input/band_filters/uband.txt", "./input/band_filters/bband.txt", "./input/band_filters/vband.txt",
 				"./input/band_filters/rband.txt", "./input/band_filters/iband.txt"};
-
-	A = 1./(4.*M_PI*(pdt.n-pdt.delta))*pow(2.*(5.-pdt.delta)*(pdt.n-5.)*pdt.E_ej, (pdt.delta-3.)/2.)/pow((3.-pdt.delta)*(pdt.n-3.)*pdt.M_ej, (pdt.delta-5.)/2.);
-	B = 1./(4.*M_PI*(pdt.n-pdt.delta))*pow(2.*(5.-pdt.delta)*(pdt.n-5.)*pdt.E_ej, (pdt.n-3.)/2.)/pow((3.-pdt.delta)*(pdt.n-3.)*pdt.M_ej, (pdt.n-5.)/2.);
 
 	nu[0] = (P_C)/(2.9e-05); //corresponds to lambda = 290 nm;
 	nu[NNU-1] = (P_C)/(1.e-04); //corresponds to lambda = 1000 nm;
