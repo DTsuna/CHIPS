@@ -132,8 +132,8 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	slope = [r/p_in[i+1]*(p_in[i+1]-p_in[i])/(r_in[i+1]-r_in[i]) for i,r in enumerate(r_in) if i<len(r_in)-1]
 	# narrow down by also requiring outside of this to have a density profile of index ~-1.5.
 	# get a "global density slope" since there exists local numerical fluctuations
-	outward_global_slope = [r_in[i+10]/rho_in[i+20]*(rho_in[i+20]-rho_in[i+10])/(r_in[i+20]-r_in[i+10]) for i,r in enumerate(r_in) if i<len(r_in)-20]
-	istop = max([i for i in range(len(slope[:-21])) if slope[i]<-100 and outward_global_slope[i+1]>-4.0 and outward_global_slope[i+1]<-1.0])
+	outward_global_slope = [r_in[i+10]/rho_in[i+10]*(rho_in[i+20]-rho_in[i+10])/(r_in[i+20]-r_in[i+10]) for i,r in enumerate(r_in) if i<len(r_in)-20]
+	istop = max([i for i in range(len(slope[:-21])) if slope[i]<-100 and outward_global_slope[i+1]>-4.0 and outward_global_slope[i+1]<0.0])
 	# one cell forward to not include the jumped cell
 	istop += 1 
 	rstop = r_in[istop]
