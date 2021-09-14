@@ -8,7 +8,7 @@ supernovae.
 
 ## What can CHIPS do?
 
-CHIPS can generate a realistic CSM from a model-agnostic mass eruption calculation (reference 1), which can serve as a reference for observers to compare with various observations of the CSM. It can also generate bolometric light curves from CSM interaction (reference 2), which can also be compared with observed light curves. The calculation of mass eruption and light curve typically takes respectively half a day and half an hour on modern CPUs.
+CHIPS can generate a realistic CSM from a model-agnostic mass eruption calculation (reference 2), which can serve as a reference for observers to compare with various observations of the CSM. It can also generate bolometric light curves from CSM interaction (reference 3), which can also be compared with observed light curves. The calculation of mass eruption and light curve typically takes respectively half a day and half an hour on modern CPUs.
 
 ## Pre-reqs
 
@@ -43,7 +43,7 @@ Although this is not the recommended way, one can also do the MESA calculation i
 
 The argument --stellar-model should be the output file from this MESA calculation that one would like to be using as input for CHIPS. The argument --mesa-path should specify the relative path to where the calling scripts (mk, rn) for the MESA calculation is.
 
-We strongly advise to use an analytical CSM model (reference 3) that corrects the artifical shock-compressions that arise from the adiabatic mass eruption code. This can be done with the argument --analytical-CSM.
+We strongly advise to use an analytical CSM model (reference 4) that corrects the artifical shock-compressions that arise from the adiabatic mass eruption code. This can be done with the argument --analytical-CSM.
 
 
 ### Using an already obtained CSM for light curve calculation
@@ -58,9 +58,10 @@ The file given as profile-at-cc argument specifies how much time elapsed between
 The CHIPS code can obtain multi-band light curves if ray-tracing radiation transfer is turned on. To do this, add the argument --calc-multiband when running run.py or after_eruption.py.
 
 ## References:
-1. Kuriyama, Shigeyama (2020), A&A, 635, 127 (for mass eruption)
-2. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve)
-3. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
+1. Takei, Tsuna, Kuriyama, Ko, Shigeyama (2021), https://arxiv.org/abs/2109.05871
+2. Kuriyama, Shigeyama (2020), A&A, 635, 127 (for mass eruption)
+3. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve)
+4. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
 
 
 ## Contact
