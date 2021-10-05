@@ -73,3 +73,7 @@ The CHIPS code can obtain multi-band light curves if ray-tracing radiation trans
 ## Contact
 For questions, comments about the CHIPS code or possible collaboration, please email us from the following email address:
 chips___at___resceu.s.u-tokyo.ac.jp
+
+
+## Developers
+Daichi Tsuna, Yuki Takei, Naoto Kuriyama (past developer), Toshikazu Shigeyama, Takatoshi Ko
