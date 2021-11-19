@@ -1,3 +1,5 @@
+<img width="400" alt="CHIPS" src="https://user-images.githubusercontent.com/20248820/142557110-6e2a3032-aaf1-4f62-8d49-bb0364b20173.png">
+
 # Complete History of Interaction-Powered Supernovae (CHIPS)
 
 CHIPS is a tool for simulating the circumstellar matter and light curves of
