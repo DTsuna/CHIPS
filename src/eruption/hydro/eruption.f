@@ -310,7 +310,7 @@ cexpl  start the hydrodynamical calculation
         end if
         open(98,file='EruptionFiles/atCCSN.txt',status='unknown'
      $               ,form='formatted')
-        write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H X_He
+        write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H Y_He
      $ P[erg/cc]"
         do jj = output_init, n
            write(98,'(i0, e18.10, e18.10, e18.10,
