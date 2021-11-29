@@ -292,7 +292,7 @@ cexpl  start the hydrodynamical calculation
           output_init = fixedCell
         end if
         open(98, file=filename,status='unknown',form='formatted')
-        write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H X_H
+        write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H Y_He
      $P[erg/cc] t=",time
         do jj = output_init, n
            write(98,'(i0, e18.10, e18.10, e18.10,
