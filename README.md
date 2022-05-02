@@ -66,7 +66,7 @@ The file given as profile-at-cc argument specifies how much time elapsed between
 The CHIPS code can obtain multi-band light curves if ray-tracing radiation transfer is turned on. To do this, add the argument --calc-multiband when running run.py or after_eruption.py.
 
 ## References:
-1. Takei, Tsuna, Kuriyama, Ko, Shigeyama (2021), https://arxiv.org/abs/2109.05871
+1. Takei, Tsuna, Kuriyama, Ko, Shigeyama (2022), ApJ 929, 177
 2. Kuriyama, Shigeyama (2020), A&A, 635, 127 (for mass eruption)
 3. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve)
 4. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
