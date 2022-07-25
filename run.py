@@ -20,6 +20,7 @@ def parse_command_line():
 	parser.add_option("--tinj", metavar = "float", type = "float", help = "Time from mass eruption to core-collapse, in units of years (required).")
 	parser.add_option("--finj", metavar = "float", type = "float", help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (required).")
 	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
+	parser.add_option("--injection-duration", metavar = "float", type = "float", default = 1000, help = "Duration of energy injection for mass eruption calculation, in seconds (default: 1000).")
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
 	parser.add_option("--mesa-path", metavar = "string", type = "string", help = "Path to the execution files of MESA.")
@@ -79,10 +80,8 @@ else:
 file_eruption = 'EruptionFiles/InitForHydro.txt'
 convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr)
 
-# energy injection timescale
-inject_duration = 1e3 # unit in second
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption. However, the computation will be much slower.
-convert.setEruptionParam(options.tinj, inject_duration, options.finj, continueTransfer=False)
+convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, continueTransfer=False)
 
 # run eruptive mass-loss rad-hydro calculation
 subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
