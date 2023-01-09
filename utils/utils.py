@@ -94,8 +94,8 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM):
 	remnant_mass = remnant_from_CO(CO_core_mass)
 	Mej = total_mass - remnant_mass - CSM_mass
 	assert Mej > 0.0
-	print("Mej:%f Msun, n:%f, delta:%f" % (Mej, n, delta), file=sys.stderr)
-	return Mej, n, delta
+	print("Mej:%f Msun, n:%f, delta:%f, Mcsm:%f Msun" % (Mej, n, delta, CSM_mass), file=sys.stderr)
+	return Mej, n, delta, CSM_mass
 
 
 # remesh CSM for input to the light curve calculation
@@ -164,6 +164,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			v_out[i] = CSM[istop, 3]
 			X_out[i] = CSM[istop, 5]
 			Y_out[i] = CSM[istop, 6]
+			last_Mr = CSM[istop, 1]
 			counter += 1
 		elif r < r_in[-1]:
 			# initial Mr is that at istop.
@@ -171,7 +172,6 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			# to the actual value. We don't really mind because we only use the difference of Mr
 			# between 2 cells, but if we include the central star's gravity for calculation of
 			# the light curve, this has to be revisited.
-			last_Mr = CSM[istop, 1]
 			# obtain rho by log interpolation, Mr and v by linear. Mr is not used anyway
 			index = len([thisr for thisr in r_in if thisr < r])-1
 			fraction = (r - r_in[index]) / (r_in[index+1] - r_in[index])

@@ -84,7 +84,7 @@ convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr)
 convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, continueTransfer=False)
 
 # run eruptive mass-loss rad-hydro calculation
-subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
+#subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
 mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
@@ -106,7 +106,13 @@ profile_at_cc = 'EruptionFiles/atCCSN.txt'
 Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
 
 # extract the ejecta parameters
-Mej, n, delta = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
+Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
+
+with open('params/params.dat', mode='w') as f:
+	s = '#The latest parameters used in the calculation are listed.\n'
+	f.write(s)
+	s = 'Mej = {:.2f} Msun\nn = {:.2f}\nfinj = {:.2f}\ntinj = {:.2f} yr\nmesa model = '.format(Mej, n, options.finj, options.tinj)+options.stellar_model+'\n'+'CSM mass = {:.2f} Msun'.format(CSM_mass)
+	f.write(s)
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'

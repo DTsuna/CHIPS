@@ -50,7 +50,13 @@ CSM_file = 'LCFiles/CSM.txt'
 Y_He = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind = options.steady_wind)
 
 # extract the ejecta parameters
-Mej, n, delta = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file)
+Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file)
+
+with open('params/params_after_eruption.dat', mode='w') as f:
+	s = '#The latest parameters used in the calculation are listed.\n'
+	f.write(s)
+	s = 'Mej = {:.2f} Msun\nn = {:.2f}\nmesa model = '.format(Mej, n)+options.stellar_model+'\n'+'profile at core collapse = '+options.profile_at_cc+'\n'+'CSM mass = {:.2f} Msun'.format(CSM_mass)
+	f.write(s)
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'
