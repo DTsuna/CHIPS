@@ -84,7 +84,7 @@ convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr)
 convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, continueTransfer=False)
 
 # run eruptive mass-loss rad-hydro calculation
-#subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
+subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
 mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
