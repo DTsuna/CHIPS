@@ -7,7 +7,7 @@
 
       do 10 j = 3, n-1
          rn = rad(j)
-         grv(j) = -6.67259d-8*(encm(j)+tmns)/(rn*rn)
+         grv(j) = -6.6743d-8*(encm(j)+tmns)/(rn*rn)
  10   continue
 
       write(*,*)"tmns encm(3) in grav =",tmns, encm(3)
