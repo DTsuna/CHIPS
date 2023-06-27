@@ -45,8 +45,11 @@ c---  initial data is required.
       data iarrv, finish/0, .false./
 
       integer  scaleDeposition, continueTransfer
+      integer  useOpacityTable
+      character*128 OpacityTable
       logical scaleDepositionFlag
       real*8 scalingRate
+      real*8 optical_depth
 
       real*8 e_charge_tot, injection_time, time_to_cc, dynamicalTime
       integer ejectaCut
@@ -87,12 +90,14 @@ c---  initial data is required.
       open(21,file='src/eruption/hydro/eruptPara.d',status='old')
       read(21,*)
       read(21,*)time_to_cc, e_charge_tot, injection_time,
-     $     scaleDeposition, scalingRate, continueTransfer
+     $     scaleDeposition, scalingRate, continueTransfer,
+     $     useOpacityTable, OpacityTable
       close(21)
       if(scaleDeposition.eq.0)scaleDepositionFlag = .false.
       if(scaleDeposition.eq.1)scaleDepositionFlag = .true.
       write(*,*)time_to_cc, e_charge_tot, injection_time,
-     $          scaleDepositionFlag, scalingRate, continueTransfer
+     $          scaleDepositionFlag, scalingRate, continueTransfer,
+     $          useOpacityTable, OpacityTable
 
 cexpl  construct the initial model
       call init(n, hyd, alpha, cut, istart, time, encmg, eje, nadd,
@@ -139,6 +144,10 @@ cexpl  construct the initial model
       write(97,*)time_to_cc, e_charge_tot, injection_time
       close(97)
 
+
+      open(63, file='EruptionFiles/photosphere.txt'
+     $       ,status='unknown',form='formatted')
+      write(63,*)"time, L_ph, L_edge, r_ph, v_ph, rho_ph, T_ph"
 
       call eoshelm(n,cv,temp,e,tau,p,x,
      %        grv,rad,eu,g,g1,cs,u,mn,nelem,time,dummyInt)
@@ -200,13 +209,13 @@ cexpl  start the hydrodynamical calculation
 
            if(ejectaCut.eq.0)then
              write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
-     $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40, ye(j),
-     $       j= 3, n)
+     $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40,
+     $       kap(j), j= 3, n)
            end if
            if(ejectaCut.eq.1)then
              write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
-     $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40, ye(j),
-     $       j= fixedCell, n)
+     $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40,
+     $       kap(j), j= fixedCell, n)
            end if
  93     format(i5,' time', 1pe12.4,' sec',' te',e12.4,' erg  istep ',i8
      &  ,/,' no.',5x,'rad',10x,'encm',13x,'dm',12x,'rho',14x,'v'
@@ -267,16 +276,15 @@ cexpl  start the hydrodynamical calculation
       call tote(n,nadd,e,dmass,rad,grv,u,te,tet)
 
 
-
       if(ejectaCut.eq.0)then
         icell = 1
-        call opac(n, kap,iphoto)
-        call radtra(n,ihyd,dt,time,cv,kap,icell)
+          call opac(n,kap,iphoto,ihyd,useOpacityTable, OpacityTable)
+          call radtra(n,ihyd,dt,time,cv,kap,icell)
       end if
       if(ejectaCut.eq.1)then
         icell = innerCell
         if(continueTransfer.eq.1)then
-          call opac(n, kap,iphoto)
+          call opac(n,kap,iphoto,ihyd,useOpacityTable, OpacityTable)
           call radtra(n,ihyd,dt,time,cv,kap,icell)
         end if
       end if
@@ -335,9 +343,9 @@ cexpl  start the hydrodynamical calculation
          if(ejectaCut.eq.0)then
            write(*,'(5h no.  ,8h  mr    ,9hradius   9hdensity  ,
      $        9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
-     $        9h    u   ,/,(i5,1p8e9.2))')
+     $        9h    L   ,/,(i5,1p8e9.2))')
      $        (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
-     $        ,temp(j),u(j),j=max(1,jw-10),max(10,min(jw+10,n)))
+     $        ,temp(j),lum(j),j=max(1,jw-10),max(10,min(jw+10,n)))
          end if
          if(ejectaCut.eq.1)then
            write(*,'(5h no.  ,8h  mr    ,9hradius   9hdensity  ,
@@ -372,10 +380,21 @@ cexpl  start the hydrodynamical calculation
      $              " rho(j-1)=",1.d0/tau(n)
          end if
       endif
+
+c     record photosphere information
+      optical_depth = 0.0d0
+      do j = n, 3, -1
+         optical_depth = optical_depth+kap(j)*(rad(j)-rad(j-1))/tau(j)
+         if(optical_depth > 2.d0/3.d0) then
+           write(63,*)time,lum(j),lum(n),rad(j),u(j),1.d0/tau(j),temp(j)
+           exit
+         end if
+      end do
       ihyd = ihyd+1
       enddo
       finish = .true.
       call output(n, alpha, ihyd, time, dt)
+      close(63)
       write(*,*)"at 99"
       stop' normal end.'
       end

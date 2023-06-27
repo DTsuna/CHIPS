@@ -329,9 +329,18 @@ def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMes
 		flag2 = 1
 	else:
 		flag2 = 0
+	if OpacityTable is not None:
+		flag3 = 1
+		table = np.genfromtxt(OpacityTable)
+		nrow = table.shape[0] - 1 # minus row of logR
+		ncol = table.shape[1] - 1 # minus column of logT
+	else:
+		flag3 = 0
+		nrow = 0
+		ncol = 0
 	with open('src/eruption/hydro/inclmn.f', mode = 'w') as f:
-		f.write('      integer mn, nelem\n')
-		f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19 )\n')
+		f.write('      integer mn, nelem, nrow, ncol\n')
+		f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19, nrow = %d, ncol = %d )\n' % (nrow, ncol))
 	with open('src/eruption/hydro/eruptPara.d', mode = 'w') as f2:
-		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer\n')
-		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + '\n')
+		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer useOpacityTable OpacityTable\n')
+		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + ' ' + str(flag3) + ' ' + '"{}"'.format(OpacityTable) + '\n')
