@@ -232,9 +232,10 @@ cexpl  start the hydrodynamical calculation
       call cournt( n, dtcfac, time, dtc ,innerCell)
       dt = min(tp(kp)-time,dtc)
       if(dt.lt.dtc)kp = kp+1
-      if(dt.le.0.d0)then
+c     stop when timestep becomes too small (currently conservative)
+      if(dt.le.1.d-7)then
          write(*,*)dtc,dt,time,kp
-         stop' due to negative time step'
+         stop' due to too low time step'
       end if
 
       if(dt.gt.1000.d0)dt = 1000.d0
