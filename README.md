@@ -5,7 +5,7 @@
 CHIPS is a tool for simulating the circumstellar matter and light curves of
 interaction-powered transients. Coupling the MESA stellar evolution
 code and codes implemented by the authors, the user can obtain the
-circumstellar matter profile and light curves of the interaction-powered
+circumstellar matter profile and light curves of interaction-powered
 supernovae.
 
 ## What can CHIPS do?
@@ -70,7 +70,7 @@ The CHIPS code can obtain multi-band light curves if ray-tracing radiation trans
 ## References:
 1. Takei, Tsuna, Kuriyama, Ko, Shigeyama (2022), [ApJ 929, 177](https://iopscience.iop.org/article/10.3847/1538-4357/ac60fe)
 2. Kuriyama, Shigeyama (2020), A&A, 635, 127 (for mass eruption)
-3. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve)
+3. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve; some features updated in Ref 1.)
 4. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
 
 
@@ -80,8 +80,8 @@ chips___at___resceu.s.u-tokyo.ac.jp
 
 
 ## Developers
-Daichi Tsuna (Caltech, Univ of Tokyo)
-Yuki Takei (Univ of Tokyo, RIKEN)
-Toshikazu Shigeyama (Univ of Tokyo)
-Takatoshi Ko (Univ of Tokyo, RIKEN)
+Daichi Tsuna (Caltech, Univ of Tokyo)  
+Yuki Takei (Univ of Tokyo, RIKEN)  
+Toshikazu Shigeyama (Univ of Tokyo)  
+Takatoshi Ko (Univ of Tokyo, RIKEN)  
 Naoto Kuriyama (Univ of Tokyo; past developer)
