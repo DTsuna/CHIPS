@@ -80,4 +80,8 @@ chips___at___resceu.s.u-tokyo.ac.jp
 
 
 ## Developers
-Daichi Tsuna, Yuki Takei, Toshikazu Shigeyama, Takatoshi Ko, Naoto Kuriyama (past developer)
+Daichi Tsuna (Caltech, Univ of Tokyo)
+Yuki Takei (Univ of Tokyo, RIKEN)
+Toshikazu Shigeyama (Univ of Tokyo)
+Takatoshi Ko (Univ of Tokyo, RIKEN)
+Naoto Kuriyama (Univ of Tokyo; past developer)
