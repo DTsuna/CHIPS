@@ -53,7 +53,7 @@ The argument --stellar-model should be the output file from this MESA calculatio
 
 We strongly advise to use an analytical CSM model (reference 4) that corrects the artifical shock-compressions that arise from the adiabatic mass eruption code. This can be done with the argument --analytical-CSM.
 
-### Using a custom pre-built opacity tablee 
+### Using a custom pre-built opacity table 
 For the opacity in the eruption calculations, a simple analytical formula in Kuriyama & Shigeyama (2020) is used by default. One can instead give a custom opacity table (like those made by OPAL, AESOPUS, etc.), by adding the argument --opacity-table. There are two notes of caution: (i) The table must be rectangular with a format given as the sample in input/rosseland, and (ii) when values outside the table is requested, the closest edge values are used.
 
 ### Using an already obtained CSM for light curve calculation
