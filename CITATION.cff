@@ -1,0 +1,8 @@
+cff-version: 1
+message: "If you use this software, please cite it as below."
+authors:
+  - Yuki Takei, Daichi Tsuna, Naoto Kuriyama, Takatoshi Ko, Toshikazu Shigeyama
+title: "CHIPS: Complete History of Interaction-Powered Supernovae"
+version: 1.0.1
+doi: 10.5281/zenodo.6336653
+date-released: 2022-09-13
