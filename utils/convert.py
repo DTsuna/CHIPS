@@ -319,7 +319,7 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 			f.write('\n')
 
 
-def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMesh=10000, injectEnergy=-1.0, continueTransfer=False):
+def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMesh=10000, injectEnergy=-1.0, continueTransfer=False, OpacityTable=None):
 	if injectEnergy < 0.0:
 		# use injectedEnergyFraction instead
 		flag = 1
