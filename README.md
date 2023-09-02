@@ -73,6 +73,7 @@ The CHIPS code can obtain multi-band light curves if ray-tracing radiation trans
 3. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve; some features updated in Ref 1.)
 4. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
 
+For other papers that see CHIPS see [here](https://ui.adsabs.harvard.edu/search/p_=0&q=docs(library%2FFGr4H7m9Sd2LtgSI25zp7g))
 
 ## Contact
 For questions, comments about the CHIPS code or possible collaboration, please email us from the following email address:
