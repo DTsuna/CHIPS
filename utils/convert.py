@@ -174,7 +174,7 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 		if originalMr[i] > massCut:
 			cellCut = i
 	if cellCut == originalSize:
-		print('EEEOR: Invalid massCut')
+		print('ERROR: Invalid massCut')
 		sys.exit(1)
 
 	cuttedMrCgs = np.zeros(originalSize - cellCut)
@@ -245,7 +245,7 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 		SumMass = cuttedMrCgs[originalSize - cellCut - 1] - cuttedMrCgs[0]
 		NumOfTerms = size-1
 		CommonR = getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms)
-		print('Frist term ='+str(FirstTerm)+'  Common ratio ='+str(CommonR))
+		print('First term ='+str(FirstTerm)+'  Common ratio ='+str(CommonR))
 		dmass[size - 1] = FirstTerm
 		for i in range(2, size):
 			dmass[size - i] = dmass[size - i + 1]*CommonR
