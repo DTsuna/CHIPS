@@ -26,4 +26,5 @@ $(PROG):
 clean:
 	rm -f $(PROG) $(OBJS)
 	@cd src/LC; \
-	python3 lcsetup.py clean --all
+	python3 lcsetup.py clean --all; \
+	rm -rf build
