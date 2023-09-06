@@ -303,3 +303,23 @@ def get_mass_eruption_lightcurve(outputFile):
                 for i in range (1,len(time)):
                         f.write('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i])+'\n')
         f.close()
+
+# https://ui.adsabs.harvard.edu/abs/2012MNRAS.422...70H/abstract
+def discriminantProgModel(progName):
+	h = mr.MesaData(progName)
+	mass = h.mass
+	h1 = h.h1
+	he4 = h.he4
+	dm = abs(np.diff(mass))
+	dm = np.append(dm, mass[-1])
+
+	Mass_H = np.sum(dm*h1)
+	Mass_He = np.sum(dm*he4)
+
+	if Mass_H > 0.033:
+		return 0
+	elif Mass_He > 0.003:
+		return 1
+	else:
+		return 2
+

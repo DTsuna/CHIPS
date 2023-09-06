@@ -39,7 +39,7 @@ def getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms):
 		sys.exit(1)
 	return CommonR
 
-def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, logscaleRemesh=False):
+def convertForEruption(inputFile, outputFile, massCutPoint, discriminant, hydroNumMesh=3000, logscaleRemesh=False):
 
 	#################################################################
 	##################### Input Parameters ##########################
@@ -52,7 +52,14 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 	path = outputFile
 	size = hydroNumMesh # number of mesh
 	if massCutPoint < 0.0:
-		massCut = h.he_core_mass + 0.2 # In solar mass unit
+		if discriminant == 0:
+			massCut = h.he_core_mass + 0.2 # In solar mass unit
+		elif discriminant == 1:
+			massCut = h.c_core_mass + 0.2 # In solar mass unit
+			logscaleRemesh = True
+		elif discriminant == 2:
+			massCut = h.si_core_mass + 0.2 # In solar mass unit
+			logscaleRemesh = True
 	else:
 		massCut = massCutPoint
 		print('massCut has been manually set to:' + str(massCut) + 'Msun')
@@ -174,7 +181,7 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 		if originalMr[i] > massCut:
 			cellCut = i
 	if cellCut == originalSize:
-		print('ERROR: Invalid massCut')
+		print('EEEOR: Invalid massCut')
 		sys.exit(1)
 
 	cuttedMrCgs = np.zeros(originalSize - cellCut)
@@ -245,7 +252,7 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 		SumMass = cuttedMrCgs[originalSize - cellCut - 1] - cuttedMrCgs[0]
 		NumOfTerms = size-1
 		CommonR = getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms)
-		print('First term ='+str(FirstTerm)+'  Common ratio ='+str(CommonR))
+		print('Frist term ='+str(FirstTerm)+'  Common ratio ='+str(CommonR))
 		dmass[size - 1] = FirstTerm
 		for i in range(2, size):
 			dmass[size - i] = dmass[size - i + 1]*CommonR
@@ -319,7 +326,8 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 			f.write('\n')
 
 
-def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMesh=10000, injectEnergy=-1.0, continueTransfer=False, OpacityTable=None):
+def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, discriminant, hydroNumMesh=3000, injectEnergy=-1.0, continueTransfer=False, OpacityTable=None):
+
 	if injectEnergy < 0.0:
 		# use injectedEnergyFraction instead
 		flag = 1
@@ -342,5 +350,5 @@ def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMes
 		f.write('      integer mn, nelem, nrow, ncol\n')
 		f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19, nrow = %d, ncol = %d )\n' % (nrow, ncol))
 	with open('src/eruption/hydro/eruptPara.d', mode = 'w') as f2:
-		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer useOpacityTable OpacityTable\n')
-		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + ' ' + str(flag3) + ' ' + '"{}"'.format(OpacityTable) + '\n')
+		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer useOpacityTable OpacityTable discriminant\n')
+		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + ' ' + str(flag3) + ' ' + '"{}"'.format(OpacityTable) + ' ' + str(discriminant) + '\n')
