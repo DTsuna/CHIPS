@@ -1,6 +1,7 @@
 import glob
 from optparse import OptionParser
 import os
+import sys
 import subprocess
 
 # our modules
@@ -49,6 +50,9 @@ def parse_command_line():
 
 # get command line arguments
 options, filenames = parse_command_line()
+#print(options.opacity_table)
+#subprocess.call(['cp', options.opacity_table, 'LCFiles/opacity.txt'])
+#sys.exit()
 
 
 if options.run_mesa:
@@ -76,13 +80,18 @@ else:
 #                                                               #
 #################################################################
 
+# discriminate progenitor type
+# 0: Type IIn
+# 1: Type Ibn
+# 2: Type Icn
+D = utils.discriminantProgModel(file_cc)
 
 # convert data for eruption calculation
 file_eruption = 'EruptionFiles/InitForHydro.txt'
-convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr)
+convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
 
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption. However, the computation will be much slower.
-convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, continueTransfer=True, OpacityTable=options.opacity_table)
+convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table)
 
 # run eruptive mass-loss rad-hydro calculation
 subprocess.call("./eruption")
@@ -105,22 +114,27 @@ r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
 profile_at_cc = 'EruptionFiles/atCCSN.txt'
-Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
+if D==0:
+# obtain opacity
+	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
+	opacity_file = 'LCFiles/opacity.txt'
+	gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
+	opacity_file = 'LCFiles/kappa_p.txt'
+	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
+else:
+	subprocess.call(['cp', options.opacity_table, 'LCFiles/opacity.txt'])
+
 
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
 
+# store parameters
 with open('params/params.dat', mode='w') as f:
 	s = '#The latest parameters used in the calculation are listed.\n'
 	f.write(s)
 	s = 'Mej = {:.2f} Msun\nn = {:.2f}\nfinj = {:.2f}\ntinj = {:.2f} yr\nmesa model = '.format(Mej, n, options.finj, options.tinj)+options.stellar_model+'\n'+'CSM mass = {:.2f} Msun'.format(CSM_mass)
 	f.write(s)
 
-# obtain opacity 
-opacity_file = 'LCFiles/opacity.txt'
-gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
-opacity_file = 'LCFiles/kappa_p.txt'
-gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 # if multi-band is called, generate frequency-dependent opacity table as well
 if options.calc_multiband:
 	op_freq_dir = 'LCFiles/opacity_frq'
