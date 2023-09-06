@@ -1,4 +1,4 @@
-      subroutine advanc(n,alpha,nadd,dt,dmass,encmg,time,
+      subroutine advanc(n,alpha,nadd,dt,dmass,encmg,time,relt,
      $               boundr,e_charge_tot,injection_time,innerCell)
 
       include 'inclm1.f'
@@ -9,6 +9,7 @@
       real*8 nu(mn)
       real*8 vis, odt
 
+      real*8 relt
       real*8 time,boundr
       real*8 amp
       real*8 period
@@ -82,24 +83,24 @@
 
  30   continue
 
-      if(time.lt.5.d1.and.time+dt.gt.5.d1)then
-        e_charge = (e_charge_tot/injection_time)*(time+dt-5.d1)
+      if(time.lt.relt.and.time+dt.gt.relt)then
+        e_charge = (e_charge_tot/injection_time)*(time+dt-relt)
         write(*,*)"e_charge=",e_charge
-        do kk = 3,2+e_in_cell
+        do kk = 4,3+e_in_cell
           e(kk) = e(kk) + (e_charge/e_in_cell)/dmass(kk)
         end do
       end if
 
 
-      if(time.gt.5.d1.and.time.lt.5.d1+injection_time)then
+      if(time.gt.relt.and.time.lt.relt+injection_time)then
         e_charge = (e_charge_tot/injection_time)*dt
         write(*,*)"e_charge=",e_charge
-        if(time+dt.gt.5.d1+injection_time)then
+        if(time+dt.gt.relt+injection_time)then
           e_charge = (e_charge_tot/injection_time)*
-     $    (5.d1+injection_time-time)
+     $    (relt+injection_time-time)
           write(*,*)"e_charge=",e_charge
         end if
-        do kk = 3,2+e_in_cell
+        do kk = 4,3+e_in_cell
           e(kk) = e(kk) + (e_charge/e_in_cell)/dmass(kk)
         end do
       end if
