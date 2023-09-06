@@ -50,10 +50,6 @@ def parse_command_line():
 
 # get command line arguments
 options, filenames = parse_command_line()
-#print(options.opacity_table)
-#subprocess.call(['cp', options.opacity_table, 'LCFiles/opacity.txt'])
-#sys.exit()
-
 
 if options.run_mesa:
 	#################################################################
@@ -98,8 +94,9 @@ subprocess.call("./eruption")
 #subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
-mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
-utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
+# comment out the following now that light curve output in EruptionFiles/photosphere.txt
+# mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
+# utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
 
 
 #################################################################
