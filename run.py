@@ -90,7 +90,7 @@ convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
 convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table)
 
 # run eruptive mass-loss rad-hydro calculation
-subprocess.call("./eruption")
+#subprocess.call("./eruption")
 #subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
@@ -119,8 +119,9 @@ if D==0:
 	opacity_file = 'LCFiles/kappa_p.txt'
 	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 else:
+	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	subprocess.call(['cp', options.opacity_table, 'LCFiles/opacity.txt'])
-
+'''
 
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
@@ -163,3 +164,4 @@ for Eej in options.Eej:
 		utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
 	except ValueError:
 		pass
+'''

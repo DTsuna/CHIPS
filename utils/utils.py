@@ -3,13 +3,16 @@
 import math
 import mesa_reader as mr
 import numpy as np
-import sys
 import warnings
 import os
 import re
+import sys
+
 # check of whether scipy can be imported
 try:
 	from scipy.optimize import curve_fit
+	from scipy.integrate import solve_ivp
+	import scipy.interpolate as scipl
 	scipy_exists = True
 except:
 	scipy_exists = False
@@ -22,16 +25,21 @@ except:
 	matplotlib_exists = False
 	pass
 
-
-MSUN = 1.9884e+33
-RSUN = 6.96e+10
+MSUN = 1.989E+33
+RSUN = 6.963E+10
 G = 6.6743e-8
+yr = 3.15576E+07
+pi = np.pi
 
 # for CSM density profile fitting
 def CSMprof_func(r, r_break, rho_break, yrho):
 	nmax = 12.
 	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nmax/yrho) ) /2. )**(-yrho) )
 
+# for CSM density profile (Type Ibn/Icn)
+def CSMprof_func2(r, r_break, rho_break, nout):
+	yrho = 2.5
+	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nout/yrho) ) /2. )**(-yrho) )
 
 # find mesa model when mass eruption occurs
 def find_mass_eruption(data_files, data_file_at_core_collapse, time_till_collapse):
@@ -304,6 +312,7 @@ def get_mass_eruption_lightcurve(outputFile):
                         f.write('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i])+'\n')
         f.close()
 
+
 # https://ui.adsabs.harvard.edu/abs/2012MNRAS.422...70H/abstract
 def discriminantProgModel(progName):
 	h = mr.MesaData(progName)
@@ -323,3 +332,112 @@ def discriminantProgModel(progName):
 	else:
 		return 2
 
+
+def evolv_CSM(tinj):
+	t_final = tinj*yr
+	filename = './EruptionFiles/result99.txt'
+
+	try:
+		data = np.loadtxt(filename, skiprows=4)
+	except:
+		print('The calculation for eruption has not finished yet. Exit.')
+		sys.exit()
+	
+	f = open(filename)
+	t_0 = float((f.readline().split(' ')[4]))
+	r_star = np.loadtxt('./EruptionFiles/InitForHydro.txt', skiprows=2, usecols=4)[-1]
+	f.close()
+
+	r = data[:,1]
+	Mr= data[:,2]
+	dm = data[:,3]
+	rho = data[:,4]
+	v = data[:,5]
+
+	condition = (v**2/2-G*Mr/r > 0.)
+	r = r[condition]
+	Mr= Mr[condition]
+	dm = dm[condition]
+	rho = rho[condition]
+	v = v[condition]
+	l = len(r)
+
+	t_f = np.empty(l)
+	r_f = np.empty(l)
+	v_f = np.empty(l)
+
+	t_span = [t_0,t_final]
+
+	for i in range(l):
+		Mr0 = Mr[i]
+		init = [r[i],v[i]]
+		def func(t,x): 
+			r_c,v_c = x
+			t = t
+			dr = v_c
+			dv = -G*Mr0/r_c**2
+			return [dr,dv]
+    
+		sol = solve_ivp(func,t_span,init,method='RK45',atol = 1e-8,rtol = 1e-10)
+
+		t_f[i] = sol.t[-1]
+		r_f[i] = sol.y[0,:][-1]
+		v_f[i] = sol.y[1,:][-1]
+
+	rho_f = dm/(4*pi/3)/np.gradient(r_f**3)
+
+	flag = (t_f >= t_final) 
+
+	rho_f = rho_f[flag]
+	v_f = v_f[flag]
+	r_f = r_f[flag]
+
+	l = len(r_f)
+	result = np.empty((l,3))
+
+	arg = np.argsort(r_f)
+	result[:,0] = r_f
+	result[:,1] = v_f
+	result[:,2] = rho_f
+
+	print(r_f)
+	print(v_f)
+	print(rho_f)
+	
+	np.savetxt('a.txt', np.transpose([r_f, v_f, rho_f]))
+	return result
+
+
+def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000):
+	pi = np.pi
+	result = evolv_CSM(tinj)
+	data = mr.MesaData(data_file_at_mass_eruption)
+	rho = result[:,2]
+	r = result[:,0]
+	v = result[:,1]
+	v_esc = np.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
+	Mr = np.empty(Ncell)
+	spline_v = scipl.CubicSpline(r, v)
+	nsize = len(r)
+	(rmin, rmax) = (r[0], r[-1])
+	nout_init = -(np.log(rho[nsize-10])-np.log(rho[nsize-20]))/(np.log(r[nsize-10])-np.log(r[nsize-20]))
+
+	popt, pcov = curve_fit(CSMprof_func2, np.log(r), np.log(rho), p0 = [4e15, 1e-16, nout_init])
+	(r_star, rho_star, nout) = (popt[0], popt[1], popt[2])
+	r_remesh = np.logspace(np.log10(rmin*1.001), np.log10(rout*1.001), Ncell)
+	rho_remesh = np.zeros(Ncell)
+	v_remesh = np.zeros(Ncell)
+
+	for i, x in enumerate(r_remesh):
+		if x <= rmax:
+			rho_remesh[i] = np.exp(CSMprof_func2(np.log(x), r_star, rho_star, nout))
+			v_remesh[i] = spline_v(x)
+		else:
+			v_remesh[i] = v_esc
+			rho_remesh[i] = rho_remesh[i-1]*(x/r_remesh[i-1])**(-2.0)
+		if i == 0:
+			Mr[i] = 0.0
+		else:
+			Mr[i] = Mr[i-1]+4.0*pi*r_remesh[i]**2.0*rho_remesh[i]*(r_remesh[i]-r_remesh[i-1])
+	head = 'CSM profile created by scipy.curve_fit'
+	np.savetxt(CSM_out, np.transpose([list(range(1,Ncell+1)), Mr, r_remesh, v_remesh, rho_remesh, data.h1[0]*np.ones(Ncell), data.he4[0]*np.ones(Ncell)]), fmt=['%d','%.8e','%.8e','%.8e','%.8e','%.8e','%.8e'], header=head)
