@@ -99,7 +99,7 @@
          dedlt_ar(k) = temp_ar(k)*cv_row(1)
        end if
        if(error.ne.0)then
-         write(*,*)"eoshelm_e error at j =",k
+!         write(*,*)"eoshelm_e error at j =",k
          muie = 1.d0/abar + 0.5d0
          eu_ar(k) = 1.5d0*dkh*temp_row(1)*muie + &
               radcons*(temp_row(1)**4.d0)/den_row(1)

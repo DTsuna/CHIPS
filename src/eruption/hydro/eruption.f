@@ -217,12 +217,12 @@ cexpl  start the hydrodynamical calculation
            open(91, file=filename,status='unknown',form='formatted')
 
            if(ejectaCut.eq.0)then
-             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
+             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j)+tmns,dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40,
      $       kap(j), j= 3, n)
            end if
            if(ejectaCut.eq.1)then
-             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
+             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j)+tmns,dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40,
      $       kap(j), j= fixedCell, n)
            end if

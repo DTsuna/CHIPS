@@ -113,7 +113,7 @@
        error = 0
        call helmeos(k,error)
        if(error.ne.0)then
-         write(*,*)"error",error,"before itteration at cell",k
+!         write(*,*)"error",error,"before itteration at cell",k
        end if
 
 
@@ -166,9 +166,9 @@
             end if
           end do
           p = dkh*muie*den_row(1)*te + arad*(te**4)/3.d0
-          write(*,*)"eos error in eos_helm at",n
-          write(*,*)"p1st2nd",dkh*muie*den_row(1)*te, arad*(te**4)/3.d0
-          write(*,*)"arad,te",arad,te
+!          write(*,*)"eos error in eos_helm at",n
+!          write(*,*)"p1st2nd",dkh*muie*den_row(1)*te, arad*(te**4)/3.d0
+!          write(*,*)"arad,te",arad,te
           temp_ar(k) = te
           p_ar(k) = p
           eu_ar(k) = e_th
@@ -726,10 +726,10 @@
          return
         end if
         if (din  .lt. d(1)) then
-         write(6,01) 'ye*den=',din,' d(1)=',d(1)
-         write(6,*) 'ye*den too small, off grid'
+!         write(6,01) 'ye*den=',din,' d(1)=',d(1)
+!         write(6,*) 'ye*den too small, off grid'
          error = 3
-         write(6,*) 'setting eosfail to true and returning'
+!         write(6,*) 'setting eosfail to true and returning'
          eosfail = .true.
          return
         end if
