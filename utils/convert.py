@@ -260,6 +260,10 @@ def convertForEruption(inputFile, outputFile, massCutPoint, discriminant, hydroN
 			mrCgs[i] = 0
 			for j in range(0, i + 1):
 				mrCgs[i] = mrCgs[i] + dmass[j]
+		# if new mass coordinates are outside what is available by MESA, shift the new coordinates
+		# so that they will be within the range (with CommonR preserved)
+		if mrCgs[-1] > cuttedMrCgs[-1]:
+			mrCgs -= (mrCgs[-1] - cuttedMrCgs[-1])
 
 	#print(str(mrCgs[size - 1]))
 	#print(str(cuttedMrCgs[originalSize - cellCut - 1]))
