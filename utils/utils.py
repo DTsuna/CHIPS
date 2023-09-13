@@ -327,7 +327,7 @@ def discriminantProgModel(progName):
 
 	if Mass_H > 0.033:
 		return 0
-	elif Mass_He > 0.003:
+	elif Mass_He > 0.03:
 		return 1
 	else:
 		return 2
@@ -400,11 +400,6 @@ def evolv_CSM(tinj):
 	result[:,1] = v_f
 	result[:,2] = rho_f
 
-	print(r_f)
-	print(v_f)
-	print(rho_f)
-	
-	np.savetxt('a.txt', np.transpose([r_f, v_f, rho_f]))
 	return result
 
 
