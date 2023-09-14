@@ -6,6 +6,8 @@
 
 double X, Y;
 
+
+// The argument Discriminant is set to 0 only if the opacity table is generated from TOPS opacity tables.
 void set_opacity(const char *openfile, opacity *op)
 {
 	FILE *fp;
@@ -22,7 +24,8 @@ void set_opacity(const char *openfile, opacity *op)
 //		printf("Opacity file \"%s\" was set.\n", filename);
 	}
 	fgets(buf, 256, fp);
-	op->R[0] = atof(strtok(buf, " "));
+	ascii = strtok(buf, " ");
+	op->R[0] = atof(strtok(NULL, " "));
 	i = 1;
 	while(1){
 		ascii = strtok(NULL, " ");
@@ -35,6 +38,13 @@ void set_opacity(const char *openfile, opacity *op)
 		}
 	}
 	op->jmax = i;
+	fgets(buf, 256, fp);
+	if(strcmp(buf, "0\n") == 0){
+		op->Discriminant = 0;
+	}
+	else{
+		op->Discriminant = 1;
+	}
 	while(fgets(buf, 256, fp) != NULL){
 		k = 0;
 		op->T[l] = atof(strtok(buf, " "));
@@ -61,7 +71,7 @@ double kappa_r(double rho, double T)
 	double R = rho/pow(T, 1.5);
 	double kappa = 0., sigma, sigma_at_R0;
 	int i, j;
-	static opacity op = {{0.}, {0.}, {0.}, 0, 0};
+	static opacity op = {{0.}, {0.}, {0.}, 0, 0, 0};
 
 	if(op.imax == 0){
 		set_opacity("./LCFiles/opacity.txt", &op);
@@ -70,52 +80,98 @@ double kappa_r(double rho, double T)
 	i = op.imax/2;
 	j = op.jmax/2;
 
-	if(log10(T) < op.T[0]){
-		if(log10(R) < op.R[0]){
-			return pow(10., op.kappa[0]);
+	if(op.Discriminant == 0){
+		if(log10(T) < op.T[0]){
+			if(log10(R) < op.R[0]){
+				return pow(10., op.kappa[0]);
+			}
+			else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
+				j = dcht(log10(R), op.R, op.jmax);
+				kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
+				return pow(10., kappa);
+			}
+			else{
+				return pow(10., op.kappa[op.jmax-1]);
+			}
 		}
-		else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
-			j = dcht(log10(R), op.R, op.jmax);
-			kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
-			return pow(10., kappa);
+		else if(log10(R) > op.R[op.jmax-1]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i+op.jmax-1]
+			+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+#if WARN == 1
+			printf("WARN (rosseland): Too high density to extrapolate or interpolate opacity...\n");
+			printf("density: %e log10(R): %f\n", rho, log10(R));
+#endif
+			kappa = pow(10., kappa);
+			kappa *= R/pow(10., op.R[op.jmax-1]);
+			return kappa;
+		}
+		else if(log10(T) > op.T[op.imax-1]){
+			return pow(10., op.kappa[op.jmax*(op.imax-1)]);
+		}
+		else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+			kappa = pow(10., kappa);
+			return kappa;
 		}
 		else{
-			return pow(10., op.kappa[op.jmax-1]);
+			i = dcht(log10(T), op.T, op.imax);
+			j = dcht(log10(R), op.R, op.jmax);
+			a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
+			b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
+			c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
+				+(op.kappa[op.jmax*i+j]))/((op.T[i+1]-op.T[i])*(op.R[j+1]-op.R[j]));
+			kappa = op.kappa[op.jmax*i+j]+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
+			return pow(10., kappa);
 		}
 	}
-	else if(log10(R) > op.R[op.jmax-1]){
-		i = dcht(log10(T), op.T, op.imax);
-		kappa = op.kappa[op.jmax*i+op.jmax-1]
-		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
-#if WARN == 1
-		printf("WARN (rosseland): Too high density to extrapolate or interpolate opacity...\n");
-		printf("density: %e log10(R): %f\n", rho, log10(R));
-#endif
-		kappa = pow(10., kappa);
-		kappa *= R/pow(10., op.R[op.jmax-1]);
-		return kappa;
-	}
-	else if(log10(T) > op.T[op.imax-1]){
-		return pow(10., op.kappa[op.jmax*(op.imax-1)]);
-	}
-	else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
-		i = dcht(log10(T), op.T, op.imax);
-		kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
-		sigma = sigma_sc(rho, T);
-		sigma_at_R0 = sigma_sc(pow(10,op.R[0])*pow(T, 1.5),T);
-		kappa = pow(10., kappa)-sigma_at_R0; //absorption opacity at R=R0.
-		kappa = kappa*R*pow(10., -op.R[0]);
-		return fmax(kappa+sigma, sigma);
-	}
 	else{
-		i = dcht(log10(T), op.T, op.imax);
-		j = dcht(log10(R), op.R, op.jmax);
-		a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
-		b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
-		c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
+		R = rho/pow(T*1.e-06, 3.);
+		if(log10(T) < op.T[0]){
+			if(log10(R) < op.R[0]){
+				return pow(10., op.kappa[0]);
+			}
+			else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
+				j = dcht(log10(R), op.R, op.jmax);
+				kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
+				kappa = pow(10., kappa);
+			}
+			else{
+				kappa = op.kappa[op.jmax-1];
+				kappa = pow(10., kappa);
+			}
+		}
+		else if(log10(R) > op.R[op.jmax-1]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i+op.jmax-1]
+			+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+#if WARN == 1
+			printf("WARN (rosseland): Too high density to extrapolate or interpolate opacity...\n");
+			printf("density: %e log10(R): %f\n", rho, log10(R));
+#endif
+			kappa = pow(10., kappa);
+			kappa *= R/pow(10., op.R[op.jmax-1]);
+		}
+		else if(log10(T) > op.T[op.imax-1]){
+			kappa = pow(10., op.kappa[op.jmax*(op.imax-1)]);
+		}
+		else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+			kappa = pow(10., kappa);
+		}
+		else{
+			i = dcht(log10(T), op.T, op.imax);
+			j = dcht(log10(R), op.R, op.jmax);
+			a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
+			b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
+			c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
 			+(op.kappa[op.jmax*i+j]))/((op.T[i+1]-op.T[i])*(op.R[j+1]-op.R[j]));
-		kappa = op.kappa[op.jmax*i+j]+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
-		return pow(10., kappa);
+			kappa = op.kappa[op.jmax*i+j]+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
+			kappa = pow(10., kappa);
+		}
+		return kappa;
 	}
 }
 
@@ -175,7 +231,7 @@ double kappa_p(double rho, double T)
 	double a, b, c;
 	double R = rho/pow(T, 1.5);
 	double kappa = 0.;
-	static opacity op = {{0.}, {0.}, {0.}, 0, 0};
+	static opacity op = {{0.}, {0.}, {0.}, 0, 0, 0};
 	int i, j;
 	
 	if(op.imax == 0){
@@ -183,66 +239,111 @@ double kappa_p(double rho, double T)
 	}
 
 #if SWITCH_OP_FREE_FREE == 0
-	if(log10(T) < op.T[0]){
-		if(log10(R) < op.R[0]){
-			return pow(10., op.kappa[0]-2.*op.T[0]+op.R[0]);
+	if(op.Discriminant == 0){
+		if(log10(T) < op.T[0]){
+			if(log10(R) < op.R[0]){
+				return pow(10., op.kappa[0]-2.*op.T[0]+op.R[0]);
+			}
+			else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
+				j = dcht(log10(R), op.R, op.jmax);
+				kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
+				kappa = kappa-3.5*op.T[0]+log10(rho);
+				return pow(10., kappa);
+			}
+			else{
+				return pow(10., op.kappa[op.jmax-1]-2.*op.T[0]+op.R[op.jmax-1]);
+			}
 		}
-		else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
-			j = dcht(log10(R), op.R, op.jmax);
-			kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
-			kappa = kappa-3.5*op.T[0]+log10(rho);
+		else if(log10(R) > op.R[op.jmax-1]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i+op.jmax-1]
+			+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+#if WARN == 1
+			printf("WARN (planck_mean): Too high density to extrapolate or interpolate opacity...\n");
+			printf("density: %e log10(R): %f\n", rho, log10(R));
+#endif
+			kappa = kappa-2.*log10(T)+op.R[op.jmax-1];
+			kappa = pow(10., kappa);
+			kappa *= R/pow(10., op.R[op.jmax-1]);
+			return kappa;
+		}
+		else if(log10(T) > op.T[op.imax-1]){
+			return pow(10., op.kappa[op.jmax*(op.imax-1)]-2.*log10(T)+log10(R));
+		}
+		else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i]
+			+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+			kappa = kappa-2.*log10(T)+log10(R);
 			return pow(10., kappa);
 		}
 		else{
-			return pow(10., op.kappa[op.jmax-1]-2.*op.T[0]+op.R[op.jmax-1]);
+			i = dcht(log10(T), op.T, op.imax);
+			j = dcht(log10(R), op.R, op.jmax);
+			a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
+			b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
+			c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
+				+(op.kappa[op.jmax*i+j]))/((op.T[i+1]-op.T[i])*(op.R[j+1]-op.R[j]));
+			kappa = op.kappa[op.jmax*i+j]
+				+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
+			kappa = kappa-2.*log10(T)+log10(R);
+			return pow(10., kappa);
 		}
-	}
-	else if(log10(R) > op.R[op.jmax-1]){
-		i = dcht(log10(T), op.T, op.imax);
-		kappa = op.kappa[op.jmax*i+op.jmax-1]
-		+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
-#if WARN == 1
-		printf("WARN (planck_mean): Too high density to extrapolate or interpolate opacity...\n");
-		printf("density: %e log10(R): %f\n", rho, log10(R));
-#endif
-		kappa = kappa-2.*log10(T)+op.R[op.jmax-1];
-		kappa = pow(10., kappa);
-		kappa *= R/pow(10., op.R[op.jmax-1]);
-		return kappa;
-	}
-	else if(log10(T) > op.T[op.imax-1]){
-		return pow(10., op.kappa[op.jmax*(op.imax-1)]-2.*log10(T)+log10(R));
-	}
-	else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
-		i = dcht(log10(T), op.T, op.imax);
-		kappa = op.kappa[op.jmax*i]
-		+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
-		kappa = kappa-2.*log10(T)+log10(R);
-		return pow(10., kappa);
-	}
-	else{
-		i = dcht(log10(T), op.T, op.imax);
-		j = dcht(log10(R), op.R, op.jmax);
-		a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
-		b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
-		c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
-			+(op.kappa[op.jmax*i+j]))/((op.T[i+1]-op.T[i])*(op.R[j+1]-op.R[j]));
-		kappa = op.kappa[op.jmax*i+j]
-			+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
-		kappa = kappa-2.*log10(T)+log10(R);
-		return pow(10., kappa);
-	}
 
 #elif SWITCH_OP_FREE_FREE == 1
-	return j_ff(rho, T)/((P_A)*(P_C)*pow(T, 4.));
+		return j_ff(rho, T)/((P_A)*(P_C)*pow(T, 4.));
 
 #else
-	return 0.;
-
+		return 0.;
 #endif
-
-
+	}
+	else{
+		if(log10(T) < op.T[0]){
+			if(log10(R) < op.R[0]){
+				return pow(10., op.kappa[0]);
+			}
+			else if(log10(R) > op.R[0] && log10(R) < op.R[op.jmax-1]){
+				j = dcht(log10(R), op.R, op.jmax);
+				kappa = op.kappa[j]+(op.kappa[j+1]-op.kappa[j])/(op.R[j+1]-op.R[j])*(log10(R)-op.R[j]);
+				return pow(10., kappa);
+			}
+			else{
+				return pow(10., op.kappa[op.jmax-1]);
+			}
+		}
+		else if(log10(R) > op.R[op.jmax-1]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i+op.jmax-1]
+			+(op.kappa[op.jmax*(i+1)+op.jmax-1]-op.kappa[op.jmax*i+op.jmax-1])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+#if WARN == 1
+			printf("WARN (rosseland): Too high density to extrapolate or interpolate opacity...\n");
+			printf("density: %e log10(R): %f\n", rho, log10(R));
+#endif
+			kappa = pow(10., kappa);
+			kappa *= R/pow(10., op.R[op.jmax-1]);
+			return kappa;
+		}
+		else if(log10(T) > op.T[op.imax-1]){
+			return pow(10., op.kappa[op.jmax*(op.imax-1)]);
+		}
+		else if(log10(T) > op.T[0] && log10(T) < op.T[op.imax-1] && log10(R) < op.R[0]){
+			i = dcht(log10(T), op.T, op.imax);
+			kappa = op.kappa[op.jmax*i]+(op.kappa[op.jmax*(i+1)]-op.kappa[op.jmax*i])/(op.T[i+1]-op.T[i])*(log10(T)-op.T[i]);
+			return pow(10., kappa);
+		}
+		else{
+			i = dcht(log10(T), op.T, op.imax);
+			j = dcht(log10(R), op.R, op.jmax);
+			a = ((op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j]))/(op.T[i+1]-op.T[i]);
+			b = ((op.kappa[op.jmax*i+j+1])-(op.kappa[op.jmax*i+j]))/(op.R[j+1]-op.R[j]);
+			c = ((op.kappa[op.jmax*(i+1)+j+1])-(op.kappa[op.jmax*(i+1)+j])-(op.kappa[op.jmax*i+j+1])
+				+(op.kappa[op.jmax*i+j]))/((op.T[i+1]-op.T[i])*(op.R[j+1]-op.R[j]));
+			kappa = op.kappa[op.jmax*i+j]+a*(log10(T)-op.T[i])+b*(log10(R)-op.R[j])+c*(log10(T)-op.T[i])*(log10(R)-op.R[j]);
+			return pow(10., kappa);
+		}
+	}
 }
+
 
 double mmw(double rho, double T)
 {

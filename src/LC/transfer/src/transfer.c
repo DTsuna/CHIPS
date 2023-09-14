@@ -21,12 +21,12 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
+void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*, int D);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 
 
 void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r_out,
-	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
+	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles, int D)
 {
 	FILE *fp, *fl, *fnu_time;
 	double F_max = 0., F_out = 0.;

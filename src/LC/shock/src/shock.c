@@ -18,7 +18,7 @@ double *calc_init_dist(double, double, double, double, double, double, const cha
 double *calc_dist(double[], double, double, double, double, double, const char*, int*);
 void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
-void shock_csm(double, double, double, double, const char*, const char*);
+void shock_csm(double, double, double, double, const char*, const char*, int);
 
 void init_egn(double r_ini, double egn[])
 {
@@ -44,7 +44,7 @@ array[0] = t_exp.
 array[1] = egn[0] = u_rs, array[2] = egn[1] = u_fs, array[3] = r_rs, array[4] = r_fs, array[5] = F_fs.
 */
 
-void shock_csm(double E_ej, double M_ej, double n, double delta, const char *file_csm, const char *file_outp)
+void shock_csm(double E_ej, double M_ej, double n, double delta, const char *file_csm, const char *file_outp, int D)
 {
 	double *array;
 	double dt = 8640.;
