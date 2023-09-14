@@ -26,10 +26,9 @@ def gen_op_tbl_sct(Y, opacity_file):
 	kappa_outp = ((array_Y[i+1]-Y)*kappa+(Y-array_Y[i])*kappa1)/(array_Y[i+1]-array_Y[i])
 
 	temp = temp.reshape(-1, 1)
-#	print(np.append(temp, kappa_outp, axis = 1))
 	X = np.append(temp, kappa_outp, axis = 1)
 
-	header = ' '.join(R)
+	header = 'logT '+' '.join(R)+'\n0'
 	np.savetxt(opacity_file, X, header = header, comments = '', fmt = '%1.4f')
 
 def gen_op_tbl_abs(Y, opacity_file):
@@ -47,8 +46,7 @@ def gen_op_tbl_abs(Y, opacity_file):
 	kappa_outp = ((array_Y[i+1]-Y)*kappa+(Y-array_Y[i])*kappa1)/(array_Y[i+1]-array_Y[i])
 
 	temp = temp.reshape(-1, 1)
-#	print(np.append(temp, kappa_outp, axis = 1))
 	X = np.append(temp, kappa_outp, axis = 1)
 
-	header = ' '.join(R)
+	header = 'logT '+' '.join(R)+'\n0'
 	np.savetxt(opacity_file, X, header = header, comments = '', fmt = '%1.4f')
