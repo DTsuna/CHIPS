@@ -1,31 +1,18 @@
 #include "Python.h"
 
-extern void shock_csm(double, double, double, double, const char*, const char*, int);
-extern void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*, int);
-extern void gen_muTem_table(int);
+extern void shock_csm(double, double, double, double, const char*, const char*);
+extern void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
 
 // definition of shock flux calculator method
 static PyObject* lightcurve_shock(PyObject* self, PyObject* args, PyObject* kw)
 {
 	double E_ej, M_ej, n, delta;
-	int D;
 	const char* file_csm = NULL;
 	const char* file_output = NULL;
-	static char* argnames[] = {"E_ej", "M_ej", "n", "delta", "file_csm", "file_output", "D", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "dddd|ssi", argnames, &E_ej, &M_ej, &n, &delta, &file_csm, &file_output, &D))
+	static char* argnames[] = {"E_ej", "M_ej", "n", "delta", "file_csm", "file_output", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "dddd|ss", argnames, &E_ej, &M_ej, &n, &delta, &file_csm, &file_output))
 		return NULL;
-	shock_csm(E_ej, M_ej, n, delta, file_csm, file_output, D);
-	return Py_BuildValue("");
-}
-
-// generate tables for mu, T. This might be deleted after debug.
-static PyObject* lightcurve_opacTable(PyObject* self, PyObject* args, PyObject* kw)
-{
-	int discriminant;
-	static char* argnames[] = {"discriminant", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "i", argnames, &discriminant))
-		return NULL;
-	gen_muTem_table(discriminant);
+	shock_csm(E_ej, M_ej, n, delta, file_csm, file_output);
 	return Py_BuildValue("");
 }
 
@@ -34,16 +21,15 @@ static PyObject* lightcurve_transfer(PyObject* self, PyObject* args, PyObject* k
 {
 	double r_out;
 	double Eej, Mej, n, delta;
-	int D;
 	const char* file_csm=NULL;
 	const char* file_shock=NULL;
 	const char* file_lc=NULL;
 	const char* file_lc_band=NULL;
 	const char* dir_Lnu = NULL;
-	static char* argnames[] = {"Eej", "Mej", "n", "delta", "r_out", "file_csm", "file_shock", "file_lc", "file_lc_band", "dir_Lnu", "D", NULL};
-	if (!PyArg_ParseTupleAndKeywords(args, kw, "ddddd|sssssi", argnames, &Eej, &Mej, &n, &delta, &r_out, &file_csm, &file_shock, &file_lc, &file_lc_band, &dir_Lnu, &D))
+	static char* argnames[] = {"Eej", "Mej", "n", "delta", "r_out", "file_csm", "file_shock", "file_lc", "file_lc_band", "dir_Lnu", NULL};
+	if (!PyArg_ParseTupleAndKeywords(args, kw, "ddddd|sssss", argnames, &Eej, &Mej, &n, &delta, &r_out, &file_csm, &file_shock, &file_lc, &file_lc_band, &dir_Lnu))
 		return NULL;
-	rad_transfer_csm(Eej, Mej, n, delta, r_out, file_csm, file_shock, file_lc, file_lc_band, dir_Lnu, D);
+	rad_transfer_csm(Eej, Mej, n, delta, r_out, file_csm, file_shock, file_lc, file_lc_band, dir_Lnu);
 	return Py_BuildValue("");
 }
 
@@ -51,7 +37,6 @@ static PyObject* lightcurve_transfer(PyObject* self, PyObject* args, PyObject* k
 static PyMethodDef lightcurve_methods[] = {
 	{"shock", (PyCFunction) lightcurve_shock, METH_VARARGS | METH_KEYWORDS},
 	{"transfer", (PyCFunction) lightcurve_transfer, METH_VARARGS | METH_KEYWORDS},
-	{"opacTable", (PyCFunction) lightcurve_opacTable, METH_VARARGS | METH_KEYWORDS},
 	{NULL, NULL}
 };
 

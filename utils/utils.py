@@ -436,14 +436,3 @@ def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000
 			Mr[i] = Mr[i-1]+4.0*pi*r_remesh[i]**2.0*rho_remesh[i]*(r_remesh[i]-r_remesh[i-1])
 	head = 'CSM profile created by scipy.curve_fit'
 	np.savetxt(CSM_out, np.transpose([list(range(1,Ncell+1)), Mr, r_remesh, v_remesh, rho_remesh, data.h1[0]*np.ones(Ncell), data.he4[0]*np.ones(Ncell)]), fmt=['%d','%.8e','%.8e','%.8e','%.8e','%.8e','%.8e'], header=head)
-
-
-def genAbundanceTable(data_file_at_mass_eruption):
-	data = mr.MesaData(data_file_at_mass_eruption)
-	h1 = data.h1[0]
-	he4 = data.he4[0]
-	c12 = data.c12[0]
-	o16 = data.o16[0]
-	with open('input/abundance/abundance_for_tablegen.txt', mode='w') as f:
-		s = '{:.4e}\n{:.4e}\n{:.4e}\n{:.4e}\n'.format(h1,he4,c12,o16)
-		f.write(s)
