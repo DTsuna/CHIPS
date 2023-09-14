@@ -82,6 +82,12 @@ else:
 # 2: Type Icn
 D = utils.discriminantProgModel(file_cc)
 
+# store abundance
+utils.genAbundanceTable(file_cc)
+
+# generate tables for mu, T.
+lightcurve.opacTable(D)
+
 # convert data for eruption calculation
 file_eruption = 'EruptionFiles/InitForHydro.txt'
 convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
@@ -111,17 +117,27 @@ r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
 profile_at_cc = 'EruptionFiles/atCCSN.txt'
-if D==0:
+if D == 0:
 # obtain opacity
 	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
+	Y_He = 0.45
 	opacity_file = 'LCFiles/opacity.txt'
 	gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 	opacity_file = 'LCFiles/kappa_p.txt'
 	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 else:
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
-	subprocess.call(['cp', options.opacity_table, 'LCFiles/opacity.txt'])
-'''
+	try:
+		subprocess.call(['cp', options.opacity_table, 'LCFiles/opacity.txt'])
+	except:
+		print('No opacity files. exit.')
+		sys.exit(1)
+	
+	try:
+		subprocess.call(['cp', options.opacity_table.replace('rosseland', 'planck'), 'LCFiles/kappa_p.txt'])
+	except:
+		print('No opacity files. exit.')
+		sys.exit(1)
 
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
@@ -134,7 +150,7 @@ with open('params/params.dat', mode='w') as f:
 	f.write(s)
 
 # if multi-band is called, generate frequency-dependent opacity table as well
-if options.calc_multiband:
+if options.calc_multiband and D == 0:
 	op_freq_dir = 'LCFiles/opacity_frq'
 	subprocess.call(["mkdir", "-p", op_freq_dir])
 	gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
@@ -144,7 +160,7 @@ for Eej in options.Eej:
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	shock_file = 'LCFiles/shock_output_'+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file)
+	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
@@ -156,7 +172,7 @@ for Eej in options.Eej:
 		subprocess.call(["mkdir", dir_Lnu])
 	else:
 		IIn_lc_band_file = ''
-	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu)
+	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
@@ -164,4 +180,3 @@ for Eej in options.Eej:
 		utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
 	except ValueError:
 		pass
-'''
