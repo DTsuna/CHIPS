@@ -96,7 +96,7 @@ convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
 convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table)
 
 # run eruptive mass-loss rad-hydro calculation
-#subprocess.call("./eruption")
+subprocess.call("./eruption")
 #subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
@@ -120,7 +120,6 @@ profile_at_cc = 'EruptionFiles/atCCSN.txt'
 if D == 0:
 # obtain opacity
 	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
-	Y_He = 0.45
 	opacity_file = 'LCFiles/opacity.txt'
 	gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 	opacity_file = 'LCFiles/kappa_p.txt'
