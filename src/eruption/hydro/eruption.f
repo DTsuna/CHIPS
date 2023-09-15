@@ -30,7 +30,8 @@ c---  initial data is required.
       integer output_do
       real*8 when_out(99)
       integer output_init, dummyInt
-
+      logical flag
+      integer zero
 
       logical finish
 
@@ -209,6 +210,16 @@ cexpl  start the hydrodynamical calculation
         end if
       end if
 
+      
+      do jj=3,n
+        call checknan(e(jj),zero,flag)
+        if(flag.eqv..true.)then
+          print *, 'detected nan. stop.'
+          goto 99
+          stop
+        endif
+      enddo
+
 
       if(output_do.le.99)then
         if(time.gt.when_out(output_do))then
@@ -216,6 +227,11 @@ cexpl  start the hydrodynamical calculation
      $         output_do
            open(91, file=filename,status='unknown',form='formatted')
 
+           do j=3,n
+             if(abs(lum(j)).lt.1.d-20)then
+               lum(j)=0.d0
+             endif
+           enddo
            if(ejectaCut.eq.0)then
              write(91,93)n,time,te,ihyd,(j,rad(j),encm(j)+tmns,dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40,
