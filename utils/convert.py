@@ -181,7 +181,7 @@ def convertForEruption(inputFile, outputFile, massCutPoint, discriminant, hydroN
 		if originalMr[i] > massCut:
 			cellCut = i
 	if cellCut == originalSize:
-		print('EEEOR: Invalid massCut')
+		print('ERROR: Invalid massCut')
 		sys.exit(1)
 
 	cuttedMrCgs = np.zeros(originalSize - cellCut)
