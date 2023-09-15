@@ -129,7 +129,7 @@ elif D == 1:
 	subprocess.call(["cp", "./input/rosseland/opacity_X0000Y0986Z0014.txt", "./LCFiles/opacity.txt"])
 	subprocess.call(["cp", "./input/planck/opacity_X0000Y0986Z0014.txt", "./LCFiles/kappa_p.txt"])
 elif D == 2:
-#	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
+	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	i = options.stellar_model.find('Msun')
 	Msun = options.stellar_model[i-2:i]
 	opac_name = "./input/rosseland/opacity_Icn"+Msun+"Msun.txt"
