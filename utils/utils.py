@@ -395,7 +395,6 @@ def evolv_CSM(tinj):
 	l = len(r_f)
 	result = np.empty((l,3))
 
-	arg = np.argsort(r_f)
 	result[:,0] = r_f
 	result[:,1] = v_f
 	result[:,2] = rho_f
