@@ -252,7 +252,7 @@ def convertForEruption(inputFile, outputFile, massCutPoint, discriminant, hydroN
 		SumMass = cuttedMrCgs[originalSize - cellCut - 1] - cuttedMrCgs[0]
 		NumOfTerms = size-1
 		CommonR = getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms)
-		print('Frist term ='+str(FirstTerm)+'  Common ratio ='+str(CommonR))
+		print('First term ='+str(FirstTerm)+'  Common ratio ='+str(CommonR))
 		dmass[size - 1] = FirstTerm
 		for i in range(2, size):
 			dmass[size - i] = dmass[size - i + 1]*CommonR

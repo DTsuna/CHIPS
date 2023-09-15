@@ -124,19 +124,19 @@ if D == 0:
 	gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 	opacity_file = 'LCFiles/kappa_p.txt'
 	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
-else:
+elif D == 1:
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
-	try:
-		subprocess.call(['cp', options.opacity_table, 'LCFiles/opacity.txt'])
-	except:
-		print('No opacity files. exit.')
-		sys.exit(1)
+	subprocess.call(["cp", "./input/rosseland/opacity_X0000Y0986Z0014.txt", "./LCFiles/opacity.txt"])
+	subprocess.call(["cp", "./input/planck/opacity_X0000Y0986Z0014.txt", "./LCFiles/kappa_p.txt"])
+elif D == 2:
+#	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
+	i = options.stellar_model.find('Msun')
+	Msun = options.stellar_model[i-2:i]
+	opac_name = "./input/rosseland/opacity_Icn"+Msun+"Msun.txt"
+	subprocess.call(["cp", opac_name, "./LCFiles/opacity.txt"])
+	opac_name = "./input/planck/opacity_Icn"+Msun+"Msun.txt"
+	subprocess.call(["cp", opac_name, "./LCFiles/kappa_p.txt"])
 	
-	try:
-		subprocess.call(['cp', options.opacity_table.replace('rosseland', 'planck'), 'LCFiles/kappa_p.txt'])
-	except:
-		print('No opacity files. exit.')
-		sys.exit(1)
 
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
