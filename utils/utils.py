@@ -37,7 +37,7 @@ def CSMprof_func(r, r_break, rho_break, yrho):
 	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nmax/yrho) ) /2. )**(-yrho) )
 
 # for CSM density profile (Type Ibn/Icn)
-def CSMprof_func2(r, r_break, rho_break, nout):
+def CSMprof_func_stripped(r, r_break, rho_break, nout):
 	yrho = 2.5
 	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nout/yrho) ) /2. )**(-yrho) )
 
@@ -57,16 +57,25 @@ def get_mass_eruption_to_core_collapse(data_file_at_mass_eruption, data_file_at_
 	return data_cc.star_age - data_me.star_age
 
 
-# remnant mass from fitting formulae of Schneider+20, arXiv:2008.08599
-def remnant_from_CO(CO_core_mass):
+# remnant mass from fitting formulae of Schneider+20, arXiv:2008.08599 (single stars)
+def remnant_from_CO_single_stars(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
 		Mrem = 0.03357 * CO_core_mass + 1.31780
-	elif (CO_core_mass > 6.357 and CO_core_mass < 7.311):
+	elif (CO_core_mass >= 6.357 and CO_core_mass < 7.311):
 		Mrem = 10.**(-0.02466*CO_core_mass+1.28070)
 	else:
 		Mrem = 10.**(0.01940*CO_core_mass+0.98462)
 	return Mrem
 
+# remnant mass from fitting formulae of Schneider+20 for case B
+def remnant_from_CO_case_B(CO_core_mass):
+	if CO_core_mass<7.548 or (CO_core_mass > 8.491 and CO_core_mass < 15.144):
+		Mrem = 0.01909 * CO_core_mass + 1.34529
+	elif (CO_core_mass >= 7.548 and CO_core_mass < 8.491):
+		Mrem = 10.**(0.03306*CO_core_mass+0.68978)
+	else:
+		Mrem = 10.**(0.02477*CO_core_mass+0.80614)
+	return Mrem
 
 # extractor of envelope profile from the script 
 def cc_param_extractor(data_file):
@@ -78,7 +87,7 @@ def cc_param_extractor(data_file):
 
 
 # ejecta calculation script
-def calculate_ejecta(data_file, file_at_cc, file_CSM):
+def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 	# extract total mass and CO core mass of the progenitor
 	r_star, total_mass, CO_core_mass = cc_param_extractor(data_file)
 	# extract density and pressure profile inside the star
@@ -99,7 +108,11 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM):
 	# obtain CSM mass from CSM file
 	MrCSM = np.loadtxt(file_CSM, skiprows=1)[:,1]
 	CSM_mass = (MrCSM[-1] - MrCSM[0]) / MSUN 
-	remnant_mass = remnant_from_CO(CO_core_mass)
+	if D == 0:
+		remnant_mass = remnant_from_CO_single_stars(CO_core_mass)
+	elif D == 1 or D == 2:
+		remnant_mass = remnant_from_CO_case_B(CO_core_mass)
+		
 	Mej = total_mass - remnant_mass - CSM_mass
 	assert Mej > 0.0
 	print("Mej:%f Msun, n:%f, delta:%f, Mcsm:%f Msun" % (Mej, n, delta, CSM_mass), file=sys.stderr)
@@ -414,9 +427,10 @@ def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000
 	spline_v = scipl.CubicSpline(r, v)
 	nsize = len(r)
 	(rmin, rmax) = (r[0], r[-1])
-	nout_init = -(np.log(rho[nsize-10])-np.log(rho[nsize-20]))/(np.log(r[nsize-10])-np.log(r[nsize-20]))
+#	nout_init = -(np.log(rho[nsize-30])-np.log(rho[nsize-40]))/(np.log(r[nsize-30])-np.log(r[nsize-40]))
+	nout_init = 9.
 
-	popt, pcov = curve_fit(CSMprof_func2, np.log(r), np.log(rho), p0 = [4e15, 1e-16, nout_init])
+	popt, pcov = curve_fit(CSMprof_func_stripped, np.log(r), np.log(rho), p0 = [1e15, 1e-15, nout_init])
 	(r_star, rho_star, nout) = (popt[0], popt[1], popt[2])
 	r_remesh = np.logspace(np.log10(rmin*1.001), np.log10(rout*1.001), Ncell)
 	rho_remesh = np.zeros(Ncell)
@@ -424,7 +438,7 @@ def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000
 
 	for i, x in enumerate(r_remesh):
 		if x <= rmax:
-			rho_remesh[i] = np.exp(CSMprof_func2(np.log(x), r_star, rho_star, nout))
+			rho_remesh[i] = np.exp(CSMprof_func_stripped(np.log(x), r_star, rho_star, nout))
 			v_remesh[i] = spline_v(x)
 		else:
 			v_remesh[i] = v_esc

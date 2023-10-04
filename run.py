@@ -11,6 +11,8 @@ from input.TOPS import gen_op_tbl
 from input.TOPS_multigroup import gen_op_frq
 import lightcurve
 
+MSUN = 1.989E33
+
 
 def parse_command_line():
 	parser = OptionParser(
@@ -22,6 +24,7 @@ def parse_command_line():
 	parser.add_option("--finj", metavar = "float", type = "float", help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (required).")
 	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
 	parser.add_option("--injection-duration", metavar = "float", type = "float", default = 1000, help = "Duration of energy injection for mass eruption calculation, in seconds (default: 1000).")
+	parser.add_option("--Mni", metavar = "float", type = "float", default = 0., help = "Radioactive nickel 56 mass, in units of solar mass (default: 0 Msun).")
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
 	parser.add_option("--mesa-path", metavar = "string", type = "string", help = "Path to the execution files of MESA.")
@@ -96,7 +99,7 @@ convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
 convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table)
 
 # run eruptive mass-loss rad-hydro calculation
-subprocess.call("./eruption")
+#subprocess.call("./eruption")
 #subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
@@ -139,7 +142,7 @@ elif D == 2:
 	
 
 # extract the ejecta parameters
-Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file)
+Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, D)
 
 # store parameters
 with open('params/params.dat', mode='w') as f:
@@ -158,20 +161,20 @@ if options.calc_multiband and D == 0:
 for Eej in options.Eej:
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
-	shock_file = 'LCFiles/shock_output_'+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file, D)
+	shock_file = 'LCFiles/shock_output_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
+#	lightcurve.shock(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
-	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg.txt'
+	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
 	# multi-band light curve if requested
 	if options.calc_multiband:
-		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg_mag.txt'
+		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg_mag.txt'
 		subprocess.call(["rm", "-r", dir_Lnu])
 		subprocess.call(["mkdir", dir_Lnu])
 	else:
 		IIn_lc_band_file = ''
-	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu, D)
+	lightcurve.transfer(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
