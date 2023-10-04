@@ -66,7 +66,7 @@ void init_E(double F_ini, double r[], double E[], double dt, double func[], cons
 	func[0] += 3.*r[0]*r[0]*F_ini/dr3*dt;
 }
 
-void itg_adv_E(double F_ini, double r[], double E[], double U[], double rho[], double dt, const int nsize)
+void itg_adv_E(double F_ini, double r[], double E[], double U[], double T_g[], double rho[], double dt, const int nsize)
 {
 	int i;
 	double func[nsize];
