@@ -69,7 +69,7 @@ double kappa_r(double rho, double T)
 	double a, b, c;
 	//double R = rho/pow(T*1.e-06, 3.0);
 	double R = rho/pow(T, 1.5);
-	double kappa = 0., sigma, sigma_at_R0;
+	double kappa = 0.;
 	int i, j;
 	static opacity op = {{0.}, {0.}, {0.}, 0, 0, 0};
 
