@@ -98,22 +98,17 @@ void Saha_wr_U(double rho, double U, double *mu_outp, double *T_outp)
 {
 // determine electron density by solving Saha's eq for He, C, O    !!!!!
 	FILE *fp;
-	int i_ion, j_ion;
+	int i_ion;
 	int pvt[100];
 	double n_el;
 	double fofT, fCofT, fHeofT, fOofT; //f(T) = (2.*pi*m_e*k_B*T/h**2)^(3/2), fA(T)=f(T)*exp(-xi_A/k_B/T)
 	double fCIIofT, fHeIIofT, fOIIofT, fCIIIofT, fOIIIofT, fCIVofT, fOIVofT;
 	double Jac[100];
-	double n_HeII, n_CII, n_OII, n_HeII_new, n_CII_new, n_OII_new; // 1st ionization state
-	double n_HeIII, n_CIII, n_OIII, n_HeIII_new, n_CIII_new, n_OIII_new; // 2nd ionization
-	double n_CIV, n_OIV, n_CIV_new, n_OIV_new; // 3rd ionization
-	double n_CV, n_OV, n_CV_new, n_OV_new; // 4th ionization
 	double n_ion[10], n_ion_new[10], n_ion_old[10], f_ion[10];
 	double eps_Saha, max_diff, max_density; // for convergence check
-	double eps, tol = 1.e-8;
 	double Tem, mu[2];
 	double n_He, n_C, n_O;
-	double X_H, X_He, X_C, X_O, X_dummy[4];
+	double X_He, X_C, X_O, X_dummy[4];
 	int i = 0, count = 0;
 
 	fp = fopen("input/abundance/abundance_for_tablegen.txt", "r");
@@ -261,7 +256,7 @@ void Saha_U(double rho, double U, double *mu, double *T)
         double T_tmp = 2000.;
         double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
 	double X_H, X_He, X_dummy[4];
-	int i = 0, count = 0;
+	int i = 0;
 
 	fp = fopen("input/abundance/abundance_for_tablegen.txt", "r");
 	while(fscanf(fp, "%lf", X_dummy+i) != EOF){
