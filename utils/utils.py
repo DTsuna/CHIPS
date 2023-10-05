@@ -8,15 +8,10 @@ import os
 import re
 import sys
 
-# check of whether scipy can be imported
-try:
-	from scipy.optimize import curve_fit
-	from scipy.integrate import solve_ivp
-	import scipy.interpolate as scipl
-	scipy_exists = True
-except:
-	scipy_exists = False
-	pass
+from scipy.optimize import curve_fit
+from scipy.integrate import solve_ivp
+import scipy.interpolate as scipl
+
 # check of whether matplotlib can be imported
 try:
 	from matplotlib import pyplot as plt
@@ -159,7 +154,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	istop += 1 
 	rstop = r_in[istop]
 
-	if analytical_CSM and scipy_exists:
+	if analytical_CSM:
 		popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:-2]), np.log(rho_in[istop:-2]), p0=[1e15,1e-15,2.0])
 		(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
 	
@@ -176,7 +171,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	for i, r in enumerate(r_out):
 		if r < rstop:
 			# we fix the density profile where the CSM density become unreliable due to artificial shocks.
-			if analytical_CSM and scipy_exists:
+			if analytical_CSM:
 				rho_out[i] = math.exp(CSMprof_func(math.log(r), r_break, rho_break, yrho))
 			else:
 				rho_out[i] = rho_in[istop] * (r/rstop)**(-1.5)
