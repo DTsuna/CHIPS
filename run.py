@@ -3,6 +3,7 @@ from optparse import OptionParser
 import os
 import sys
 import subprocess
+import datetime
 
 # our modules
 from utils import convert
@@ -53,6 +54,16 @@ def parse_command_line():
 
 # get command line arguments
 options, filenames = parse_command_line()
+
+
+# store parameters
+dt_now = datetime.datetime.now()
+s='{:02d}{:02d}{:02d}_{:02d}{:02d}{:02d}'.format(dt_now.year%100,dt_now.month,dt_now.day,dt_now.hour,dt_now.minute,dt_now.second)
+with open('params/params_'+s+'.dat', mode='w') as f:
+	s = '#The latest parameters used in the calculation are listed.\n'
+	f.write(s)
+	s = 'finj = {:.2f}\ntinj = {:.2f} yr\nmesa model = '.format(options.finj, options.tinj)+options.stellar_model+'\n'
+	f.write(s)
 
 if options.run_mesa:
 	#################################################################
@@ -144,12 +155,6 @@ elif D == 2:
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, D)
 
-# store parameters
-with open('params/params.dat', mode='w') as f:
-	s = '#The latest parameters used in the calculation are listed.\n'
-	f.write(s)
-	s = 'Mej = {:.2f} Msun\nn = {:.2f}\nfinj = {:.2f}\ntinj = {:.2f} yr\nmesa model = '.format(Mej, n, options.finj, options.tinj)+options.stellar_model+'\n'+'CSM mass = {:.2f} Msun'.format(CSM_mass)
-	f.write(s)
 
 # if multi-band is called, generate frequency-dependent opacity table as well
 if options.calc_multiband and D == 0:
