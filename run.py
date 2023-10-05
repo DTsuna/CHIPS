@@ -32,7 +32,7 @@ def parse_command_line():
 	parser.add_option("--eruption-innerMr", metavar = "float", type = "float", default=-1.0, help = "The innermost mass coordinate where the energy is injected. If no argument or a negative value is given, it sets by default to just outside the helium core.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
 	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Specify how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind' (default: RSGwind). 'attach' simply connects a wind profile to the outermost cell profile, while 'RSGwind' smoothly connects a red supergiant wind to the erupted material.")
-	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve.")
+	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve. For now this feature is only enabled for Type IIn cases.")
 	parser.add_option("--opacity-table",  metavar = "filename", help = "A custom opacity table used for the mass eruption calculation. If not called, analytical opacity formula (Kuriyama & Shigeyama 20) is used. The opacity file should have the format like the files in the input/rosseland directory.")
 
 	options, filenames = parser.parse_args()
@@ -173,13 +173,16 @@ for Eej in options.Eej:
 	# bolometric light curve
 	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
 	# multi-band light curve if requested
+	lc_band_file = ''
 	if options.calc_multiband:
-		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg_mag.txt'
-		subprocess.call(["rm", "-r", dir_Lnu])
-		subprocess.call(["mkdir", dir_Lnu])
-	else:
-		IIn_lc_band_file = ''
-	lightcurve.transfer(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu, D)
+		if D == 0:
+			lc_band_file = 'LCFiles/IIn_lightcurve_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg_mag.txt'
+			subprocess.call(["rm", "-r", dir_Lnu])
+			subprocess.call(["mkdir", dir_Lnu])
+		else:
+			print('Multi-band light curves are currently enabled only for IIn. Skipping for Ibn/Icn...')
+
+	lightcurve.transfer(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, r_out, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
