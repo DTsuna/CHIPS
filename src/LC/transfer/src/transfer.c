@@ -509,7 +509,6 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[]
 		v_w[i] = v_wind(r[i]);
 		U[2*i] = 1.5*rho[i]*(P_K)*T/(1.3*(MH));
 		U[2*i+1] = U[2*i];
-		printf("aaa %e %e %e\n", U[2*i+1], E[2*i+1], rho[i]);
 	}
 	r[nsize] = r[nsize-1]+dr;
 }
