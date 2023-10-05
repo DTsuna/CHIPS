@@ -99,7 +99,7 @@ convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
 convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table)
 
 # run eruptive mass-loss rad-hydro calculation
-#subprocess.call("./eruption")
+subprocess.call("./eruption")
 #subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
