@@ -34,6 +34,7 @@ def parse_command_line():
 	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Specify how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind' (default: RSGwind). 'attach' simply connects a wind profile to the outermost cell profile, while 'RSGwind' smoothly connects a red supergiant wind to the erupted material.")
 	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve. For now this feature is only enabled for Type IIn cases.")
 	parser.add_option("--opacity-table",  metavar = "filename", help = "A custom opacity table used for the mass eruption calculation. If not called, analytical opacity formula (Kuriyama & Shigeyama 20) is used. The opacity file should have the format like the files in the input/rosseland directory.")
+	parser.add_option("--skip-eruption", action = "store_true", help = "Skip mass eruption and directly move to light curve calculation using pre-computed CSM.")
 
 	options, filenames = parser.parse_args()
 
@@ -110,8 +111,8 @@ convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
 convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table)
 
 # run eruptive mass-loss rad-hydro calculation
-subprocess.call("./eruption")
-#subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
+if not options.skip_eruption:
+	subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
 # comment out the following now that light curve output in EruptionFiles/photosphere.txt
