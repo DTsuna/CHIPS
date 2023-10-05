@@ -167,7 +167,7 @@ for Eej in options.Eej:
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	shock_file = 'LCFiles/shock_output_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
-#	lightcurve.shock(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, CSM_file, shock_file, D)
+	lightcurve.shock(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
