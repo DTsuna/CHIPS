@@ -4,8 +4,10 @@ src/eruption/eos/obj/
 src/eruption/hydro/eruptPara.d
 src/eruption/hydro/inclmn.f
 input/mesa_models_*/*.data
+input/abundance/
 EruptionFiles/
 LCFiles/
+params/
 eruption
 **/__pycache__
 **/.DS_Store
