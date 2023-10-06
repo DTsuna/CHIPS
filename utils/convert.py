@@ -53,12 +53,16 @@ def convertForEruption(inputFile, outputFile, massCutPoint, discriminant, hydroN
 	size = hydroNumMesh # number of mesh
 	if massCutPoint < 0.0:
 		if discriminant == 0:
-			massCut = h.he_core_mass + 0.2 # In solar mass unit
+			massCut = h.he_core_mass + 0.2 # In solar mass
 		elif discriminant == 1:
-			massCut = h.c_core_mass + 0.2 # In solar mass unit
+			# "c_core_mass" has been updated to "co_core_mass" from MESA r21.12.1
+			try:
+				massCut = h.c_core_mass + 0.2 # In solar mass
+			except:
+				massCut = h.co_core_mass + 0.2 # In solar mass
 			logscaleRemesh = True
 		elif discriminant == 2:
-			massCut = h.si_core_mass + 0.2 # In solar mass unit
+			massCut = h.si_core_mass + 0.2 # In solar mass
 			logscaleRemesh = True
 	else:
 		massCut = massCutPoint
