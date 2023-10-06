@@ -126,11 +126,6 @@ if not options.skip_eruption:
 		subprocess.call("make")
 	subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
-# obtain light curve at mass eruption
-# comment out the following now that light curve output in EruptionFiles/photosphere.txt
-# mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
-# utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
-
 
 #################################################################
 #								#
