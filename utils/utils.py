@@ -334,11 +334,11 @@ def discriminantProgModel(progName):
 	Mass_He = np.sum(dm*he4)
 
 	if Mass_H > 0.033:
-		return 0
+		return 0, 'IIn'
 	elif Mass_He > 0.03:
-		return 1
+		return 1, 'Ibn'
 	else:
-		return 2
+		return 2, 'Icn'
 
 
 def evolv_CSM(tinj):

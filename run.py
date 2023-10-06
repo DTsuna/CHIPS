@@ -92,10 +92,10 @@ else:
 #################################################################
 
 # discriminate progenitor type
-# 0: Type IIn
-# 1: Type Ibn
-# 2: Type Icn
-D = utils.discriminantProgModel(file_cc)
+# D=0: stars with hydrogen-rich envelope (SNType='IIn')
+# D=1: stripped stars with helium-rich outer layer (SNType='Ibn')
+# D=2: stripped stars with helium-poor outer layer (SNType='Icn')
+D, SNType = utils.discriminantProgModel(file_cc)
 
 # store abundance
 utils.genAbundanceTable(file_cc)
@@ -122,7 +122,7 @@ if not options.skip_eruption:
 
 #################################################################
 #								#
-#		IIn light curve model of TS20			#
+#		Light curve model of TS20			#
 #								#
 #################################################################
 
@@ -132,18 +132,18 @@ r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
 profile_at_cc = 'EruptionFiles/atCCSN.txt'
-if D == 0:
+if SNType == 'IIn':
 # obtain opacity
 	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
 	opacity_file = 'LCFiles/opacity.txt'
 	gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 	opacity_file = 'LCFiles/kappa_p.txt'
 	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
-elif D == 1:
+elif SNType == 'Ibn':
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	subprocess.call(["cp", "./input/rosseland/opacity_X0000Y0986Z0014.txt", "./LCFiles/opacity.txt"])
 	subprocess.call(["cp", "./input/planck/opacity_X0000Y0986Z0014.txt", "./LCFiles/kappa_p.txt"])
-elif D == 2:
+elif SNType == 'Icn':
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	i = options.stellar_model.find('Msun')
 	Msun = options.stellar_model[i-2:i]
@@ -151,33 +151,37 @@ elif D == 2:
 	subprocess.call(["cp", opac_name, "./LCFiles/opacity.txt"])
 	opac_name = "./input/planck/opacity_Icn"+Msun+"Msun.txt"
 	subprocess.call(["cp", opac_name, "./LCFiles/kappa_p.txt"])
-	
+else:
+	raise ValueError('invalid SNType: %s' % SNType)
+
 
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, D)
 
 
 # if multi-band is called, generate frequency-dependent opacity table as well
-if options.calc_multiband and D == 0:
+if options.calc_multiband and SNType=='IIn':
 	op_freq_dir = 'LCFiles/opacity_frq'
 	subprocess.call(["mkdir", "-p", op_freq_dir])
 	gen_op_frq.gen_op_frq(Y_He, op_freq_dir)
 
 # calculate light curve
 for Eej in options.Eej:
+	print('Currently working on Eej=%g...' % Eej)
+
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
-	shock_file = 'LCFiles/shock_output_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
+	shock_file = 'LCFiles/{}_shock_output_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
 	lightcurve.shock(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
-	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
+	lc_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
 	# multi-band light curve if requested
 	lc_band_file = ''
 	if options.calc_multiband:
-		if D == 0:
-			lc_band_file = 'LCFiles/IIn_lightcurve_'+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg_mag.txt'
+		if SNType=='IIn':
+			lc_band_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg_mag.txt'
 			subprocess.call(["rm", "-r", dir_Lnu])
 			subprocess.call(["mkdir", dir_Lnu])
 		else:
@@ -188,6 +192,6 @@ for Eej in options.Eej:
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
 	try:
-		utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
+		utils.extract_peak_and_rise_time(lc_file, frac=0.01)
 	except ValueError:
 		pass
