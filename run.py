@@ -70,7 +70,6 @@ with open('params/params_'+s+'.dat', mode='w') as f:
 	s = s+'multi_band = '+str(options.calc_multiband)
 	f.write(s)
 
-sys.exit(1)
 
 if options.run_mesa:
 	#################################################################
