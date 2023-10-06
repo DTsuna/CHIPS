@@ -63,8 +63,14 @@ s='{:02d}{:02d}{:02d}_{:02d}{:02d}{:02d}'.format(dt_now.year%100,dt_now.month,dt
 with open('params/params_'+s+'.dat', mode='w') as f:
 	s = '#The latest parameters used in the calculation are listed.\n'
 	f.write(s)
-	s = 'finj = {:.2f}\ntinj = {:.2f} yr\nmesa model = '.format(options.finj, options.tinj)+options.stellar_model+'\n'
+	s = 'finj = {:.2f}\ntinj = {:.2f} yr\nNickel mass = {:.3f} Msun\nmesa model = '.format(options.finj, options.tinj, options.Mni)+options.stellar_model+'\n'
+	s = s+'injection duration = {:.2e} sec.\n'.format(options.injection_duration)
+	Eej_str = ['%g erg' % E for E in options.Eej]
+	s = s+'Eej = '+str(Eej_str)+'\n'
+	s = s+'multi_band = '+str(options.calc_multiband)
 	f.write(s)
+
+sys.exit(1)
 
 if options.run_mesa:
 	#################################################################
