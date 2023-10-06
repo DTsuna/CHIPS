@@ -313,7 +313,6 @@ def get_mass_eruption_lightcurve(outputFile):
         f.close()
 
 
-# https://ui.adsabs.harvard.edu/abs/2012MNRAS.422...70H/abstract
 def discriminantProgModel(progName):
 	h = mr.MesaData(progName)
 	mass = h.mass
@@ -322,15 +321,20 @@ def discriminantProgModel(progName):
 	dm = abs(np.diff(mass))
 	dm = np.append(dm, mass[-1])
 
-	Mass_H = np.sum(dm*h1)
-	Mass_He = np.sum(dm*he4)
+	# outer layer H mass
+	Mass_H = np.sum(dm[mass>h.he_core_mass]*h1[mass>h.he_core_mass])
 
+	# II/Ib border: https://ui.adsabs.harvard.edu/abs/2012MNRAS.422...70H/abstract
 	if Mass_H > 0.033:
 		return 0, 'IIn'
-	elif Mass_He > 0.03:
-		return 1, 'Ibn'
 	else:
-		return 2, 'Icn'
+		# outer layer He mass
+		Mass_He = np.sum(dm[mass>h.si_core_mass]*he4[mass>h.si_core_mass])
+		# Ib/Ic border: https://ui.adsabs.harvard.edu/abs/2021ApJ...908..150W/abstract
+		if Mass_He > 0.05:
+			return 1, 'Ibn'
+		else:
+			return 2, 'Icn'
 
 
 def evolv_CSM(tinj):
@@ -414,7 +418,7 @@ def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000
 	spline_v = scipl.CubicSpline(r, v)
 	nsize = len(r)
 	(rmin, rmax) = (r[0], r[-1])
-#	nout_init = -(np.log(rho[nsize-30])-np.log(rho[nsize-40]))/(np.log(r[nsize-30])-np.log(r[nsize-40]))
+	# initial guess for outer CSM power-law index (Tsuna & Takei 23, PASJ 75, L19)
 	nout_init = 9.
 
 	popt, pcov = curve_fit(CSMprof_func_stripped, np.log(r), np.log(rho), p0 = [1e15, 1e-15, nout_init])
