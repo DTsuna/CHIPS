@@ -44,14 +44,6 @@ def find_mass_eruption(data_files, data_file_at_core_collapse, time_till_collaps
 	return data_files[np.argmin(delta)]
 
 
-# obtain time from mass eruption till core-collapse
-def get_mass_eruption_to_core_collapse(data_file_at_mass_eruption, data_file_at_core_collapse):
-	data_me = mr.MesaData(data_file_at_mass_eruption)
-	data_cc = mr.MesaData(data_file_at_core_collapse)
-	# in years
-	return data_cc.star_age - data_me.star_age
-
-
 # remnant mass from fitting formulae of Schneider+20, arXiv:2008.08599 (single stars)
 def remnant_from_CO_single_stars(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
