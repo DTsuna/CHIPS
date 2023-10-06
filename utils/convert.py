@@ -2,6 +2,7 @@
 import math
 import sys
 import gc
+import re
 import numpy as np
 import mesa_reader as mr
 
@@ -354,9 +355,23 @@ def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, discriminan
 		flag3 = 0
 		nrow = 0
 		ncol = 0
+	# extract original parameters in inclmn.f
+	with open('src/eruption/hydro/inclmn.f', mode = 'r') as f:
+		next(f)
+		text = f.readline()
+	pattern = r"(mn|nelem|nrow|ncol) = (\d+)"
+	matches = re.findall(pattern, text)
+	param_dict = {k: int(v) for k, v in matches}
+	# check if any of the parameters have changed, if so we need to recompile the inclmn.f
+	# 'nelem' is fixed to 19 in the code
+	params_changed = (param_dict != {'mn': hydroNumMesh+10, 'nelem': 19, 'nrow': nrow, 'ncol': ncol})
+
+	# update input files
 	with open('src/eruption/hydro/inclmn.f', mode = 'w') as f:
 		f.write('      integer mn, nelem, nrow, ncol\n')
 		f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19, nrow = %d, ncol = %d )\n' % (nrow, ncol))
 	with open('src/eruption/hydro/eruptPara.d', mode = 'w') as f2:
 		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer useOpacityTable OpacityTable discriminant\n')
 		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + ' ' + str(flag3) + ' ' + '"{}"'.format(OpacityTable) + ' ' + str(discriminant) + '\n')
+
+	return params_changed

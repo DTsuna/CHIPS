@@ -113,10 +113,15 @@ file_eruption = 'EruptionFiles/InitForHydro.txt'
 convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
 
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption. However, the computation will be much slower.
-convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table)
+# "params_changed" checks if the number of cells / shape of opacity table in inclmn.f has changed. If so, a recompile needs to be done
+params_changed = convert.setEruptionParam(options.tinj, options.injection_duration, options.finj, D, continueTransfer=True, OpacityTable=options.opacity_table, hydroNumMesh=options.eruption_Ncell)
 
 # run eruptive mass-loss rad-hydro calculation
 if not options.skip_eruption:
+	if params_changed:
+		print('cell number and/or opacity table shape has changed. recompiling the code...')
+		subprocess.call(["make", "clean"])
+		subprocess.call("make")
 	subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
 
 # obtain light curve at mass eruption
