@@ -29,7 +29,8 @@ def parse_command_line():
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
 	parser.add_option("--mesa-path", metavar = "string", type = "string", help = "Path to the execution files of MESA.")
-	parser.add_option("--eruption-innerMr", metavar = "float", type = "float", default=-1.0, help = "The innermost mass coordinate where the energy is injected. If no argument or a negative value is given, it sets by default to just outside the helium core.")
+	parser.add_option("--eruption-innerMr", metavar = "float", type = "float", default=-1.0, help = "The innermost mass coordinate where the energy is injected. If no argument or a negative value is given, it sets by default to just outside the inner core.")
+	parser.add_option("--eruption-Ncell", metavar = "int", type = "int", default = 10000, help = "Number of cells in the eruption calculation (default: 10000).")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
 	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Specify how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind' (default: RSGwind). 'attach' simply connects a wind profile to the outermost cell profile, while 'RSGwind' smoothly connects a red supergiant wind to the erupted material.")
 	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve. For now this feature is only enabled for Type IIn cases.")
@@ -64,7 +65,8 @@ with open('params/params_'+s+'.dat', mode='w') as f:
 	s = '#The latest parameters used in the calculation are listed.\n'
 	f.write(s)
 	s = 'finj = {:.2f}\ntinj = {:.2f} yr\nNickel mass = {:.3f} Msun\nmesa model = '.format(options.finj, options.tinj, options.Mni)+options.stellar_model+'\n'
-	s = s+'injection duration = {:.2e} sec.\n'.format(options.injection_duration)
+	s = s+'number of cells for eruption  = {:d} \n'.format(options.eruption_Ncell)
+	s = s+'injection duration = {:.2e} sec\n'.format(options.injection_duration)
 	Eej_str = ['%g erg' % E for E in options.Eej]
 	s = s+'Eej = '+str(Eej_str)+'\n'
 	s = s+'multi_band = '+str(options.calc_multiband)
@@ -110,7 +112,7 @@ lightcurve.opacTable(D)
 
 # convert data for eruption calculation
 file_eruption = 'EruptionFiles/InitForHydro.txt'
-convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D)
+convert.convertForEruption(file_cc, file_eruption, options.eruption_innerMr, D, hydroNumMesh=options.eruption_Ncell)
 
 # continueTransfer can be set to true, if radiative transfer scheme needs to be continued even after the eruption. However, the computation will be much slower.
 # "params_changed" checks if the number of cells / shape of opacity table in inclmn.f has changed. If so, a recompile needs to be done
