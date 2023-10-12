@@ -47,7 +47,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	int count_all = 0;
 	double dummy[8];
 	double dr;
-	double CFL = 1.0000000000000000;
+	double CFL = 0.9000000000000000;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
 	char filename[1024];
@@ -157,8 +157,8 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	A = interp_A(nej);
 	interp_int_e(nej, &E_rev, &E_for);
 	g = 1./(4.*M_PI*(nej-delta))*pow(2.*(5.-delta)*(nej-5.), (nej-3.)/2.)/pow((3.-delta)*(nej-3.), (nej-5.)/2.);
-	g *= pow(Eej/Mej, (nej-3.)/2.);
-	g *= Mej;
+	g *= pow(pdt.E_ej/pdt.M_ej, (nej-3.)/2.);
+	g *= pdt.M_ej;
 //g -> g^nej
 	q = rho_csm(rf[0])*pow(rf[0], 1.5);
 	E_rev *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-1.5))*g*pow(A*g/q, (5.-nej)/(nej-1.5))*pow(tf[0], 1.5*(nej-5.)/(nej-1.5));
@@ -330,7 +330,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		do{
 			count_e++;
 			err = 0.;
-			itg_adv_E(F_ini, r, E, U, T_g, rho, dt, n);
+			itg_adv_E(F_ini, r, E, U, rho, dt, n);
 			for(i = 0; i < n; i++){
 				if(isnan(E[2*i+1])){
 					flag = 1;
@@ -343,11 +343,10 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			}
 			for(i = 0; i < n; i++){
 				err += pow(1.-E[2*i+1]/E_old[i], 2.);
-//				E[2*i+1] = (E[2*i+1]+E_old[i])/2.;
 				E_old[i] = E[2*i+1];
 			}
 			err = sqrt(err/(double)n);
-			if(count_e == 300){
+			if(count_e == 1000){
 				printf("count max (rad tra iter), err = %e\n", err);
 				break;
 			}
@@ -472,9 +471,9 @@ Output of temperature, radiation energy density, flux as functions of radius.
 			sprintf(filename, "LCFiles/dist%08d.txt", count);
 			count++;
 			fw = fopen(filename, "w");
-			fprintf(fw, "#r, F, E, U, T_g, T_r, rho\n");
+			fprintf(fw, "#r, F, E, U, T_g, T_r, rho, kappa_r, kappa_p\n");
 			for(l = 0; l < n; l++){
-				fprintf(fw, "%e %e %e %e %e %e %e\n", r[l], F[l], E[2*l], U[2*l], T_g[l], pow(E[2*l]/(P_A), 0.25), rho[l]);
+				fprintf(fw, "%e %e %e %e %e %e %e %e %e\n", r[l], F[l], E[2*l], U[2*l], T_g[l], pow(E[2*l]/(P_A), 0.25), rho[l], kappa_r(rho[l], T_g[l]), kappa_p(rho[l], T_g[l]));
 			}
 			fclose(fw);
 		}
