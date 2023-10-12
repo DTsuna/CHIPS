@@ -12,8 +12,6 @@ from input.TOPS import gen_op_tbl
 from input.TOPS_multigroup import gen_op_frq
 import lightcurve
 
-MSUN = 1.989E33
-
 
 def parse_command_line():
 	parser = OptionParser(
@@ -179,7 +177,7 @@ for Eej in options.Eej:
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	shock_file = 'LCFiles/{}_shock_output_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, CSM_file, shock_file, D)
+	lightcurve.shock(Eej, Mej, options.Mni, n, delta, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
@@ -194,7 +192,7 @@ for Eej in options.Eej:
 		else:
 			print('Multi-band light curves are currently enabled only for IIn. Skipping for Ibn/Icn...')
 
-	lightcurve.transfer(Eej, Mej*MSUN, options.Mni*MSUN, n, delta, r_out, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
+	lightcurve.transfer(Eej, Mej, options.Mni, n, delta, r_out, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
