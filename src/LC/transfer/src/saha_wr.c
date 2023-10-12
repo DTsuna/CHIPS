@@ -100,6 +100,7 @@ void Saha_wr_U(double rho, double U, double *mu_outp, double *T_outp)
 	FILE *fp;
 	int i_ion;
 	int pvt[100];
+	char buf[256];
 	double n_el;
 	double fofT, fCofT, fHeofT, fOofT; //f(T) = (2.*pi*m_e*k_B*T/h**2)^(3/2), fA(T)=f(T)*exp(-xi_A/k_B/T)
 	double fCIIofT, fHeIIofT, fOIIofT, fCIIIofT, fOIIIofT, fCIVofT, fOIVofT;
@@ -112,7 +113,8 @@ void Saha_wr_U(double rho, double U, double *mu_outp, double *T_outp)
 	int i = 0, count = 0;
 
 	fp = fopen("input/abundance/abundance_for_tablegen.txt", "r");
-	while(fscanf(fp, "%lf", X_dummy+i) != EOF){
+	fgets(buf, 256, fp);
+	while(fscanf(fp, "%s %lf", buf, X_dummy+i) != EOF){
 		i++;
 	}
 
@@ -250,6 +252,7 @@ void get_Jacobi_wr(double rho, double Tem, double n_ion[], double fHeofT, double
 void Saha_U(double rho, double U, double *mu, double *T)
 {
 	FILE *fp;
+	char buf[256];
 	double GAMMA = 1.6666666666666666;
         double mu_tmp[2] = {};
         double x;
@@ -259,7 +262,8 @@ void Saha_U(double rho, double U, double *mu, double *T)
 	int i = 0;
 
 	fp = fopen("input/abundance/abundance_for_tablegen.txt", "r");
-	while(fscanf(fp, "%lf", X_dummy+i) != EOF){
+	fgets(buf, 256, fp);
+	while(fscanf(fp, "%s %lf", buf, X_dummy+i) != EOF){
 		i++;
 	}
 
