@@ -298,6 +298,7 @@ double kappa_p(double rho, double T)
 #endif
 	}
 	else{
+		R = rho/pow(T*1.e-06, 3.);
 		if(log10(T) < op.T[0]){
 			if(log10(R) < op.R[0]){
 				return pow(10., op.kappa[0]);

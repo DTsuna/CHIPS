@@ -136,7 +136,6 @@ double *calc_init_dist(double E_ej, double M_ej, double M_ni, double n, double d
 	static double outp_egn[6];
 
 	t_exp = t_ini;
-	pdt = setpars(n, delta, E_ej, M_ej, M_ni, 1.00e+07, 0.00);
 	init_egn(r_ini, egn);
 
 	for(i = 0; i < 4; i++){
@@ -198,7 +197,6 @@ double *calc_dist(double array[], double E_ej, double M_ej, double M_ni, double 
 	memcpy(egn_old, egn, sizeof(double)*4);
 
 	strcpy(csm, file_csm);
-	pdt = setpars(n, delta, E_ej, M_ej, M_ni, 1.00e+07, 0.00);
 
 	*info = 0;
 
