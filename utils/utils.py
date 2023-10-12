@@ -383,5 +383,7 @@ def genAbundanceTable(data_file_at_mass_eruption):
 	c12 = data.c12[0]
 	o16 = data.o16[0]
 	with open('input/abundance/abundance_for_tablegen.txt', mode='w') as f:
-		s = '{:.4e}\n{:.4e}\n{:.4e}\n{:.4e}\n'.format(h1,he4,c12,o16)
+		s = '# abundances\n'
+		f.write(s)
+		s = 'H  {:.4e}\nHe {:.4e}\nC  {:.4e}\nO  {:.4e}\n'.format(h1,he4,c12,o16)
 		f.write(s)
