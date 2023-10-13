@@ -60,10 +60,11 @@ void shock_csm(double E_ej, double M_ej, double M_ni, double n, double delta, co
 	strcpy(csm, file_csm);
 	set_abundance();
 
-	pdt = setpars(n, delta, E_ej, M_ej, M_ni, 1.e+07, 1.e+10);	
+	pdt = setpars(n, delta, E_ej, M_ej, M_ni, 1.e+07, 1.e+10);
 
 	while(flag == 1){
 		fp = fopen(file_outp, "w");
+		fprintf(fp, "# day  v_rs  v_fs  r_rs  r_fs  E_(rad,fs)  rho_csm(r=r_fs)\n");
 		r_ini = set_r_ini(file_csm);
 		r_ini_diff = set_r_diff(file_csm);
 		r_ini = fmax(r_ini, r_ini_diff);

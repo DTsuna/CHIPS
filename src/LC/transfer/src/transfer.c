@@ -50,7 +50,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	double CFL = 0.9000000000000000;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
-	char filename[1024];
+	char buf[256], filename[1024];
 	double g, A, q;
 	double gam = 4./3.;
 	double E_rev, E_for;
@@ -98,6 +98,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
+	fgets(buf, 256, fp);
 	set_abundance();
 
 	if(FLNU == 1) {
@@ -108,6 +109,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 
 	sprintf(filename, "%s", file_outp);
 	fl = fopen(filename, "w");
+	fprintf(fl, "day  luminosity  r_eff  v_eff  T_color\n");
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6], &dummy[7]) != EOF){
 		tf[i] = dummy[0]*86400.000;
 		rf[i] = dummy[4];
@@ -346,7 +348,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 				E_old[i] = E[2*i+1];
 			}
 			err = sqrt(err/(double)n);
-			if(count_e == 1000){
+			if(count_e == 300){
 				printf("count max (rad tra iter), err = %e\n", err);
 				break;
 			}
