@@ -109,7 +109,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 
 	sprintf(filename, "%s", file_outp);
 	fl = fopen(filename, "w");
-	fprintf(fl, "day  luminosity  r_eff  v_eff  T_color\n");
+	fprintf(fl, "# day  luminosity  r_eff  v_eff  T_color\n");
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6], &dummy[7]) != EOF){
 		tf[i] = dummy[0]*86400.000;
 		rf[i] = dummy[4];
@@ -485,7 +485,7 @@ Output of temperature, radiation energy density, flux as functions of radius.
 
 	
 		fprintf(fl, "%f %e %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, v_eff, T_color);
-		printf("j = %d, n = %d, %f %e %e %e %e\n", j, n, t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color, F_ini);
+		printf("j = %d, n = %d, t = %f d, L = %e erg/s, r_eff = %e cm, T_col = %e K, F_ini = %e erg/s/cm2\n", j, n, t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color, F_ini);
 		count_all++;
 	}
 	fclose(fp);
