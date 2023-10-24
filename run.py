@@ -23,6 +23,7 @@ def parse_command_line():
 	parser.add_option("--finj", metavar = "float", type = "float", help = "Energy injected at the base of the stellar envelope, scaled with the envelope's binding energy (required).")
 	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
 	parser.add_option("--injection-duration", metavar = "float", type = "float", default = 1000, help = "Duration of energy injection for mass eruption calculation, in seconds (default: 1000).")
+	parser.add_option("--time-interval", metavar = "float", type = "float", default = 1, help = "Time interval for output of distributions.")
 	parser.add_option("--Mni", metavar = "float", type = "float", default = 0., help = "Radioactive nickel 56 mass, in units of solar mass (default: 0 Msun).")
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
@@ -34,6 +35,7 @@ def parse_command_line():
 	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve. For now this feature is only enabled for Type IIn cases.")
 	parser.add_option("--opacity-table",  metavar = "filename", help = "A custom opacity table used for the mass eruption calculation. If not called, analytical opacity formula (Kuriyama & Shigeyama 20) is used. The opacity file should have the format like the files in the input/rosseland directory.")
 	parser.add_option("--skip-eruption", action = "store_true", help = "Skip mass eruption and directly move to light curve calculation using pre-computed CSM.")
+	parser.add_option("--plateau", action = "store_true", help = "Include emission from hydrogen recombination.")
 
 	options, filenames = parser.parse_args()
 
@@ -177,7 +179,7 @@ for Eej in options.Eej:
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	shock_file = 'LCFiles/{}_shock_output_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej, options.Mni, n, delta, CSM_file, shock_file, D)
+	lightcurve.shock(Eej, Mej, options.Mni, n, delta, options.time_interval, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
@@ -192,7 +194,11 @@ for Eej in options.Eej:
 		else:
 			print('Multi-band light curves are currently enabled only for IIn. Skipping for Ibn/Icn...')
 
-	lightcurve.transfer(Eej, Mej, options.Mni, n, delta, r_out, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
+	if options.plateau:
+		plateau_flag = 1.
+	else:
+		plateau_flag = 0.
+	lightcurve.transfer(Eej, Mej, options.Mni, n, delta, r_out, options.time_interval, plateau_flag, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
