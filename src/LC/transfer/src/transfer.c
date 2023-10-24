@@ -13,18 +13,20 @@
 #include "opacity.h"
 #include "saha.h"
 #include "pars.h"
+#include "popov.h"
 
 #ifdef _OPENMP
 	#include <omp.h>
 #endif
 
 extern char csm[256];
+extern double X;
 
-void rad_transfer_csm(double, double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
+void rad_transfer_csm(double, double, double, double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 
 
-void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double delta, double r_out,
+void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double delta, double r_out, double out_interval, double plateau_flag,
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
 	FILE *fp, *fl, *fnu_time;
@@ -39,12 +41,11 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	double rho_ed[2];
 	double tf[20000], rf[20000], Ff[20000], Ef[20000], uf[20000];
 	int count_e;
-	int i = 0, ii = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
+	int i = 0, ii = 0, j = 0, k, n = NSIZE, fsize, flag = 0, jjj;
 	int F_neg_flag = 0;
+	int output_flag = 0;
 	int c = 0, cmax = 100;
-	int L_outp_flag = 0, count_nu = 0;
 	int FLNU;
-	int count_all = 0;
 	double dummy[8];
 	double dr;
 	double CFL = 0.9000000000000000;
@@ -57,18 +58,15 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	double t_diff;
 	double E_to_T;
 	double F_mean;
-	double abmag[5];
 	double F_from_shocked;
-	int outp_date_int = 0, outp_date_min;
+	double when_out[10000], time_interval = 86400.*out_interval;
 	pars pdt;
 
 	int num_of_threads, i_threads;
 
 
-#if 0
 	FILE *fw;
 	int l, count = 0;
-#endif
 
 
 	pdt = setpars(nej, delta, Eej, Mej, Mni, 1.e+7, 1.e+12);
@@ -101,6 +99,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	fgets(buf, 256, fp);
 	set_abundance();
 
+
 	if(FLNU == 1) {
 		sprintf(filename, "%s", file_outp_band);
 		fnu_time = fopen(filename, "w");
@@ -125,13 +124,12 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	}
 	fsize = i;
 
-	for(outp_date_int = 0; outp_date_int < 100; outp_date_int++){
-		if(tf[0]/86400. >= (double)outp_date_int && tf[0]/86400. < (double)(outp_date_int+1)){
-			break;
-		}
+//************************ set output date**********************************
+	when_out[0] = 86400.*(floor(tf[0]/86400.)+1.);
+	for(jjj = 1; jjj < 10000; jjj++){
+		when_out[jjj] = when_out[jjj-1]+time_interval;
 	}
-	outp_date_min = outp_date_int+1;
-	outp_date_int++;
+//**************************************************************************
 
 	double last_dt = tf[fsize-1] - tf[fsize-2];
 	double slope_dlogr_dlogt = (tf[fsize-1]/rf[fsize-1]) * (rf[fsize-1]-rf[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
@@ -144,7 +142,6 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 		Ff[i] = Ff[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogF_dlogt);
 		Ef[i] = Ef[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogE_dlogt);
 		uf[i] = Ef[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogu_dlogt);
-//		printf("i = %d, tf = %f, Ff = %e\n", i, tf[i]/86400., Ff[i]);
 	}
 
 	t = tf[0];
@@ -202,8 +199,12 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		}
 
 		if(FLNU == 1 && t+dt > tf[j+1]){
-			L_outp_flag = 1;
 			dt = tf[j+1]-t;
+		}
+
+		if(t+dt > when_out[count]){
+			dt = when_out[count]-t;
+			output_flag = 1;
 		}
 
 /*Interpolation of r, E, u_fs, F*/
@@ -253,6 +254,7 @@ Identify the position of forward shock, and estimate by linear interpolation.
 #ifdef EADD
 		F_from_shocked = (E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff) * exp(-t/t_diff - 0.5*t*t/t_diff/t_diff) * sqrt(2./M_E/M_PI) / (1.-erf(1./sqrt(2.)));
 		F_ini += E_ini*u_ini+F_from_shocked;
+		F_ini += plateau_flag*L_popov(t, pdt.M_ej, pdt.E_ej, 1.e+14, X)/(4.*M_PI*r_ini*r_ini);
 #endif
 
 
@@ -392,13 +394,35 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			break;
 		}
 
+		for(i = 0; i < n; i++){
+			saha(rho[i], U[2*i], mu+i, T_g+i);
+			kappa_s = kappa_r(rho[i], T_g[i]);
+			kappa_a = kappa_p(rho[i], T_g[i]);
+			if(i != 0){
+				F[i] = calc_flux_i(r_ini, r, E, U, rho, dt, i, n);
+				v_w[i] += dt*(kappa_r(rho[i], T_g[i])+kappa_r(rho[i-1], T_g[i-1]))/2.*F[i]/(P_C);
+			}
+			else{
+				F[i] = F_ini;
+				v_w[i] += dt*(kappa_r(rho[i], T_g[i]))*F[i]/(P_C);
+			}
+
+			tau_eff[i] = sqrt(kappa_a*kappa_s)*rho[i]*(r[i+1]-r[i]);
+			tau[i] = kappa_s*rho[i]*(r[i+1]-r[i]);
+		}
+
 
 		for(i = 0; i < n; i++){
 			saha(rho[i], U[2*i], mu+i, T_g+i);
 			kappa_s = kappa_r(rho[i], T_g[i]);
 			kappa_a = kappa_p(rho[i], T_g[i]);
 			if(i != 0){
-				F[i-1] = calc_flux_i(r_ini, r, E, U, rho, dt, i, n);
+				F[i] = calc_flux_i(r_ini, r, E, U, rho, dt, i, n);
+				v_w[i] += dt*(kappa_r(rho[i], T_g[i])+kappa_r(rho[i-1], T_g[i-1]))/2.*F[i]/(P_C);
+			}
+			else{
+				F[i] = F_ini;
+				v_w[i] += dt*(kappa_r(rho[i], T_g[i]))*F[i]/(P_C);
 			}
 			tau_eff[i] = sqrt(kappa_a*kappa_s)*rho[i]*(r[i+1]-r[i]);
 			tau[i] = kappa_s*rho[i]*(r[i+1]-r[i]);
@@ -444,49 +468,29 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		}
 /********************************************************************/
 
-/******************Calculate L_nu if requested************************/
-		if(FLNU == 1 && L_outp_flag == 1){
-			if(t/86400. > (double)outp_date_int && j < fsize-1){
-				printf("/*********************************************************/\n");
-				printf("%e\n", tf[j+1]);
-				sprintf(filename, "%s/Lnu%08d", dir_shockprofiles, outp_date_int-outp_date_min);
-				calc_lum(t, r[0], r_out, F_ini, r, rho, T_g, n, filename, abmag, pdt);
-				// add light-travel time between shock and outer edge, since the ray tracing assumes speed of light is infinite
-				fprintf(fnu_time, "%e %e %e %e %e %e\n", (tf[j+1]+(r_out-r_ini)/P_C)/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
-				printf("%e %e %e %e %e %e\n", (tf[j+1]+(r_out-r_ini)/P_C)/86400., abmag[0], abmag[1], abmag[2], abmag[3], abmag[4]);
-				outp_date_int++;
-				printf("/*********************************************************/\n");
-			}
-			count_nu++;
-			L_outp_flag = 0;
-		}
-/********************************************************************/
-
-
-
-
 /**********************************************************************************
 Output of temperature, radiation energy density, flux as functions of radius.
 **********************************************************************************/
-#if 0
-		if(count_all%10 == 0){
-			sprintf(filename, "LCFiles/dist%08d.txt", count);
+		if(output_flag == 1){
+			sprintf(filename, "LCFiles/transfer_output/dist%05d.txt", count);
 			count++;
 			fw = fopen(filename, "w");
-			fprintf(fw, "#r, F, E, U, T_g, T_r, rho, kappa_r, kappa_p\n");
+			fprintf(fw, "#r, F, E, U, T_g, rho, v_w\n");
+			fprintf(fw, "#t = %f days.\n", t/86400.);
+			fprintf(fw, "#Temp = %e K.\n", pow(4.*F_ini/(P_A)/(P_C), 0.25));
+			fprintf(fw, "#input vel. = %e cm/s\n", u_ini*6./7.+v_wind(r_ini)/7.);
 			for(l = 0; l < n; l++){
-				fprintf(fw, "%e %e %e %e %e %e %e %e %e\n", r[l], F[l], E[2*l], U[2*l], T_g[l], pow(E[2*l]/(P_A), 0.25), rho[l], kappa_r(rho[l], T_g[l]), kappa_p(rho[l], T_g[l]));
+				fprintf(fw, "%e %e %e %e %e %e %e\n", r[l], F[l], E[2*l], U[2*l], T_g[l], rho[l], v_w[l]);
 			}
 			fclose(fw);
+			printf("t = %f d, L = %e erg/s, r_eff = %e cm, T_col = %e K, F_ini = %e erg/s/cm2\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color, F_ini);
+			output_flag = 0;
 		}
-#endif
 /*********************************************************************************/
 
 
 	
 		fprintf(fl, "%f %e %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, v_eff, T_color);
-		printf("j = %d, n = %d, t = %f d, L = %e erg/s, r_eff = %e cm, T_col = %e K, F_ini = %e erg/s/cm2\n", j, n, t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color, F_ini);
-		count_all++;
 	}
 	fclose(fp);
 	fclose(fl);
