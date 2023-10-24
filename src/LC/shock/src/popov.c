@@ -5,7 +5,6 @@
 
 double L_popov(double t, double Mej, double Eej, double R0, double X_H)
 {
-	int i;
 	double Tion = 5054., sigma_SB = (P_A)*(P_C)/4.0;
 	double vsc, kappa;
 	double te, td, ta, ti, Lambda;
