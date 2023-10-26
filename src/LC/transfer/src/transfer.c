@@ -13,6 +13,7 @@
 #include "opacity.h"
 #include "saha.h"
 #include "pars.h"
+#include "itgrad.h"
 
 #ifdef _OPENMP
 	#include <omp.h>
@@ -38,8 +39,9 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	double err = 0., tol = 1.e-08;
 	double rho_ed[2];
 	double tf[20000], rf[20000], Ff[20000], Ef[20000], uf[20000];
-	int count_e;
-	int i = 0, ii = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
+	int count_e, count = 0;
+	int output_flag = 0;
+	int i = 0, ii = 0, j = 0, jj = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
 	int c = 0, cmax = 100;
 	int L_outp_flag = 0, count_nu = 0;
@@ -47,7 +49,9 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	int count_all = 0;
 	double dummy[8];
 	double dr;
-	double CFL = 0.9000000000000000;
+	double when_out[10000];
+	double CFL = 0.4000000000000000;
+	double lum_outp;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
 	char buf[256], filename[1024];
@@ -59,6 +63,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	double F_mean;
 	double abmag[5];
 	double F_from_shocked;
+	double time_interval = 86400.;
 	int outp_date_int = 0, outp_date_min;
 	pars pdt;
 
@@ -168,6 +173,13 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	t_diff = rf[0]/uf[0];
 /*********************************************************************************************/
 
+//************************ set output date**********************************
+	when_out[0] = 86400.*(floor(tf[0]/86400.)+1.);
+	for(jj = 1; jj < 10000; jj++){
+		when_out[jj] = when_out[jj-1]+time_interval;
+	}
+//**************************************************************************
+
 
 
 
@@ -204,6 +216,11 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		if(FLNU == 1 && t+dt > tf[j+1]){
 			L_outp_flag = 1;
 			dt = tf[j+1]-t;
+		}
+
+		if(t+dt > when_out[count]){
+			dt = when_out[count]-t;
+			output_flag = 1;
 		}
 
 /*Interpolation of r, E, u_fs, F*/
@@ -327,7 +344,10 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		for(i = 0; i < n; i++){
 			E_old[i] = E[2*i];
 		}
-		
+
+		integ_adv_eadtra(F_ini, E, T_g, r, dt, n+1, &flag);
+
+/*	
 		count_e = 0;
 		do{
 			count_e++;
@@ -355,6 +375,9 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 	
 		}while(err > tol);
 
+*/
+
+		
 		if(flag == 1){
 			for(i = 0; i < n; i++){
 				E[2*i] = E0[i];
@@ -484,8 +507,13 @@ Output of temperature, radiation energy density, flux as functions of radius.
 
 
 	
-		fprintf(fl, "%f %e %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, v_eff, T_color);
-		printf("j = %d, n = %d, t = %f d, L = %e erg/s, r_eff = %e cm, T_col = %e K, F_ini = %e erg/s/cm2\n", j, n, t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color, F_ini);
+		lum_outp = 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)];
+		fprintf(fl, "%f %e %e %e %e\n", t/86400., lum_outp, r_eff, v_eff, T_color);
+		if(output_flag == 1){
+			count++;
+			printf("t = %f d, L = %e erg/s, r_eff = %e cm, T_col = %e K\n", t/86400., lum_outp, r_eff, T_color);
+			output_flag = 0;
+		}
 		count_all++;
 	}
 	fclose(fp);
