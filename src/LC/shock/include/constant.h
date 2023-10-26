@@ -22,6 +22,10 @@
 #define XI_OIII 54.94
 #define XI_OIV 77.41
 
+#define CFL_MAX 0.9
+#define CFL_MIN 1.0E-4
+#define R_MAX 1.E4
+
 #define N 4
 
 #endif
