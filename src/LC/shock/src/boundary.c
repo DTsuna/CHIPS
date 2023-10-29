@@ -26,7 +26,7 @@ void set_init_rev(double x, double y_up[], double egn[])
 //set physical quantities at upstream of forward shock.
 void set_init_for(double x, double y_up[], double egn[])
 {
-	y_up[0] = pdt.v_w-egn[1];
+	y_up[0] = v_wind(x)-egn[1];
 	y_up[1] = rho_csm(x);
 	y_up[2] = 0.0;
 	y_up[3] = egn[2];
