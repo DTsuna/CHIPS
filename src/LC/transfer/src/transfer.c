@@ -43,6 +43,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	int output_flag = 0;
 	int i = 0, ii = 0, j = 0, jj = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
+	int loc;
 	int c = 0, cmax = 100;
 	int L_outp_flag = 0, count_nu = 0;
 	int FLNU;
@@ -50,7 +51,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	double dummy[8];
 	double dr;
 	double when_out[10000];
-	double CFL = 0.4000000000000000;
+	double CFL = CFL_MAX;
 	double lum_outp;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
@@ -197,12 +198,18 @@ X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 /*
 dt does not necesarrily satisfy CFL condition.
 */
-		if(flag == 0){
-			dt = CFL*dr/(P_C);
-		}
-		else{
+		if(flag == 1){
+			CFL *= 0.5;
+			if(CFL < (CFL_MIN)){
+				printf("Too small CFL factor. stop.\n");
+				exit(EXIT_FAILURE);
+			}
 			flag = 0;
 		}
+		else{
+			CFL = CFL_MAX;
+		}
+		dt = CFL*dr/(P_C);
 
 /*
 Identify the position of forward shock, and estimate by linear interpolation.
@@ -303,12 +310,6 @@ At first, intergrate source term using implicit Euler method.
 				E[2*k+1] = E[2*k];
 				U[2*k+1] = U[2*k];
 			}
-			dt *= 0.5;
-			fprintf(stderr, "iteration failure (source term). Too large time step.");
-			if(dt < 1.e-05 || isnan(dt)){
-				fprintf(stderr, "Too small time interval. end.\n");
-				exit(EXIT_FAILURE);
-			}
 			continue;
 		}
 		else{
@@ -345,51 +346,15 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			E_old[i] = E[2*i];
 		}
 
-		integ_adv_eadtra(F_ini, E, T_g, r, dt, n+1, &flag);
-
-/*	
-		count_e = 0;
-		do{
-			count_e++;
-			err = 0.;
-			itg_adv_E(F_ini, r, E, U, rho, dt, n);
-			for(i = 0; i < n; i++){
-				if(isnan(E[2*i+1])){
-					flag = 1;
-					break;
-				}
-			}
-			if(flag == 1){
-				fprintf(stderr, "iteration failure. time step is too large. i = %d.\n", i);
-				break;
-			}
-			for(i = 0; i < n; i++){
-				err += pow(1.-E[2*i+1]/E_old[i], 2.);
-				E_old[i] = E[2*i+1];
-			}
-			err = sqrt(err/(double)n);
-			if(count_e == 300){
-				printf("count max (rad tra iter), err = %e\n", err);
-				break;
-			}
-	
-		}while(err > tol);
-
-*/
-
+		integ_adv_eadtra(F_ini, E, T_g, r, dt, n+1, &flag, &loc, &err);
 		
 		if(flag == 1){
+			printf("count max (advection term, err = %e, CFL = %e, loc = %d, t = %f d.)\n", err, CFL, loc, t/86400.);
 			for(i = 0; i < n; i++){
 				E[2*i] = E0[i];
 				E[2*i+1] = E[2*i];
 				U[2*i] = U0[i];
 				U[2*i+1] = U[2*i];
-			}
-			dt *= 0.5;
-			c++;
-			if(c == cmax){
-				fprintf(stderr, "too small dt. exit.\n");
-				exit(EXIT_FAILURE);
 			}
 			continue;
 		}
@@ -531,12 +496,12 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[]
 
 	for(i = 0; i < nsize; i++){
 		r[i] = r_ini+dr*(double)i;
-		E[2*i] = (P_A)*pow(1.e+03, 4.)*pow(r[0]/r[i], 2.);
+		E[2*i] = (P_A)*pow(3.e+03, 4.)*pow(r[0]/r[i], 2.);
 		T = pow(E[2*i]/(P_A), 0.25);
 		E[2*i+1] = E[2*i];
 		rho[i] = rho_csm(r[i]+dr/2.);
 		v_w[i] = v_wind(r[i]);
-		U[2*i] = 1.5*rho[i]*(P_K)*T/(1.3*(MH));
+		U[2*i] = 1.5*rho[i]*(P_K)*T/(15.*(MH));
 		U[2*i+1] = U[2*i];
 	}
 	r[nsize] = r[nsize-1]+dr;
