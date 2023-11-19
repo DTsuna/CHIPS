@@ -2,6 +2,7 @@
 import math
 import sys
 import gc
+import re
 import numpy as np
 import mesa_reader as mr
 
@@ -39,7 +40,7 @@ def getCommonRatio(CommonR_init, FirstTerm, SumMass, NumOfTerms):
 		sys.exit(1)
 	return CommonR
 
-def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, logscaleRemesh=False):
+def convertForEruption(inputFile, outputFile, massCutPoint, discriminant, hydroNumMesh=3000, logscaleRemesh=False):
 
 	#################################################################
 	##################### Input Parameters ##########################
@@ -52,7 +53,18 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 	path = outputFile
 	size = hydroNumMesh # number of mesh
 	if massCutPoint < 0.0:
-		massCut = h.he_core_mass + 0.2 # In solar mass unit
+		if discriminant == 0:
+			massCut = h.he_core_mass + 0.2 # In solar mass
+		elif discriminant == 1:
+			# "c_core_mass" has been updated to "co_core_mass" from MESA r21.12.1
+			try:
+				massCut = h.c_core_mass + 0.2 # In solar mass
+			except:
+				massCut = h.co_core_mass + 0.2 # In solar mass
+			logscaleRemesh = True
+		elif discriminant == 2:
+			massCut = h.si_core_mass + 0.2 # In solar mass
+			logscaleRemesh = True
 	else:
 		massCut = massCutPoint
 		print('massCut has been manually set to:' + str(massCut) + 'Msun')
@@ -253,6 +265,10 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 			mrCgs[i] = 0
 			for j in range(0, i + 1):
 				mrCgs[i] = mrCgs[i] + dmass[j]
+		# if new mass coordinates are outside what is available by MESA, shift the new coordinates
+		# so that they will be within the range (with CommonR preserved)
+		if mrCgs[-1] > cuttedMrCgs[-1]:
+			mrCgs -= (mrCgs[-1] - cuttedMrCgs[-1])
 
 	#print(str(mrCgs[size - 1]))
 	#print(str(cuttedMrCgs[originalSize - cellCut - 1]))
@@ -319,7 +335,8 @@ def convertForEruption(inputFile, outputFile, massCutPoint, hydroNumMesh=10000, 
 			f.write('\n')
 
 
-def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMesh=10000, injectEnergy=-1.0, continueTransfer=False, OpacityTable=None):
+def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, discriminant, hydroNumMesh=3000, injectEnergy=-1.0, continueTransfer=False, OpacityTable=None):
+
 	if injectEnergy < 0.0:
 		# use injectedEnergyFraction instead
 		flag = 1
@@ -338,9 +355,23 @@ def setEruptionParam(timeToCC, injectDuration, injectEnergyFraction, hydroNumMes
 		flag3 = 0
 		nrow = 0
 		ncol = 0
+	# extract original parameters in inclmn.f
+	with open('src/eruption/hydro/inclmn.f', mode = 'r') as f:
+		next(f)
+		text = f.readline()
+	pattern = r"(mn|nelem|nrow|ncol) = (\d+)"
+	matches = re.findall(pattern, text)
+	param_dict = {k: int(v) for k, v in matches}
+	# check if any of the parameters have changed, if so we need to recompile the inclmn.f
+	# 'nelem' is fixed to 19 in the code
+	params_changed = (param_dict != {'mn': hydroNumMesh+10, 'nelem': 19, 'nrow': nrow, 'ncol': ncol})
+
+	# update input files
 	with open('src/eruption/hydro/inclmn.f', mode = 'w') as f:
 		f.write('      integer mn, nelem, nrow, ncol\n')
 		f.write('      parameter ( mn = '+str(hydroNumMesh+ 10)+', nelem = 19, nrow = %d, ncol = %d )\n' % (nrow, ncol))
 	with open('src/eruption/hydro/eruptPara.d', mode = 'w') as f2:
-		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer useOpacityTable OpacityTable\n')
-		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + ' ' + str(flag3) + ' ' + '"{}"'.format(OpacityTable) + '\n')
+		f2.write('TimeToCC InjectEnergy InjectDuration ScaledByEnvelopeEnergy InjectEnergyFraction continueTransfer useOpacityTable OpacityTable discriminant\n')
+		f2.write(str(timeToCC*86400*365.25) + ' ' +  str(injectEnergy) + ' ' +  str(injectDuration) + ' ' + str(flag) + ' ' + str(injectEnergyFraction) + ' ' + str(flag2) + ' ' + str(flag3) + ' ' + '"{}"'.format(OpacityTable) + ' ' + str(discriminant) + '\n')
+
+	return params_changed

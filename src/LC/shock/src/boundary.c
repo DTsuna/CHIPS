@@ -7,23 +7,26 @@
 #include "ranhugo.h"
 #include "function.h"
 #include "W4.h"
+#include "nickel.h"
 
 extern double t_exp;
 extern pars pdt;
+extern double X;
 
 //set physical quantities at upstream of reverse shock.
 void set_init_rev(double x, double y_up[], double egn[])
 {
+	double kappa = 0.2*(1.+X);
 	y_up[0] = x/t_exp-egn[0];
 	y_up[1] = rho_ej(x, t_exp);
 	y_up[2] = 0.0;
-	y_up[3] = 0.0;
+	y_up[3] = rad_from_decay_of_nico(pdt.M_ni, pdt.M_ej, pdt.E_ej, kappa, t_exp)/(4.*M_PI*x*x);
 }
 
 //set physical quantities at upstream of forward shock.
 void set_init_for(double x, double y_up[], double egn[])
 {
-	y_up[0] = pdt.v_w-egn[1];
+	y_up[0] = v_wind(x)-egn[1];
 	y_up[1] = rho_csm(x);
 	y_up[2] = 0.0;
 	y_up[3] = egn[2];
@@ -32,11 +35,12 @@ void set_init_for(double x, double y_up[], double egn[])
 //guess initial value at downstream of reverse shock.
 void set_init_down_rev(double x, double y_up[], double y_down[], double egn[])
 {
+	double kappa = 0.2*(1.+X);
 	y_down[0] = y_up[0]/7.0;
 	y_down[1] = y_up[1]*7.0;
 	y_down[2] = 6.0/7.0*y_up[1]*y_up[0]*y_up[0];
 	y_down[2] = pow(3.0*y_down[2]/(P_A), 0.25);
-	y_down[3] = 0.0;
+	y_down[3] = rad_from_decay_of_nico(pdt.M_ni, pdt.M_ej, pdt.E_ej, kappa, t_exp)/(4.*M_PI*x*x);
 }
 
 //guess initial value at downstream of forward shock.

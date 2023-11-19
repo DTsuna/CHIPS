@@ -6,5 +6,6 @@
 #define CHI_HeII 8.67901E-11
 
 void saha(double, double, double*, double*);
+void set_tables(const char *openfile, double rho[], double U[], double mu[], int *row, int *col);
 
 #endif

@@ -8,12 +8,12 @@
 #include "itgadvu.h"
 #include "itgadve.h"
 #include "srctrm.h"
-#include "rhocsm.h"
 #include "raytrace.h"
 #include "flux.h"
 #include "opacity.h"
 #include "saha.h"
 #include "pars.h"
+#include "itgrad.h"
 
 #ifdef _OPENMP
 	#include <omp.h>
@@ -21,35 +21,41 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
+void rad_transfer_csm(double, double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 
 
-void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r_out,
+void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double delta, double r_out,
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
 	FILE *fp, *fl, *fnu_time;
 	double F_max = 0., F_out = 0.;
-	double r_eff, r_eff_interp, T_color;
+	double r_eff, v_eff, r_eff_interp, T_color;
 	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
 	double T_g[NSIZE], mu[NSIZE], F[NSIZE];
 	double kappa_s, kappa_a;
 	double r_ini, F_ini, u_ini, E_ini;
 	double t, dt = 4.;
-	double err = 0., tol = 1.e-06;
+	double err = 0., tol = 1.e-08;
 	double rho_ed[2];
 	double tf[20000], rf[20000], Ff[20000], Ef[20000], uf[20000];
-	int i = 0, ii = 0, j = 0, k, n = NSIZE, fsize, flag = 0;
+	int count_e, count = 0;
+	int output_flag = 0;
+	int i = 0, ii = 0, j = 0, jj = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
+	int loc;
 	int c = 0, cmax = 100;
 	int L_outp_flag = 0, count_nu = 0;
 	int FLNU;
+	int count_all = 0;
 	double dummy[8];
 	double dr;
-	double CFL = 1.0000000000000000;
+	double when_out[10000];
+	double CFL = CFL_MAX;
+	double lum_outp;
 	double tau[NSIZE], tau_eff[NSIZE];
 	double tau_tot, tau_eff_tot;
-	char filename[1024];
+	char buf[256], filename[1024];
 	double g, A, q;
 	double gam = 4./3.;
 	double E_rev, E_for;
@@ -57,14 +63,21 @@ void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r
 	double E_to_T;
 	double F_mean;
 	double abmag[5];
+	double F_from_shocked;
+	double time_interval = 86400.;
 	int outp_date_int = 0, outp_date_min;
 	pars pdt;
 
 	int num_of_threads, i_threads;
 
 
+#if 0
+	FILE *fw;
+	int l, count = 0;
+#endif
 
-	pdt = setpars(nej, delta, Eej, Mej, 1.e+7, 1.e+12);
+
+	pdt = setpars(nej, delta, Eej, Mej, Mni, 1.e+7, 1.e+12);
 
 	/* OpenMP parameters */
 	if(getenv("OMP_NUM_THREADS") == NULL){
@@ -91,6 +104,7 @@ void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
+	fgets(buf, 256, fp);
 	set_abundance();
 
 	if(FLNU == 1) {
@@ -101,6 +115,7 @@ void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r
 
 	sprintf(filename, "%s", file_outp);
 	fl = fopen(filename, "w");
+	fprintf(fl, "# day  luminosity  r_eff  v_eff  T_color\n");
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6], &dummy[7]) != EOF){
 		tf[i] = dummy[0]*86400.000;
 		rf[i] = dummy[4];
@@ -129,12 +144,13 @@ void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r
 	double slope_dlogu_dlogt = (tf[fsize-1]/rf[fsize-1]) * (uf[fsize-1]-uf[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
 	double slope_dlogF_dlogt = (tf[fsize-1]/Ff[fsize-1]) * (Ff[fsize-1]-Ff[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
 	double slope_dlogE_dlogt = (tf[fsize-1]/Ef[fsize-1]) * (Ef[fsize-1]-Ef[fsize-11])/(tf[fsize-1]-tf[fsize-11]);
-	for(i = fsize; i < 2*fsize; i++){
+	for(i = fsize; i < 5*fsize; i++){
 		tf[i] = tf[fsize-1] + (double) (i-fsize+1) * last_dt;
 		rf[i] = rf[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogr_dlogt);
 		Ff[i] = Ff[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogF_dlogt);
 		Ef[i] = Ef[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogE_dlogt);
 		uf[i] = Ef[fsize-1] * pow(tf[i]/tf[fsize-1], slope_dlogu_dlogt);
+//		printf("i = %d, tf = %f, Ff = %e\n", i, tf[i]/86400., Ff[i]);
 	}
 
 	t = tf[0];
@@ -149,14 +165,21 @@ void rad_transfer_csm(double Eej, double Mej, double nej, double delta, double r
 	A = interp_A(nej);
 	interp_int_e(nej, &E_rev, &E_for);
 	g = 1./(4.*M_PI*(nej-delta))*pow(2.*(5.-delta)*(nej-5.), (nej-3.)/2.)/pow((3.-delta)*(nej-3.), (nej-5.)/2.);
-	g *= pow(Eej/Mej, (nej-3.)/2.);
-	g *= Mej;
+	g *= pow(pdt.E_ej/pdt.M_ej, (nej-3.)/2.);
+	g *= pdt.M_ej;
 //g -> g^nej
 	q = rho_csm(rf[0])*pow(rf[0], 1.5);
 	E_rev *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-1.5))*g*pow(A*g/q, (5.-nej)/(nej-1.5))*pow(tf[0], 1.5*(nej-5.)/(nej-1.5));
 	E_for *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-1.5))*q*pow(A*g/q, 3.5/(nej-1.5))*pow(tf[0], 1.5*(nej-5.)/(nej-1.5));
 	t_diff = rf[0]/uf[0];
 /*********************************************************************************************/
+
+//************************ set output date**********************************
+	when_out[0] = 86400.*(floor(tf[0]/86400.)+1.);
+	for(jj = 1; jj < 10000; jj++){
+		when_out[jj] = when_out[jj-1]+time_interval;
+	}
+//**************************************************************************
 
 
 
@@ -170,22 +193,28 @@ Here, dr = r[N]-r[N-1] must be fixed.
 for i = 0, 1, ..., n-1, 
 X[i] = X[i+1], where X is physical quantity, i.e. E, U, rho.
 */
-	while(t < tf[2*fsize-1] + r_out/P_C){
+	while(t < tf[5*fsize-1] + r_out/P_C){
 
 /*
 dt does not necesarrily satisfy CFL condition.
 */
-		if(flag == 0){
-			dt = CFL*dr/(P_C);
-		}
-		else{
+		if(flag == 1){
+			CFL *= 0.5;
+			if(CFL < (CFL_MIN)){
+				printf("Too small CFL factor. stop.\n");
+				exit(EXIT_FAILURE);
+			}
 			flag = 0;
 		}
+		else{
+			CFL = CFL_MAX;
+		}
+		dt = CFL*dr/(P_C);
 
 /*
 Identify the position of forward shock, and estimate by linear interpolation.
 */
-		for(i = j; i < 2*fsize; i++){
+		for(i = j; i < 5*fsize; i++){
 			if(t >= tf[i] && t < tf[i+1]){
 				j = i;
 			}
@@ -194,6 +223,11 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		if(FLNU == 1 && t+dt > tf[j+1]){
 			L_outp_flag = 1;
 			dt = tf[j+1]-t;
+		}
+
+		if(t+dt > when_out[count]){
+			dt = when_out[count]-t;
+			output_flag = 1;
 		}
 
 /*Interpolation of r, E, u_fs, F*/
@@ -241,7 +275,8 @@ Identify the position of forward shock, and estimate by linear interpolation.
 		}
 
 #ifdef EADD
-		F_ini += E_ini*u_ini+(E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff) * exp(-t/t_diff - 0.5*t*t/t_diff/t_diff) * sqrt(2./M_E/M_PI) / (1.-erf(1./sqrt(2.)));
+		F_from_shocked = (E_rev+E_for)/(4.*M_PI*r_ini*r_ini*t_diff) * exp(-t/t_diff - 0.5*t*t/t_diff/t_diff) * sqrt(2./M_E/M_PI) / (1.-erf(1./sqrt(2.)));
+		F_ini += E_ini*u_ini+F_from_shocked;
 #endif
 
 
@@ -275,12 +310,6 @@ At first, intergrate source term using implicit Euler method.
 				E[2*k+1] = E[2*k];
 				U[2*k+1] = U[2*k];
 			}
-			dt *= 0.5;
-			fprintf(stderr, "iteration failure (source term). Too large time step.");
-			if(dt < 1.e-05 || isnan(dt)){
-				fprintf(stderr, "Too small time interval. end.\n");
-				exit(EXIT_FAILURE);
-			}
 			continue;
 		}
 		else{
@@ -298,6 +327,9 @@ Integrate energy equation impilicitly.
 		rho_ed[1] = rho_csm(r[n]+dr/2.);
 		itg_adv_U(r, U, rho, rho_ed, v_w, dt, n);
 
+		for(i = 0; i < n; i++){
+			saha(rho[i], U[2*i+1], mu+i, T_g+i);
+		}
 
 	
 /*
@@ -313,41 +345,16 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		for(i = 0; i < n; i++){
 			E_old[i] = E[2*i];
 		}
+
+		integ_adv_eadtra(F_ini, E, T_g, r, dt, n+1, &flag, &loc, &err);
 		
-
-		do{
-			err = 0.;
-			itg_adv_E(F_ini, r, E, U, rho, dt, n);
-			for(i = 0; i < n; i++){
-				if(isnan(E[2*i+1])){
-					flag = 1;
-					break;
-				}
-			}
-			if(flag == 1){
-				fprintf(stderr, "iteration failure. time step is too large.\n");
-				break;
-			}
-			for(i = 0; i < n; i++){
-				err += pow(1.-E[2*i+1]/E_old[i], 2.);
-				E_old[i] = E[2*i+1];
-			}
-	
-			err = sqrt(err/(double)n);
-		}while(err > tol);
-
 		if(flag == 1){
+			printf("count max (advection term, err = %e, CFL = %e, loc = %d, t = %f d.)\n", err, CFL, loc, t/86400.);
 			for(i = 0; i < n; i++){
 				E[2*i] = E0[i];
 				E[2*i+1] = E[2*i];
 				U[2*i] = U0[i];
 				U[2*i+1] = U[2*i];
-			}
-			dt *= 0.5;
-			c++;
-			if(c == cmax){
-				fprintf(stderr, "too small dt. exit.\n");
-				exit(EXIT_FAILURE);
 			}
 			continue;
 		}
@@ -418,6 +425,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 /***********************Calculate photosphere************************/
 		if(i != 1 && i != 0){
 			r_eff = (r[i-2]-r[i])/2./tau[i-1]*(1.-tau_tot)+(r[i-1]+r[i])/2.;
+			v_eff = (v_w[i-2]-v_w[i])/2./tau[i-1]*(1.-tau_tot)+(v_w[i-1]+v_w[i])/2.;
 		}
 		else{
 			r_eff = r_ini;
@@ -449,20 +457,29 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 Output of temperature, radiation energy density, flux as functions of radius.
 **********************************************************************************/
 #if 0
-		sprintf(filename, "LCFiles/dist%08d.txt", count);
-		count++;
-		fw = fopen(filename, "w");
-		for(l = 0; l < n; l++){
-			fprintf(fw, "%e %e %e %e %e\n", r[l], F[l], E[l], U[l], T_g[l]);
+		if(count_all%10 == 0){
+			sprintf(filename, "LCFiles/dist%08d.txt", count);
+			count++;
+			fw = fopen(filename, "w");
+			fprintf(fw, "#r, F, E, U, T_g, T_r, rho, kappa_r, kappa_p\n");
+			for(l = 0; l < n; l++){
+				fprintf(fw, "%e %e %e %e %e %e %e %e %e\n", r[l], F[l], E[2*l], U[2*l], T_g[l], pow(E[2*l]/(P_A), 0.25), rho[l], kappa_r(rho[l], T_g[l]), kappa_p(rho[l], T_g[l]));
+			}
+			fclose(fw);
 		}
-		fclose(fw);
 #endif
 /*********************************************************************************/
 
 
 	
-		fprintf(fl, "%f %e %e %e\n", t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
-		printf("j = %d, n = %d, %f %e %e %e\n", j, n, t/86400., 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)], r_eff, T_color);
+		lum_outp = 4.*M_PI*r[n-1]*r[n-1]*(P_C)*E[2*(n-1)];
+		fprintf(fl, "%f %e %e %e %e\n", t/86400., lum_outp, r_eff, v_eff, T_color);
+		if(output_flag == 1){
+			count++;
+			printf("t = %f d, L = %e erg/s, r_eff = %e cm, T_col = %e K\n", t/86400., lum_outp, r_eff, T_color);
+			output_flag = 0;
+		}
+		count_all++;
 	}
 	fclose(fp);
 	fclose(fl);
@@ -479,12 +496,12 @@ void init_E_U(double r_ini, double r_out, double r[], double rho[], double v_w[]
 
 	for(i = 0; i < nsize; i++){
 		r[i] = r_ini+dr*(double)i;
-		E[2*i] = (P_A)*pow(1.e+03, 4.)*pow(r[0]/r[i], 2.);
+		E[2*i] = (P_A)*pow(3.e+03, 4.)*pow(r[0]/r[i], 2.);
 		T = pow(E[2*i]/(P_A), 0.25);
 		E[2*i+1] = E[2*i];
 		rho[i] = rho_csm(r[i]+dr/2.);
 		v_w[i] = v_wind(r[i]);
-		U[2*i] = 1.5*rho[i]*(P_K)*T/(1.3*(MH));
+		U[2*i] = 1.5*rho[i]*(P_K)*T/(15.*(MH));
 		U[2*i+1] = U[2*i];
 	}
 	r[nsize] = r[nsize-1]+dr;

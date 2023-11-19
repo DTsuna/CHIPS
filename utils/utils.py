@@ -3,17 +3,15 @@
 import math
 import mesa_reader as mr
 import numpy as np
-import sys
 import warnings
 import os
 import re
-# check of whether scipy can be imported
-try:
-	from scipy.optimize import curve_fit
-	scipy_exists = True
-except:
-	scipy_exists = False
-	pass
+import sys
+
+from scipy.optimize import curve_fit
+from scipy.integrate import solve_ivp
+import scipy.interpolate as scipl
+
 # check of whether matplotlib can be imported
 try:
 	from matplotlib import pyplot as plt
@@ -22,16 +20,21 @@ except:
 	matplotlib_exists = False
 	pass
 
-
-MSUN = 1.9884e+33
-RSUN = 6.96e+10
+MSUN = 1.989E+33
+RSUN = 6.963E+10
 G = 6.6743e-8
+yr = 3.15576E+07
+pi = np.pi
 
 # for CSM density profile fitting
 def CSMprof_func(r, r_break, rho_break, yrho):
 	nmax = 12.
 	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nmax/yrho) ) /2. )**(-yrho) )
 
+# for CSM density profile (Type Ibn/Icn)
+def CSMprof_func_stripped(r, r_break, rho_break, nout):
+	yrho = 2.5
+	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nout/yrho) ) /2. )**(-yrho) )
 
 # find mesa model when mass eruption occurs
 def find_mass_eruption(data_files, data_file_at_core_collapse, time_till_collapse):
@@ -41,24 +44,25 @@ def find_mass_eruption(data_files, data_file_at_core_collapse, time_till_collaps
 	return data_files[np.argmin(delta)]
 
 
-# obtain time from mass eruption till core-collapse
-def get_mass_eruption_to_core_collapse(data_file_at_mass_eruption, data_file_at_core_collapse):
-	data_me = mr.MesaData(data_file_at_mass_eruption)
-	data_cc = mr.MesaData(data_file_at_core_collapse)
-	# in years
-	return data_cc.star_age - data_me.star_age
-
-
-# remnant mass from fitting formulae of Schneider+20, arXiv:2008.08599
-def remnant_from_CO(CO_core_mass):
+# remnant mass from fitting formulae of Schneider+20, arXiv:2008.08599 (single stars)
+def remnant_from_CO_single_stars(CO_core_mass):
 	if CO_core_mass<6.357 or (CO_core_mass > 7.311 and CO_core_mass < 12.925):
 		Mrem = 0.03357 * CO_core_mass + 1.31780
-	elif (CO_core_mass > 6.357 and CO_core_mass < 7.311):
+	elif (CO_core_mass >= 6.357 and CO_core_mass < 7.311):
 		Mrem = 10.**(-0.02466*CO_core_mass+1.28070)
 	else:
 		Mrem = 10.**(0.01940*CO_core_mass+0.98462)
 	return Mrem
 
+# remnant mass from fitting formulae of Schneider+20 for case B
+def remnant_from_CO_case_B(CO_core_mass):
+	if CO_core_mass<7.548 or (CO_core_mass > 8.491 and CO_core_mass < 15.144):
+		Mrem = 0.01909 * CO_core_mass + 1.34529
+	elif (CO_core_mass >= 7.548 and CO_core_mass < 8.491):
+		Mrem = 10.**(0.03306*CO_core_mass+0.68978)
+	else:
+		Mrem = 10.**(0.02477*CO_core_mass+0.80614)
+	return Mrem
 
 # extractor of envelope profile from the script 
 def cc_param_extractor(data_file):
@@ -70,7 +74,7 @@ def cc_param_extractor(data_file):
 
 
 # ejecta calculation script
-def calculate_ejecta(data_file, file_at_cc, file_CSM):
+def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 	# extract total mass and CO core mass of the progenitor
 	r_star, total_mass, CO_core_mass = cc_param_extractor(data_file)
 	# extract density and pressure profile inside the star
@@ -91,7 +95,11 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM):
 	# obtain CSM mass from CSM file
 	MrCSM = np.loadtxt(file_CSM, skiprows=1)[:,1]
 	CSM_mass = (MrCSM[-1] - MrCSM[0]) / MSUN 
-	remnant_mass = remnant_from_CO(CO_core_mass)
+	if D == 0:
+		remnant_mass = remnant_from_CO_single_stars(CO_core_mass)
+	elif D == 1 or D == 2:
+		remnant_mass = remnant_from_CO_case_B(CO_core_mass)
+		
 	Mej = total_mass - remnant_mass - CSM_mass
 	assert Mej > 0.0
 	print("Mej:%f Msun, n:%f, delta:%f, Mcsm:%f Msun" % (Mej, n, delta, CSM_mass), file=sys.stderr)
@@ -138,7 +146,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	istop += 1 
 	rstop = r_in[istop]
 
-	if analytical_CSM and scipy_exists:
+	if analytical_CSM:
 		popt, pcov = curve_fit(CSMprof_func, np.log(r_in[istop:-2]), np.log(rho_in[istop:-2]), p0=[1e15,1e-15,2.0])
 		(r_break, rho_break, yrho) = (popt[0], popt[1], popt[2])
 	
@@ -155,7 +163,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 	for i, r in enumerate(r_out):
 		if r < rstop:
 			# we fix the density profile where the CSM density become unreliable due to artificial shocks.
-			if analytical_CSM and scipy_exists:
+			if analytical_CSM:
 				rho_out[i] = math.exp(CSMprof_func(math.log(r), r_break, rho_break, yrho))
 			else:
 				rho_out[i] = rho_in[istop] * (r/rstop)**(-1.5)
@@ -239,67 +247,143 @@ def extract_peak_and_rise_time(LC_file, frac):
 	print("peak: %e erg/s. rise time: %e days, decay time:%e days" % (peakL, risetime, decaytime), file=sys.stderr)
 
 
-# calculate the lightcurve of mass eruption
-def get_mass_eruption_lightcurve(outputFile):
-        print('Calculate mass eruption lightcurve', file=sys.stderr)
-        maxFileSize = 90
-        time = np.zeros(maxFileSize)
-        luminosity = np.zeros(maxFileSize)
-        temperature = np.zeros(maxFileSize)
+def discriminantProgModel(progName):
+	h = mr.MesaData(progName)
+	mass = h.mass
+	h1 = h.h1
+	he4 = h.he4
+	dm = abs(np.diff(mass))
+	dm = np.append(dm, mass[-1])
 
-        # Get the abundance
-        fileName = 'EruptionFiles/atCCSN.txt'
-        if os.path.exists(fileName) == False:
-                X = 0.7
-                Y = 0.28
-                Z = 1 - X - Y
-        if os.path.exists(fileName) == True:
-                temp = np.loadtxt(fileName, skiprows=1)
-                X = temp[len(temp)-1,5]
-                Y = temp[len(temp)-1,6]
-                Z = 1 - X - Y
-        print('X='+str(X)+' Y='+str(Y)+' Z='+str(Z), file=sys.stderr)
-        print('time(day) luminosity(erg/s) temperature(K)', file=sys.stderr)
+	# outer layer H mass
+	Mass_H = np.sum(dm[mass>h.he_core_mass]*h1[mass>h.he_core_mass])
 
-        for i in range(1,maxFileSize):
-                # Get the hydrodynamical result
-                fileName='EruptionFiles/result%s.txt' % str(i).zfill(2)
-                if os.path.exists(fileName) == False:
-                        break
-                data = np.loadtxt(fileName, skiprows=2)
+	# II/Ib border: https://ui.adsabs.harvard.edu/abs/2012MNRAS.422...70H/abstract
+	if Mass_H > 0.033:
+		return 0, 'IIn'
+	else:
+		# outer layer He mass
+		Mass_He = np.sum(dm[mass>h.si_core_mass]*he4[mass>h.si_core_mass])
+		# Ib/Ic border: https://ui.adsabs.harvard.edu/abs/2021ApJ...908..150W/abstract
+		if Mass_He > 0.05:
+			return 1, 'Ibn'
+		else:
+			return 2, 'Icn'
 
-                # Get the time
-                f = open(fileName, 'r')
-                data2 = f.readline()
-                f.close()
-                regex = re.compile('[+-]?(?:\d+\.?\d*|\.\d+)(?:(?:[eE][+-]?\d+)|(?:\*10\^[+-]?\d+))?')
-                match = regex.findall(data2)
-                time[i] = match[1]
 
-                # Calculate luminosity and effective temperautre
-                opacity = np.zeros(len(data))
-                for j in range(0,len(data)):
-                        scatter = 0.20*(1+X)/((1+2.7e11*data[j][4]/(data[j][8]*data[j][8]))*(1+np.power(data[j][8]/4.5e8,0.86)))
-                        molecular = 0.1*Z
-                        negH = 1.1e-25*np.power(Z*data[j][4],0.5)*np.power(data[j][8],7.7)
-                        kramers = 4e25*(1+X)*(Z+0.001)*data[j][4]*np.power(data[j][8],-3.5)
-                        opacity[j] = molecular + 1/((1/negH)+(1/(kramers+scatter)))
+def evolv_CSM(tinj):
+	t_final = tinj*yr
+	filename = './EruptionFiles/result99.txt'
 
-                photosphere = 1
-                for j in reversed(range(1,len(data))):
-                        tau = 0
-                        for k in range(j,len(data)):
-                                tau = tau + data[k][4]*(data[k][1] - data[k-1][1])*opacity[k]
-                        if tau < 0.666666667:
-                                photosphere = j
-                        if tau > 0.666666667:
-                                break
-                photosphere = photosphere - 1
-                luminosity[i] = data[photosphere][9]*1e40
-                temperature[i] = data[photosphere][8]
-                if photosphere == 0:
-                        luminosity[i] = 0
-        with open(outputFile, mode = 'w') as f:
-                for i in range (1,len(time)):
-                        f.write('{:.5e}'.format(time[i]/86400)+' '+'{:.5e}'.format(luminosity[i])+' '+'{:.5e}'.format(temperature[i])+'\n')
-        f.close()
+	try:
+		data = np.loadtxt(filename, skiprows=4)
+	except:
+		print('The calculation for eruption has not finished yet. Exit.')
+		sys.exit()
+	
+	f = open(filename)
+	t_0 = float((f.readline().split(' ')[4]))
+	r_star = np.loadtxt('./EruptionFiles/InitForHydro.txt', skiprows=2, usecols=4)[-1]
+	f.close()
+
+	r = data[:,1]
+	Mr= data[:,2]
+	dm = data[:,3]
+	rho = data[:,4]
+	v = data[:,5]
+
+	condition = (v**2/2-G*Mr/r > 0.)
+	r = r[condition]
+	Mr= Mr[condition]
+	dm = dm[condition]
+	rho = rho[condition]
+	v = v[condition]
+	l = len(r)
+
+	t_f = np.empty(l)
+	r_f = np.empty(l)
+	v_f = np.empty(l)
+
+	t_span = [t_0,t_final]
+
+	for i in range(l):
+		Mr0 = Mr[i]
+		init = [r[i],v[i]]
+		def func(t,x): 
+			r_c,v_c = x
+			t = t
+			dr = v_c
+			dv = -G*Mr0/r_c**2
+			return [dr,dv]
+    
+		sol = solve_ivp(func,t_span,init,method='RK45',atol = 1e-8,rtol = 1e-10)
+
+		t_f[i] = sol.t[-1]
+		r_f[i] = sol.y[0,:][-1]
+		v_f[i] = sol.y[1,:][-1]
+
+	rho_f = dm/(4*pi/3)/np.gradient(r_f**3)
+
+	flag = (t_f >= t_final) 
+
+	rho_f = rho_f[flag]
+	v_f = v_f[flag]
+	r_f = r_f[flag]
+
+	l = len(r_f)
+	result = np.empty((l,3))
+
+	result[:,0] = r_f
+	result[:,1] = v_f
+	result[:,2] = rho_f
+
+	return result
+
+
+def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000):
+	pi = np.pi
+	result = evolv_CSM(tinj)
+	data = mr.MesaData(data_file_at_mass_eruption)
+	rho = result[:,2]
+	r = result[:,0]
+	v = result[:,1]
+	v_esc = np.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
+	Mr = np.empty(Ncell)
+	spline_v = scipl.CubicSpline(r, v)
+	nsize = len(r)
+	(rmin, rmax) = (r[0], r[-1])
+	# initial guess for outer CSM power-law index (Tsuna & Takei 23, PASJ 75, L19)
+	nout_init = 9.
+
+	popt, pcov = curve_fit(CSMprof_func_stripped, np.log(r), np.log(rho), p0 = [1e15, 1e-15, nout_init])
+	(r_star, rho_star, nout) = (popt[0], popt[1], popt[2])
+	r_remesh = np.logspace(np.log10(rmin*1.001), np.log10(rout*1.001), Ncell)
+	rho_remesh = np.zeros(Ncell)
+	v_remesh = np.zeros(Ncell)
+
+	for i, x in enumerate(r_remesh):
+		if x <= rmax:
+			rho_remesh[i] = np.exp(CSMprof_func_stripped(np.log(x), r_star, rho_star, nout))
+			v_remesh[i] = spline_v(x)
+		else:
+			v_remesh[i] = v_esc
+			rho_remesh[i] = rho_remesh[i-1]*(x/r_remesh[i-1])**(-2.0)
+		if i == 0:
+			Mr[i] = 0.0
+		else:
+			Mr[i] = Mr[i-1]+4.0*pi*r_remesh[i]**2.0*rho_remesh[i]*(r_remesh[i]-r_remesh[i-1])
+	head = 'CSM profile created by scipy.curve_fit'
+	np.savetxt(CSM_out, np.transpose([list(range(1,Ncell+1)), Mr, r_remesh, v_remesh, rho_remesh, data.h1[0]*np.ones(Ncell), data.he4[0]*np.ones(Ncell)]), fmt=['%d','%.8e','%.8e','%.8e','%.8e','%.8e','%.8e'], header=head)
+
+
+def genAbundanceTable(data_file_at_mass_eruption):
+	data = mr.MesaData(data_file_at_mass_eruption)
+	h1 = data.h1[0]
+	he4 = data.he4[0]
+	c12 = data.c12[0]
+	o16 = data.o16[0]
+	with open('input/abundance/abundance_for_tablegen.txt', mode='w') as f:
+		s = '# abundances\n'
+		f.write(s)
+		s = 'H  {:.4e}\nHe {:.4e}\nC  {:.4e}\nO  {:.4e}\n'.format(h1,he4,c12,o16)
+		f.write(s)

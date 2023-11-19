@@ -18,15 +18,21 @@ void matrix_E(double r[], double E[], double U[], double rho[], double dt, doubl
 	double T_g[nsize], mu[nsize], kappa[nsize];
 	double rhom[nsize];
 	double Xfac[nsize];
+	double k_l, k_r;
+	double kappa_mid[nsize];
 	int i;
 
 	for(i = 0; i < nsize; i++){
 		saha(rho[i], U[2*i+1], mu+i, T_g+i);
 		rhom[i] = rho_csm(r[i]);
+		kappa_mid[i] = kappa_r(rho_csm((r[i]+r[i+1])/2.), T_g[i]);
 	}
 
 	for(i = 1; i < nsize; i++){
-		kappa[i] = kappa_r(rhom[i], (T_g[i-1]+T_g[i])/2.0);
+//		kappa[i] = kappa_r(rhom[i], (T_g[i-1]+T_g[i])/2.0);
+		k_l = kappa_mid[i-1];
+		k_r = kappa_mid[i];
+		kappa[i] = (E[2*i+1]+E[2*(i-1)+1])/(E[2*i+1]/k_r+E[2*(i-1)+1]/k_l);
 		drm[i] = (r[i+1]-r[i-1])/2.;
 	}
 

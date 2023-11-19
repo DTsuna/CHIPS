@@ -7,5 +7,6 @@
 
 void saha(double, double, double*, double*);
 void get_num_density(double rho, double T,  double ndens[]);
+void set_tables(const char *openfile, double rho[], double U[], double mu[], int *row, int *col);
 
 #endif

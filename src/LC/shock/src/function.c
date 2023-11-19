@@ -326,7 +326,7 @@ void set_abundance(void)
 	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[0], &dammy[2], &rho_c[0], &dammy[3], &dammy[4]);
 	X = dammy[3];
 	Y = dammy[4];
-	gen_opacity_sc();
+//	gen_opacity_sc();
 	fclose(fp);
 }
 

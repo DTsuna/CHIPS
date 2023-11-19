@@ -4,44 +4,6 @@
 
 extern double X, Y;
 
-void saha(double rho, double U, double *mu, double *T)
-{
-	double GAMMA = 1.6666666666666666;
-        double mu_tmp[2] = {};
-        double x;
-        double T_tmp = 2000.;
-        double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
-        mu_tmp[0] = 0.5;
-        mu_tmp[1] = 1.;
-        T_tmp = (GAMMA-1.)*mu_tmp[0]*U/P_K/rho;
-	if(U > rho*3000./((GAMMA)-1.)*(P_K)/(1.3*(MH))){
-        	while(fabs(mu_tmp[0]-mu_tmp[1]) > 1.e-13){
-                	mu_tmp[0] = mu_tmp[1];
-                	T_tmp = (GAMMA-1.)*mu_tmp[0]*MH*U/P_K/rho;
-                	x = 2.*M_PI*P_E*P_K*T_tmp/(P_H*P_H);
-                	n_H = X*rho/MH;
-                	n_He = Y/4.*rho/MH;
-                	n_e = rho/(mu_tmp[0]*MH)-(X+Y/4.)*rho/MH;
-                	n_HII = pow(x, 1.5)*exp(-CHI_HI/(P_K*T_tmp))/(n_e+pow(x, 1.5)*exp(-CHI_HI/(P_K*T_tmp)))*n_H;
-                	n_HI = n_H-n_HII;
-                	n_HeI = pow(1.+4./n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T_tmp))+4./(n_e*n_e)*pow(x, 3.)*exp(-(CHI_HeI+CHI_HeII)/(P_K*T_tmp)), -1.)*n_He;
-                	n_HeII = 4.*n_HeI/n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T_tmp));
-                	n_HeIII = n_HeII/n_e*pow(x, 1.5)*exp(-CHI_HeII/(P_K*T_tmp));
-                	mu_tmp[1] = pow(X*(1.+n_HII/n_H)+Y/4.*(1.+n_HeII/n_He+2.*n_HeIII/n_He), -1.);
-                	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
-                	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
-                	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
-                	mu_tmp[1] = (mu_tmp[1]+mu_tmp[0])/2.;
-        	}
-		*mu = mu_tmp[0];
-		*T = T_tmp;
-	}
-	else{
-		*mu = pow(X*1.+(Y)/4., -1.);
-		*T = (GAMMA-1.)*(*mu)*(MH)*U/(P_K)/rho;
-	}
-}
-
 //n_e=nd[0], n_HII = nd[1], n_HeII = nd[2], n_HeIII = nd[3];
 void get_num_density(double rho, double T,  double ndens[])
 {
@@ -78,4 +40,110 @@ void get_num_density(double rho, double T,  double ndens[])
 	ndens[1] = n_HII;
 	ndens[2] = n_HeII;
 	ndens[3] = n_HeIII;
+}
+
+void saha(double rho, double U, double *mu_outp, double *T_outp)
+{
+	static double rho_array[30], Udivrho_array[30], mu_array[900], T_array[900];
+	static int count = 0;
+	static int row, col;
+
+	int i, j;
+	double a, b, c;
+
+	if(count == 0){
+		set_tables("./LCFiles/mu.txt", rho_array, Udivrho_array, mu_array, &row, &col);
+		set_tables("./LCFiles/Tem.txt", rho_array, Udivrho_array, T_array, &row, &col);
+		count++;
+	}
+
+	if(U/rho < pow(10., Udivrho_array[0])){
+		*mu_outp = mu_array[0];
+		*T_outp = 2./3.*(*mu_outp)*(MH)/(P_K)*U/rho;
+	}
+	else if(pow(10., Udivrho_array[0]) <= U/rho && U/rho <= pow(10., Udivrho_array[col-1])){
+		for(j = 0; j < col-1; j++){
+			if(pow(10., Udivrho_array[j]) <= U/rho && U/rho <= pow(10., Udivrho_array[j+1])){
+				break;
+			}
+		}
+		if(rho < pow(10., rho_array[0])){
+			*mu_outp = (mu_array[j+1]-mu_array[j])/(Udivrho_array[j+1]-Udivrho_array[j])*(log10(U/rho)-Udivrho_array[j])+mu_array[j];
+			*T_outp = 2./3.*(*mu_outp)*(MH)/(P_K)*U/rho;
+		}
+		else if(pow(10., rho_array[0]) <= rho && rho < pow(10., rho_array[row-1])){
+			for(i = 0; i < row-1; i++){
+				if(pow(10., rho_array[i]) <= rho && rho <= pow(10., rho_array[i+1])){
+					break;
+				}
+			}
+			a = ((mu_array[col*(i+1)+j])-(mu_array[col*i+j]))/(rho_array[i+1]-rho_array[i]);
+			b = ((mu_array[col*i+j+1])-(mu_array[col*i+j]))/(Udivrho_array[j+1]-Udivrho_array[j]);
+			c = ((mu_array[col*(i+1)+j+1])-(mu_array[col*(i+1)+j])-(mu_array[col*i+j+1])
+				+(mu_array[col*i+j]))/((rho_array[i+1]-rho_array[i])*(Udivrho_array[j+1]-Udivrho_array[j]));
+			*mu_outp = mu_array[col*i+j]+a*(log10(rho)-rho_array[i])
+				+b*(log10(U/rho)-Udivrho_array[j])
+				+c*(log10(rho)-rho_array[i])*(log10(U/rho)-Udivrho_array[j]);
+			*T_outp = 2./3.*(*mu_outp)*(MH)/(P_K)*U/rho;
+		}
+		else{
+			*mu_outp = (mu_array[(row-1)*col+j+1]-mu_array[(row-1)*col+j])/
+					(Udivrho_array[j+1]-Udivrho_array[j])*(log10(U/rho)-Udivrho_array[j])+mu_array[(row-1)*col+j];
+			*T_outp = 2./3.*(*mu_outp)*(MH)/(P_K)*U/rho;
+		}
+	}
+	else{
+		*mu_outp = mu_array[col-1];
+		*T_outp = 2./3.*(*mu_outp)*(MH)/(P_K)*U/rho;
+	}
+}
+
+	
+
+void set_tables(const char *openfile, double rho[], double U[], double mu[], int *row, int *col)
+{
+	FILE *fp;
+	char filename[256];
+	char buf[256], *ascii;
+	int i = 0, k = 0, l = 0;
+
+	snprintf(filename, 256, "%s", openfile);
+	if((fp = fopen(filename, "r")) == NULL){
+		printf("ERROR: Can't open opacity file \"%s\". Check whether it exists.\n", filename);
+		exit(EXIT_FAILURE);
+	}
+	else{
+//		printf("Opacity file \"%s\" was set.\n", filename);
+	}
+	fgets(buf, 256, fp);
+	U[0] = atof(strtok(buf, " "));
+	i = 1;
+	while(1){
+		ascii = strtok(NULL, " ");
+		if(ascii == NULL){
+			break;
+		}
+		else{
+			U[i] = atof(ascii);
+			i++;
+		}
+	}
+	*col = i;
+	while(fgets(buf, 256, fp) != NULL){
+		k = 0;
+		rho[l] = atof(strtok(buf, " "));
+		while(1){
+			ascii = strtok(NULL, " ");
+			if(ascii == NULL){
+				break;
+			}
+			else{
+				mu[l*(*col)+k] = atof(ascii);
+				k++;
+			}
+		}
+		l++;
+	}
+	*row = l;
+	fclose(fp);
 }

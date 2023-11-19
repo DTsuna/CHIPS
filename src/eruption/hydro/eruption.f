@@ -26,10 +26,12 @@ c---  initial data is required.
       real*8 old_eu(mn),integrate
       real*8 e_without
       real*8 boundr
+      real*8 relt
       integer output_do
       real*8 when_out(99)
       integer output_init, dummyInt
-
+      logical flag
+      integer zero
 
       logical finish
 
@@ -46,6 +48,7 @@ c---  initial data is required.
 
       integer  scaleDeposition, continueTransfer
       integer  useOpacityTable
+      integer  discriminant
       character*128 OpacityTable
       logical scaleDepositionFlag
       real*8 scalingRate
@@ -91,30 +94,37 @@ c---  initial data is required.
       read(21,*)
       read(21,*)time_to_cc, e_charge_tot, injection_time,
      $     scaleDeposition, scalingRate, continueTransfer,
-     $     useOpacityTable, OpacityTable
+     $     useOpacityTable, OpacityTable, discriminant
       close(21)
       if(scaleDeposition.eq.0)scaleDepositionFlag = .false.
       if(scaleDeposition.eq.1)scaleDepositionFlag = .true.
       write(*,*)time_to_cc, e_charge_tot, injection_time,
      $          scaleDepositionFlag, scalingRate, continueTransfer,
-     $          useOpacityTable, OpacityTable
+     $          useOpacityTable, OpacityTable, discriminant
 
 cexpl  construct the initial model
       call init(n, hyd, alpha, cut, istart, time, encmg, eje, nadd,
      $                    dynamicalTime)
-      do jj = 1, 90
-        when_out(jj) = (dynamicalTime*2/90.d0)*(jj-1)
-      end do
-      do jj = 1, 9
-        when_out(jj+90) = (dynamicalTime*2/90.d0)*89.d0+
-     $  ((time_to_cc -(dynamicalTime*2/90.d0)*89.d0)/9.d0)*jj
-      end do
+
+      if(discriminant.eq.0)then
+        relt = 5.d1
+        do jj = 1, 90
+          when_out(jj) = (dynamicalTime*2/90.d0)*(jj-1)
+        end do
+        do jj = 1, 9
+          when_out(jj+90) = (dynamicalTime*2/90.d0)*89.d0+
+     $    ((time_to_cc -(dynamicalTime*2/90.d0)*89.d0)/9.d0)*jj
+        end do
+      else
+        relt = 5.d0
+        do jj = 1, 99
+          when_out(jj) = (dynamicalTime*2/99.d0)*(jj-1)
+        enddo
+      endif
       write(*,*)"********* OUTPUT TIME ***********"
       do jj = 1, 99
         write(*,*),jj,when_out(jj)
       end do
-
-
 
       boundr = (rad(3)+rad(4))/2.d0
 
@@ -200,6 +210,16 @@ cexpl  start the hydrodynamical calculation
         end if
       end if
 
+      
+      do jj=3,n
+        call checknan(e(jj),zero,flag)
+        if(flag.eqv..true.)then
+          print *, 'detected nan. stop.'
+          goto 99
+          stop
+        endif
+      enddo
+
 
       if(output_do.le.99)then
         if(time.gt.when_out(output_do))then
@@ -207,13 +227,18 @@ cexpl  start the hydrodynamical calculation
      $         output_do
            open(91, file=filename,status='unknown',form='formatted')
 
+           do j=3,n
+             if(abs(lum(j)).lt.1.d-20)then
+               lum(j)=0.d0
+             endif
+           enddo
            if(ejectaCut.eq.0)then
-             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
+             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j)+tmns,dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40,
      $       kap(j), j= 3, n)
            end if
            if(ejectaCut.eq.1)then
-             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j),dmass(j),
+             write(91,93)n,time,te,ihyd,(j,rad(j),encm(j)+tmns,dmass(j),
      $       1./tau(j), u(j), p(j), e(j), temp(j), lum(j)*1d-40,
      $       kap(j), j= fixedCell, n)
            end if
@@ -223,7 +248,10 @@ cexpl  start the hydrodynamical calculation
            close(91)
            output_do = output_do + 1
         end if
-      end if
+      else if(discriminant.ne.0)then
+        goto 99
+        stop
+      endif
 
       innerCell = 3
         if(ejectaCut.eq.1)then
@@ -254,7 +282,7 @@ c     stop when timestep becomes too small (currently conservative)
       if(ejectaCut.eq.1)then
         innerCell = fixedCell
       end if
-      call advanc(n,alpha,nadd,dt,dmass,encmg,time,boundr,
+      call advanc(n,alpha,nadd,dt,dmass,encmg,time,relt,boundr,
      $                e_charge_tot,injection_time,innerCell)
 
       time = time + dt
@@ -317,10 +345,13 @@ c     stop when timestep becomes too small (currently conservative)
         if(ejectaCut.eq.1)then
           output_init = fixedCell
         end if
-        open(98,file='EruptionFiles/atCCSN.txt',status='unknown'
+99      open(98,file='EruptionFiles/atCCSN.txt',status='unknown'
      $               ,form='formatted')
         write(98,*)"j EnclosedM[g] Rad[cm] Vel[cm/s] Den[g/cc] X_H Y_He
      $ P[erg/cc]"
+        if(discriminant.ne.0)then
+          output_init = 3
+        endif
         do jj = output_init, n
            write(98,'(i0, e18.10, e18.10, e18.10,
      $                   e18.10, e18.10, e18.10, e18.10)'),jj,

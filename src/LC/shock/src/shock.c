@@ -14,11 +14,11 @@ extern pars pdt;
 extern double t_exp;
 extern char csm[256];
 
-double *calc_init_dist(double, double, double, double, double, double, const char*);
-double *calc_dist(double[], double, double, double, double, double, const char*, int*);
+double *calc_init_dist(double, double, double, double, double, double, double, const char*);
+double *calc_dist(double[], double, double, double, double, double, double, const char*, int*);
 void init_egn(double, double[]);
 void forward_egn(double[], double*, double[], double);
-void shock_csm(double, double, double, double, const char*, const char*);
+void shock_csm(double, double, double, double, double, const char*, const char*);
 
 void init_egn(double r_ini, double egn[])
 {
@@ -44,7 +44,7 @@ array[0] = t_exp.
 array[1] = egn[0] = u_rs, array[2] = egn[1] = u_fs, array[3] = r_rs, array[4] = r_fs, array[5] = F_fs.
 */
 
-void shock_csm(double E_ej, double M_ej, double n, double delta, const char *file_csm, const char *file_outp)
+void shock_csm(double E_ej, double M_ej, double M_ni, double n, double delta, const char *file_csm, const char *file_outp)
 {
 	double *array;
 	double dt = 8640.;
@@ -60,10 +60,11 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 	strcpy(csm, file_csm);
 	set_abundance();
 
-	pdt = setpars(n, delta, E_ej, M_ej, 1.e+07, 1.e+10);	
+	pdt = setpars(n, delta, E_ej, M_ej, M_ni, 1.e+07, 1.e+10);
 
 	while(flag == 1){
 		fp = fopen(file_outp, "w");
+		fprintf(fp, "# day  v_rs  v_fs  r_rs  r_fs  E_(rad,fs)  rho_csm(r=r_fs)\n");
 		r_ini = set_r_ini(file_csm);
 		r_ini_diff = set_r_diff(file_csm);
 		r_ini = fmax(r_ini, r_ini_diff);
@@ -73,7 +74,7 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 
 
 /**************************1st step**************************/
-		array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, t_ini, r_ini, file_csm);
+		array = calc_init_dist(pdt.E_ej, pdt.M_ej, pdt.M_ni, pdt.n, pdt.delta, t_ini, r_ini, file_csm);
 		egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 		boundary(array[4], y, egn, 1, &info);
 
@@ -91,11 +92,11 @@ void shock_csm(double E_ej, double M_ej, double n, double delta, const char *fil
 Continue calculation when the temperature behind the forward shock drops to ~6,000 K or luminosity < 1e+40 erg/s.
 *************************************************************/
 		do{
-			dt = 0.001*t_exp;
+			dt = 0.01*t_exp;
 			if(t_exp+dt > t_fin){
 				dt = t_fin-t_exp;
 			}
-			array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.n, pdt.delta, dt, file_csm, &info);
+			array = calc_dist(array, pdt.E_ej, pdt.M_ej, pdt.M_ni, pdt.n, pdt.delta, dt, file_csm, &info);
 			egn[0] = array[1]; egn[1] = array[2]; egn[2] = array[5]; egn[3] = array[4];
 			boundary(array[4], y, egn, 1, &info);
 			if(info == 1){
@@ -124,7 +125,7 @@ Continue calculation when the temperature behind the forward shock drops to ~6,0
 	}
 }
 
-double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double t_ini, double r_ini, const char *file_csm)
+double *calc_init_dist(double E_ej, double M_ej, double M_ni, double n, double delta, double t_ini, double r_ini, const char *file_csm)
 {
 	const int nsize = 4;
 	int i, j, info = 0;
@@ -136,7 +137,6 @@ double *calc_init_dist(double E_ej, double M_ej, double n, double delta, double 
 	static double outp_egn[6];
 
 	t_exp = t_ini;
-	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, 0.00);
 	init_egn(r_ini, egn);
 
 	for(i = 0; i < 4; i++){
@@ -183,7 +183,7 @@ These values are old, so before calculating the distribution, r_rs, r_fs must be
 r_rs = r_rs + u_rs*dt, r_fs = r_fs + r_fs*dt.
 */
 
-double *calc_dist(double array[], double E_ej, double M_ej, double n, double delta, double dt, const char *file_csm, int *info)
+double *calc_dist(double array[], double E_ej, double M_ej, double M_ni, double n, double delta, double dt, const char *file_csm, int *info)
 {
 	const int nsize = 3, cmax = 100;
 	int i, j, c = 0;
@@ -198,7 +198,6 @@ double *calc_dist(double array[], double E_ej, double M_ej, double n, double del
 	memcpy(egn_old, egn, sizeof(double)*4);
 
 	strcpy(csm, file_csm);
-	pdt = setpars(n, delta, E_ej, M_ej, 1.00e+07, 0.00);
 
 	*info = 0;
 

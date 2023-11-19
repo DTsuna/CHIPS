@@ -11,6 +11,7 @@ typedef struct{
 	double T[128];
 	double R[128];
 	double kappa[4096*4];
+	int Discriminant;
 	int imax;
 	int jmax;
 }opacity;
