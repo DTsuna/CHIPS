@@ -48,6 +48,7 @@ Our sample models cover
 - red supergiants of solar metallicity (Z=0.014) with ZAMS mass range 13-26 Msun, with 1 Msun interval up to 20 Msun and 2 Msun interval from 20 to 26 Msun,
 - hydrogen-poor helium stars of solar metallicity (Z=0.014) with ZAMS mass range 15-29 Msun with 1 Msun interval, and
 - hydrogen and helium poor stars of solar metallicity (Z=0.014) with ZAMS masses of 20, 22, 25, 29 Msun.
+
 The pre-SN models are in zip files in the directories input/mesa_models_XXX. Once you un-zip these files, you will find MESA data files with the naming showing the mass and metallicity at ZAMS.
 
 Although this is not the recommended way, one can also do the MESA calculation inside run.py with additional arguments --run-mesa and --mesa-path
@@ -73,10 +74,10 @@ While the mass eruption calculation is running, files with names intermediateXXy
 The file given as profile-at-cc argument specifies how much time elapsed between mass eruption and core-collapse. The files are produced at an interval of 1 year.
 
 ### Using an already obtained CSM for light curve calculation (for stripped models)
-
+For stripped star models, files called intermediateXXyr.txt are not created as the eruption calculations are done for timescales much shorter than a year. The extrapolation to the time specified by --tinj is done by an internal analytical calculation (see our paper). By adding the --skip-eruption argument in run.py, the code skips the eruption calculation and uses the file ``EruptionFiles/result99.txt" (which must be already generated) to model the CSM for an arbitrary --tinj.
 
 ### Multi-band light curves
-The CHIPS code can obtain multi-band light curves if ray-tracing radiation transfer is turned on. To do this, add the argument --calc-multiband when running run.py or after_eruption.py.
+For the hydrogen-rich IIn models, the code can obtain multi-band light curves if ray-tracing radiation transfer is turned on. To do this, add the argument --calc-multiband when running run.py or after_eruption.py. Work is under way to develop opacity tables to enable multi-band for the Ibc models.
 
 ## References:
 1. Takei, Tsuna, Kuriyama, Ko, Shigeyama (2022), [ApJ 929, 177](https://iopscience.iop.org/article/10.3847/1538-4357/ac60fe); Takei, Tsuna, Ko, Shigeyama (2023), [arXiv](https://ui.adsabs.harvard.edu/abs/2023arXiv230810785T/abstract)
