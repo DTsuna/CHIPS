@@ -131,9 +131,9 @@ void Saha_wr_U(double rho, double U, double *mu_outp, double *T_outp)
 	for(i_ion = 0; i_ion < 10; i_ion++){
 		n_ion[i_ion] = rho/(MH)/5.;
 	}
-	mu[0] = X_He/4.*(1.+n_ion[0]+2.*n_ion[1])/n_He
-		+X_C/12.*(1.+n_ion[2]+2.*n_ion[3]+3.*n_ion[4]+4.*n_ion[5])/n_C
-		+X_O/16.*(1.+n_ion[6]+2.*n_ion[7]+3.*n_ion[8]+4.*n_ion[9])/n_O;
+	mu[0] = X_He/4.*(n_He+n_ion[0]+2.*n_ion[1])/n_He
+		+X_C/12.*(n_C+n_ion[2]+2.*n_ion[3]+3.*n_ion[4]+4.*n_ion[5])/n_C
+		+X_O/16.*(n_O+n_ion[6]+2.*n_ion[7]+3.*n_ion[8]+4.*n_ion[9])/n_O;
 	mu[0] = 1./mu[0];
 	mu[1] = mu[0];
 
@@ -142,9 +142,9 @@ void Saha_wr_U(double rho, double U, double *mu_outp, double *T_outp)
 	while(eps_Saha > 1.0e-12){
 		count++;
 		mu[0] = mu[1];
-		mu[1] = X_He/4.*(1.+n_ion[0]+2.*n_ion[1])/n_He
-			+X_C/12.*(1.+n_ion[2]+2.*n_ion[3]+3.*n_ion[4]+4.*n_ion[5])/n_C
-			+X_O/16.*(1.+n_ion[6]+2.*n_ion[7]+3.*n_ion[8]+4.*n_ion[9])/n_O;
+		mu[1] = X_He/4.*(n_He+n_ion[0]+2.*n_ion[1])/n_He
+			+X_C/12.*(n_C+n_ion[2]+2.*n_ion[3]+3.*n_ion[4]+4.*n_ion[5])/n_C
+			+X_O/16.*(n_O+n_ion[6]+2.*n_ion[7]+3.*n_ion[8]+4.*n_ion[9])/n_O;
 		mu[1] = 1./mu[1];
 		mu[1] = (9.*mu[0]+mu[1])/10.;
 		Tem = 2./3.*mu[1]*(MH)/(P_K)*U;
