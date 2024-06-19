@@ -69,7 +69,11 @@ def cc_param_extractor(data_file):
 	data = mr.MesaData(data_file)
 	r_star = data.photosphere_r * RSUN
 	total_mass = data.star_mass
-	CO_core_mass = data.c_core_mass
+	# "c_core_mass" has been updated to "co_core_mass" from MESA r21.12.1
+	try:
+		CO_core_mass = data.c_core_mass
+	except:
+		CO_core_mass = data.co_core_mass
 	return r_star, total_mass, CO_core_mass
 
 
