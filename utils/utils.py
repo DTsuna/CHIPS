@@ -349,7 +349,20 @@ def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000
 	v = result[:,1]
 	v_esc = np.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
 	Mr = np.empty(Ncell)
-	spline_v = scipl.CubicSpline(r, v)
+	try:
+		spline_v = scipl.CubicSpline(r, v)
+	except: # there is a radius inversion in some of the cells.
+		# remove that region, and let the interpolator take care of interpolation with the surrounding sane cells
+		warnings.warn("Radius inversion in the CSM cells found. Fitting profile by interpolation with the surrounding sane cells...")
+		dr = np.diff(r)
+		dr_upd = np.append(dr,1.0)
+		r = r[dr_upd>0.]
+		v = v[dr_upd>0.]
+		rho = rho[dr_upd>0.]
+		try:
+			spline_v = scipl.CubicSpline(r, v)
+		except:
+			return ValueError("CSM profile generation failed, with excessive radius inversion in CSM cells. Try smaller --tinj (with --skip-eruption to avoid re-running the eruption calculation from scratch).")
 	nsize = len(r)
 	(rmin, rmax) = (r[0], r[-1])
 	# initial guess for outer CSM power-law index (Tsuna & Takei 23, PASJ 75, L19)
