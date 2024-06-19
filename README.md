@@ -8,7 +8,7 @@ code and codes implemented by the authors, the user can obtain the
 circumstellar matter profile and light curves of interaction-powered
 supernovae.
 
-NOTE: We have a documentation in preparation for the code, likely released in late 2023 or early 2024.
+NOTE: We have a documentation in preparation for the code, likely released in 2024.
 
 ## What can CHIPS do?
 
@@ -81,10 +81,11 @@ For stripped star models, files called intermediateXXyr.txt are not created as t
 For the hydrogen-rich IIn models, the code can obtain multi-band light curves if ray-tracing radiation transfer is turned on. To do this, add the argument --calc-multiband when running run.py or after_eruption.py. Work is under way to develop opacity tables to enable multi-band for the Ibc models.
 
 ## References:
-1. Takei, Tsuna, Kuriyama, Ko, Shigeyama (2022), [ApJ 929, 177](https://iopscience.iop.org/article/10.3847/1538-4357/ac60fe); Takei, Tsuna, Ko, Shigeyama (2023), [arXiv](https://ui.adsabs.harvard.edu/abs/2023arXiv230810785T/abstract)
-2. Kuriyama, Shigeyama (2020), A&A, 635, 127 (for mass eruption)
-3. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve; some features updated in Ref 1.)
-4. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
+1. Takei, Tsuna, Kuriyama, Ko, Shigeyama (2022), [ApJ 929, 177](https://iopscience.iop.org/article/10.3847/1538-4357/ac60fe)
+2. Takei, Tsuna, Ko, Shigeyama (2024), [ApJ 961, 67](https://ui.adsabs.harvard.edu/abs/2024ApJ...961...67T)
+3. Kuriyama, Shigeyama (2020), A&A, 635, 127 (for mass eruption)
+4. Takei, Shigeyama (2020), PASJ 72, 67 (for light curve; some features updated in Ref 1.)
+5. Tsuna, Takei, Kuriyama, Shigeyama (2021), PASJ 73, 1128 (analytical CSM model) 
 
 For other papers that use CHIPS see [here](https://ui.adsabs.harvard.edu/search/p_=0&q=docs(library%2FFGr4H7m9Sd2LtgSI25zp7g))
 
@@ -95,7 +96,7 @@ chips___at___resceu.s.u-tokyo.ac.jp
 
 ## Developers
 Daichi Tsuna (Caltech, Univ of Tokyo)  
-Yuki Takei (Univ of Tokyo, RIKEN)  
+Yuki Takei (Kyoto University, Univ of Tokyo)  
 Toshikazu Shigeyama (Univ of Tokyo)  
 Takatoshi Ko (Univ of Tokyo, RIKEN)  
 Naoto Kuriyama (Univ of Tokyo; past developer)
