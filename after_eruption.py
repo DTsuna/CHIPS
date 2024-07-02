@@ -15,6 +15,7 @@ def parse_command_line():
 		'''
 	)
 	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
+	parser.add_option("--Mni", metavar = "float", type = "float", default = 0., help = "Radioactive nickel 56 mass, in units of solar mass (default: 0 Msun).")
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--profile-at-cc", metavar = "filename", type = "string", help = "The file with the profile at core collapse.")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
@@ -37,11 +38,27 @@ options, filenames = parse_command_line()
 
 file_cc = options.stellar_model 
 
+# get tinj from profile_at_cc name
+tinj = float(options.profile_at_cc.split('yr.txt')[0][-2])
+
 #################################################################
 #								#
 #		IIn light curve model of TS20			#
 #								#
 #################################################################
+
+# discriminate progenitor type
+# D=0: stars with hydrogen-rich envelope (SNType='IIn')
+# D=1: stripped stars with helium-rich outer layer (SNType='Ibn')
+# D=2: stripped stars with helium-poor outer layer (SNType='Icn')
+D, SNType = utils.discriminantProgModel(file_cc)
+
+# store abundance
+utils.genAbundanceTable(file_cc)
+
+# generate tables for mu, T.
+lightcurve.opacTable(D)
+
 
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
@@ -50,13 +67,16 @@ CSM_file = 'LCFiles/CSM.txt'
 Y_He = utils.remesh_CSM(r_out, options.profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind = options.steady_wind)
 
 # extract the ejecta parameters
-Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file)
+Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, options.profile_at_cc, CSM_file, D)
 
 with open('params/params_after_eruption.dat', mode='w') as f:
 	s = '#The latest parameters used in the calculation are listed.\n'
 	f.write(s)
 	s = 'Mej = {:.2f} Msun\nn = {:.2f}\nmesa model = '.format(Mej, n)+options.stellar_model+'\n'+'profile at core collapse = '+options.profile_at_cc+'\n'+'CSM mass = {:.2f} Msun'.format(CSM_mass)
 	f.write(s)
+
+# only IIn is supported
+assert SNType == 'IIn'
 
 # obtain opacity 
 opacity_file = 'LCFiles/opacity.txt'
@@ -72,21 +92,21 @@ if options.calc_multiband:
 # calculate light curve
 for Eej in options.Eej:
 	# luminosity at shock
-	shock_file = 'LCFiles/shock_output_'+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej*1.99e33, n, delta, CSM_file, shock_file)
+	shock_file = 'LCFiles/{}_shock_output_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(tinj)+str(Eej)+'erg.txt'
+	lightcurve.shock(Eej, Mej*1.99e33, options.Mni, n, delta, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
-	IIn_lc_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg.txt'
+	IIn_lc_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(tinj)+str(Eej)+'erg.txt'
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	# multi-band light curve if requested
 	if options.calc_multiband:
-		IIn_lc_band_file = 'LCFiles/IIn_lightcurve_'+str(Eej)+'erg_mag.txt'
+		IIn_lc_band_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(tinj)+str(Eej)+'erg_mag.txt'
 		subprocess.call(["rm", "-r", dir_Lnu])
 		subprocess.call(["mkdir", dir_Lnu])
 	else:
 		IIn_lc_band_file = ''
-	lightcurve.transfer(Eej, Mej*1.99e33, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu)
+	lightcurve.transfer(Eej, Mej*1.99e33, options.Mni, n, delta, r_out, CSM_file, shock_file, IIn_lc_file, IIn_lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
@@ -94,7 +114,3 @@ for Eej in options.Eej:
 		utils.extract_peak_and_rise_time(IIn_lc_file, frac=0.01)
 	except ValueError:
 		pass
-
-# obtain light curve at mass eruption
-mass_eruption_lc_file = 'LCFiles/mass_eruption_lightcurve.txt'
-utils.get_mass_eruption_lightcurve(mass_eruption_lc_file)
