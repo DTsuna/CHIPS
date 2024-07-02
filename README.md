@@ -8,7 +8,7 @@ code and codes implemented by the authors, the user can obtain the
 circumstellar matter profile and light curves of interaction-powered
 supernovae.
 
-NOTE: We have a documentation in preparation for the code, likely released in 2024.
+The PDF documentation of the code is available in the repository.
 
 ## What can CHIPS do?
 
