@@ -137,9 +137,11 @@ r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
 profile_at_cc = 'EruptionFiles/atCCSN.txt'
+profile_at_cc = [-1, 1.0]
 if SNType == 'IIn':
 # obtain opacity
 	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
+	sys.exit(1)
 	opacity_file = 'LCFiles/opacity.txt'
 	gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 	opacity_file = 'LCFiles/kappa_p.txt'
