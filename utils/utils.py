@@ -254,9 +254,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			print('power-law index should be smaller than 3.')
 			sys.exit(1)
 		print(s, M_CSM)
-# q is determined by solving M_CSM = \int_{R_in}^{R_out} 4pi r^2 rho_CSM(r)dr, where rho_CSM(r) = qr^s
-# M_CSM is the CSM mass enclosed between r=R_in and r=R_out.
-# and we also assume R_out >> R_in.
+		# q is determined by solving M_CSM = \int_{R_in}^{R_out} 4pi r^2 rho_CSM(r)dr, where rho_CSM(r) = qr^s
+		# M_CSM is the CSM mass enclosed between r=R_in and r=R_out.
+		# and we also assume R_out >> R_in.
 		q = (s+3.)/(4.*np.pi)*M_CSM/(rmax**(s+3.))
 
 		rho_CSM = lambda r: q*r**s
