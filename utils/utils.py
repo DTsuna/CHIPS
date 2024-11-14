@@ -65,7 +65,7 @@ def remnant_from_CO_case_B(CO_core_mass):
 	return Mrem
 
 # extractor of envelope profile from the script 
-def cc_param_extractor(data_file):
+def cc_param_extractor(data_file, discriminant):
 	data = mr.MesaData(data_file)
 	r_star = data.photosphere_r * RSUN
 	total_mass = data.star_mass
@@ -74,19 +74,34 @@ def cc_param_extractor(data_file):
 		CO_core_mass = data.c_core_mass
 	except:
 		CO_core_mass = data.co_core_mass
-	return r_star, total_mass, CO_core_mass
+	# envelope mass coordinate where we measure the ejecta profile
+	# We regard "envelope" as from 0.2Msun outside the "core" (in MESA), as how we do in the eruption calculations (see convert.py)
+	if discriminant == 0:
+		mr_env = data.he_core_mass+0.2
+	elif discriminant == 1:
+		mr_env = CO_core_mass+0.2
+	elif discriminant == 2:
+		mr_env = data.si_core_mass+0.2
+	return r_star, total_mass, CO_core_mass, mr_env
 
 
 # ejecta calculation script
 def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 	# extract total mass and CO core mass of the progenitor
-	r_star, total_mass, CO_core_mass = cc_param_extractor(data_file)
-	# extract density and pressure profile inside the star
-	renv = np.loadtxt(file_at_cc, skiprows=1)[:,2]
-	rhoenv = np.loadtxt(file_at_cc, skiprows=1)[:,4]
-	penv =  np.loadtxt(file_at_cc, skiprows=1)[:,7]
-	lgrhoenv = [math.log(rho) for i, rho in enumerate(rhoenv) if renv[i]<r_star]
-	lgpenv = [math.log(p) for i, p in enumerate(penv) if renv[i]<r_star]
+	r_star, total_mass, CO_core_mass, mr_env = cc_param_extractor(data_file, D)
+	# obtain ejecta outer power-law index n
+	if 'atCCSN.txt' in file_at_cc:
+		# obtaining n from simulated envelope at core-collapse
+		renv = np.loadtxt(file_at_cc, skiprows=1)[:,2]
+		rhoenv = np.loadtxt(file_at_cc, skiprows=1)[:,4]
+		penv =  np.loadtxt(file_at_cc, skiprows=1)[:,7]
+		lgrhoenv = [math.log(rho) for i, rho in enumerate(rhoenv) if renv[i]<r_star]
+		lgpenv = [math.log(p) for i, p in enumerate(penv) if renv[i]<r_star]
+	else:
+		# obtaining n from envelope from MESA model
+		h = mr.MesaData(data_file)
+		lgrhoenv = h.logRho[h.mass > mr_env]
+		lgpenv = h.logP[h.mass > mr_env]
 	# obtain polytropic index from fitting rho vs p at envelope. We fit with P = K*rho^(1+1/N), where N is the polytripic index.
 	gamma = np.polyfit(lgrhoenv, lgpenv, 1)[0]
 	Npol = 1./(gamma-1.)
@@ -102,6 +117,7 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 	if D == 0:
 		remnant_mass = remnant_from_CO_single_stars(CO_core_mass)
 	elif D == 1 or D == 2:
+		# assuming that the helium star losts its envelope by Case B mass transfer (which is most likely)
 		remnant_mass = remnant_from_CO_case_B(CO_core_mass)
 		
 	Mej = total_mass - remnant_mass - CSM_mass
@@ -246,14 +262,10 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		rho_CSM = lambda r: q*r**s
 		r_out = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 		rho_out = rho_CSM(r_out)
+		# assume velocity is zero, and abundance is the surface abundance
 		v_out = np.zeros(Ncell)
-		h1 = data.h1[data.h1 > 0.5]
-		he4 = data.he4[data.h1 > 0.5]
-		dM_mesa = abs(np.gradient(data.mass*MSUN))[data.h1>0.5]
-		h1_ave = np.sum(h1*dM_mesa)/np.sum(dM_mesa)
-		he4_ave = np.sum(he4*dM_mesa)/np.sum(dM_mesa)
-		X_out = np.ones(Ncell)*h1_ave
-		Y_out = np.ones(Ncell)*he4_ave
+		X_out = data.h1[0]
+		Y_out = data.he4[0]
 		Mr_out = np.zeros(Ncell)
 		dMr = 4.*np.pi*r_out**2*rho_CSM(r_out)*np.gradient(r_out)
 		for i in range(1, Ncell):
