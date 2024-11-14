@@ -246,10 +246,14 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		rho_CSM = lambda r: q*r**s
 		r_out = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 		rho_out = rho_CSM(r_out)
-		# assume velocity is zero, and abundance is the surface abundance
 		v_out = np.zeros(Ncell)
-		X_out = data.h1[0]
-		Y_out = data.he4[0]
+		h1 = data.h1[data.h1 > 0.5]
+		he4 = data.he4[data.h1 > 0.5]
+		dM_mesa = abs(np.gradient(data.mass*MSUN))[data.h1>0.5]
+		h1_ave = np.sum(h1*dM_mesa)/np.sum(dM_mesa)
+		he4_ave = np.sum(he4*dM_mesa)/np.sum(dM_mesa)
+		X_out = np.ones(Ncell)*h1_ave
+		Y_out = np.ones(Ncell)*he4_ave
 		Mr_out = np.zeros(Ncell)
 		dMr = 4.*np.pi*r_out**2*rho_CSM(r_out)*np.gradient(r_out)
 		for i in range(1, Ncell):
