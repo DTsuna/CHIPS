@@ -117,7 +117,6 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 	if D == 0:
 		remnant_mass = remnant_from_CO_single_stars(CO_core_mass)
 	elif D == 1 or D == 2:
-		# assuming that the helium star losts its envelope by Case B mass transfer (which is most likely)
 		remnant_mass = remnant_from_CO_case_B(CO_core_mass)
 		
 	Mej = total_mass - remnant_mass - CSM_mass
