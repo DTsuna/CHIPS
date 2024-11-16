@@ -270,15 +270,8 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 
 		yrho = 3.
 		func = lambda rho_break: M_CSM-np.trapezoid(4.*np.pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), r_out)
-		err = 1.
 		rho_break = 1.e-10
-		drho = 1.e-4*rho_break
-		while err > 1.e-10:
-			dfdrho = (func(rho_break+drho)-func(rho_break))/drho
-			delta_rho = -func(rho_break)/dfdrho
-			rho_break = rho_break+delta_rho
-			err = abs(delta_rho/rho_break)
-			print(func(rho_break), err)
+		rho_break = M_CSM/(np.trapezoid(4.*np.pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), r_out)/rho_break)
 
 		rho_out = CSMprof_func_arb(r_out, r_break, rho_break, s, yrho)
 		# assume velocity is zero, and abundance is the surface abundance
