@@ -10,6 +10,7 @@ import sys
 
 from scipy.optimize import curve_fit
 from scipy.integrate import solve_ivp
+from scipy.interpolate import griddata
 import scipy.interpolate as scipl
 
 # check of whether matplotlib can be imported
@@ -462,3 +463,26 @@ def genAbundanceTable(data_file_at_mass_eruption):
 		f.write(s)
 		s = 'H  {:.4e}\nHe {:.4e}\nC  {:.4e}\nO  {:.4e}\n'.format(h1,he4,c12,o16)
 		f.write(s)
+
+# return characteristic values from the self-similar solution by Chevalier (1982).
+# data[:,2] = A, and data[:,3], data[:,4] are values related to the internal energy stored in the shocked ejecta and CSM.
+def interpolate_self_similar_solution(n, s):
+	data = np.loadtxt("./input/LC/integral.txt")
+	x, y, A, Sr, Sf = data[:,0], data[:,1], data[:,2], data[:,3], data[:,4]
+
+	if n < min(x):
+		n = min(x)
+	elif n > max(x):
+		n = max(x)
+	
+	if s < min(y):
+		s = min(y)
+	elif n > max(y):
+		s = max(y)
+
+	A1  = griddata((x, y), A,  (n, s), method='cubic')
+	Sr1 = griddata((x, y), Sr, (n, s), method='cubic')
+	Sf1 = griddata((x, y), Sf, (n, s), method='cubic')
+
+	result = np.array([[A1, Sr1, Sf1]])
+	np.savetxt('LCFiles/interp_self_similar_values.txt', result, fmt="%1.4e")
