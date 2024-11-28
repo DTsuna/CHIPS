@@ -21,11 +21,11 @@
 
 extern char csm[256];
 
-void rad_transfer_csm(double, double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
+void rad_transfer_csm(double, double, double, double, double, double, double, const char*, const char*, const char*, const char*, const char*);
 void init_E_U(double, double, double[], double[], double[], double[], double[], const int);
 
 
-void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double delta, double r_out,
+void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double delta, double r_out, double s, 
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
 	FILE *fp, *fl, *fnu_time;
@@ -77,7 +77,7 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 #endif
 
 
-	pdt = setpars(nej, delta, Eej, Mej, Mni, 1.e+7, 1.e+12);
+	pdt = setpars(nej, delta, Eej, Mej, Mni, s, 1.e+7, 1.e+12);
 
 	/* OpenMP parameters */
 	if(getenv("OMP_NUM_THREADS") == NULL){
@@ -162,15 +162,14 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 
 
 /********************Calculate internal energy deposited in shocked region********************/
-	A = interp_A(nej);
-	interp_int_e(nej, &E_rev, &E_for);
+	interp_self_similar_values(&A, &E_rev, &E_for);
 	g = 1./(4.*M_PI*(nej-delta))*pow(2.*(5.-delta)*(nej-5.), (nej-3.)/2.)/pow((3.-delta)*(nej-3.), (nej-5.)/2.);
 	g *= pow(pdt.E_ej/pdt.M_ej, (nej-3.)/2.);
 	g *= pdt.M_ej;
 //g -> g^nej
-	q = rho_csm(rf[0])*pow(rf[0], 1.5);
-	E_rev *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-1.5))*g*pow(A*g/q, (5.-nej)/(nej-1.5))*pow(tf[0], 1.5*(nej-5.)/(nej-1.5));
-	E_for *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-1.5))*q*pow(A*g/q, 3.5/(nej-1.5))*pow(tf[0], 1.5*(nej-5.)/(nej-1.5));
+	q = rho_csm(rf[0])*pow(rf[0], s);
+	E_rev *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-s))*g*pow(A*g/q, (5.-nej)/(nej-s))*pow(tf[0], (3.-s)*(nej-5.)/(nej-s));
+	E_for *= 4.*M_PI*(nej-3.)/((gam-1.)*(nej-s))*q*pow(A*g/q, (5.-s)/(nej-s))*pow(tf[0], (3.-s)*(nej-5.)/(nej-s));
 	t_diff = rf[0]/uf[0];
 /*********************************************************************************************/
 

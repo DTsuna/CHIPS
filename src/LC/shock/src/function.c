@@ -15,16 +15,15 @@ double r_early(double t)
 {
 	double A, B, C;
 	double n, s, delta, M_ej, E_ej, D;
-	double r_out = 1.5e+14, r_in = 9.0e+13;
-	double rho_out = rho_csm(r_out), rho_in = rho_csm(r_in);
+	double r_out = 1.5e+14;
+	double rho_out = rho_csm(r_out);
 
 	n = pdt.n;
+	s = pdt.s;
 	delta = pdt.delta;
 	M_ej = pdt.M_ej;
 	E_ej = pdt.E_ej;
 
-	s = -(log(rho_out)-log(rho_in))/(log(r_out)-log(r_in));
-	s = 1.5;
 	D = rho_out*pow(r_out, s);
 
 	A = pow(2.*(5.-delta)*(n-5.)*E_ej, (n-3.)/2.);
@@ -37,16 +36,15 @@ double t_early(double r)
 {
 	double A, B, C;
 	double n, s, delta, M_ej, E_ej, D;
-	double r_out = 1.5e+14, r_in = 9.0e+13;
-	double rho_out = rho_csm(r_out), rho_in = rho_csm(r_in);
+	double r_out = 1.5e+14;
+	double rho_out = rho_csm(r_out);
 
 	n = pdt.n;
+	s = pdt.s;
 	delta = pdt.delta;
 	M_ej = pdt.M_ej;
 	E_ej = pdt.E_ej;
 
-	s = -(log(rho_out)-log(rho_in))/(log(r_out)-log(r_in));
-	s = 1.5;
 	D = rho_out*pow(r_out, s);
 
 	A = pow(2.*(5.-delta)*(n-5.)*E_ej, (n-3.)/2.);
@@ -63,21 +61,21 @@ double rho_csm(double r)
 
 	int i = 0;
 	double rho;
-	double dammy[5];
+	double dummy[5];
+
 
 	if(flag == 0){
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
 		fgets(filename, sizeof(filename), fp);
-		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]) != EOF){
+		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &r_c[i], &dummy[2], &rho_c[i], &dummy[3], &dummy[4]) != EOF){
 			i++;
 		}
 		nsize = i;
 		flag = 1;
 		fclose(fp);
-		s = (-(log10(rho_c[1])-log10(rho_c[0]))/(log10(r_c[1])-log10(r_c[0]))-(log10(rho_c[2])-log10(rho_c[1]))/(log10(r_c[2])-log10(r_c[1])))*0.5;
-		s = 1.5;
+		s = pdt.s;
 	}
 	if(r <= r_c[0]){
 		rho = rho_c[0]*pow(r/r_c[0], -s);
@@ -99,20 +97,20 @@ double set_r_ini(const char *file_csm)
 {
 	FILE *fp;
 	char filename[256];
-	double dammy[7];
+	double dummy[7];
 	fp = fopen(file_csm, "r");
 	fgets(filename, sizeof(filename), fp);
-	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &dammy[2], &dammy[3], &dammy[4], &dammy[5], &dammy[6]);
+	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6]);
 
 	fclose(fp);
-	return dammy[2];
+	return dummy[2];
 }
 
 double set_r_diff(const char *file_csm)
 {
 	FILE *fp;
 	char filename[256];
-	double dammy[7];
+	double dummy[7];
 	double n, s, delta, M_ej, E_ej, kappa, q;
 	double A, g_to_n;
 	double v_sh;
@@ -126,9 +124,9 @@ double set_r_diff(const char *file_csm)
 
 	fp = fopen(file_csm, "r");
 	fgets(filename, sizeof(filename), fp);
-	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r[i], &dammy[3], &rho[i], &dammy[5], &dammy[6]) != EOF){
+	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &r[i], &dummy[3], &rho[i], &dummy[5], &dummy[6]) != EOF){
 		if(i != 0){
-			kappa = 0.2 * (1.+dammy[5]);
+			kappa = 0.2 * (1.+dummy[5]);
 			dr[i] = r[i]-r[i-1];
 			tau[i] = kappa*(rho[i]+rho[i-1])/2.*dr[i];
 		}
@@ -139,8 +137,8 @@ double set_r_diff(const char *file_csm)
 	delta = pdt.delta;
 	M_ej = pdt.M_ej;
 	E_ej = pdt.E_ej;
-	A = interp_A(n);
-	s = 1.5;
+	s = pdt.s;
+	interp_self_similar_values(&A, dummy, dummy+1);
 	q = rho[0]*pow(r[0], s);
 	g_to_n = pow(2.0*(5.0-delta)*(n-5.0)*E_ej, (n-3.0)/2.0)/pow((3.0-delta)*(n-3.0)*M_ej, (n-5.0)/2.0)/((n-delta)*4.*M_PI);
 
@@ -216,7 +214,7 @@ double func_M_csm(double r, double t)
 		for(i = 0; i < 3; i++){
 			fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]);
 		}
-		s = 1.5;
+		s = pdt.s;
 		fclose(fp);
 		flag = 1;
 	}
@@ -241,14 +239,14 @@ double v_wind(double r)
 
 	int i = 0;
 	double v;
-	double dammy[5];
+	double dummy[5];
 
 	if(flag == 0){
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
 		fgets(filename, sizeof(filename), fp);
-		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &v_c[i], &dammy[2], &dammy[3], &dammy[4]) != EOF){
+		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &r_c[i], &v_c[i], &dummy[2], &dummy[3], &dummy[4]) != EOF){
 			i++;
 		}
 		nsize = i;
@@ -270,48 +268,12 @@ double v_wind(double r)
 	return v;
 }
 
-double interp_A(double n)
+void interp_self_similar_values(double *A, double *E_rev, double *E_for)
 {
-	double array_n[20], array_A[20];
-	int i = 0, j;
 	FILE *fp;
-
-	fp = fopen("./src/LC/shock/rel_n_A_gam_1.3.txt", "r");
-	while(fscanf(fp, "%lf %lf", array_n+i, array_A+i) != EOF){
-		i++;
-	}
-	for(j = 0; j < i; j++){
-		if(array_n[j] <= n && n <= array_n[j+1]){
-			break;
-		}
-	}
-
+	fp = fopen("LCFiles/interp_self_similar_values.txt", "r");
+	fscanf(fp, "%lf %lf %lf", A, E_rev, E_for);
 	fclose(fp);
-
-	return (array_A[j+1]-array_A[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_A[j];
-}
-
-void interp_int_e(double n, double *E_rev, double *E_for)
-{
-	double array_n[20], array_E_rev[20], array_E_for[20];
-	int i = 0, j;
-	FILE *fp;
-
-	fp = fopen("./src/LC/transfer/rel_n_e_gam_1.3.txt", "r");
-	while(fscanf(fp, "%lf %lf %lf", array_n+i, array_E_rev+i, array_E_for+i) != EOF){
-		i++;
-	}
-
-	for(j = 0; j < i; j++){
-		if(array_n[j] <= n && n <= array_n[j+1]){
-			break;
-		}
-	}
-
-	fclose(fp);
-
-	*E_rev = (array_E_rev[j+1]-array_E_rev[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_E_rev[j];
-	*E_for = (array_E_for[j+1]-array_E_for[j])/(array_n[j+1]-array_n[j])*(n-array_n[j])+array_E_for[j];
 }
 
 void set_abundance(void)
