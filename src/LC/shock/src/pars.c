@@ -7,11 +7,12 @@ double t_exp;
 pars pdt;
 
 //substitute parameters to struct **pars**.
-pars setpars(double n, double delta, double E_ej, double M_ej, double M_ni, double v_w, double R_p)
+pars setpars(double n, double delta, double E_ej, double M_ej, double M_ni, double s, double v_w, double R_p)
 {
 	pars pdt;
 
 	pdt.n = n;
+	pdt.s = s;
 	pdt.delta = delta;
 	pdt.E_ej = E_ej;
 	pdt.M_ej = M_ej*(M_SUN);
