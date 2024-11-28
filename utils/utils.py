@@ -477,7 +477,7 @@ def interpolate_self_similar_solution(n, s):
 	
 	if s < min(y):
 		s = min(y)
-	elif n > max(y):
+	elif s > max(y):
 		s = max(y)
 
 	A1  = griddata((x, y), A,  (n, s), method='cubic')
