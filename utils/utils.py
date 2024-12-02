@@ -136,7 +136,8 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False, steady_wind='attach'):
 	# copy first line
 	data = mr.MesaData(data_file_at_mass_eruption)
-	if 'atCCSN.txt' in CSM_in:
+#	if 'atCCSN.txt' in CSM_in:
+	if type(CSM_in) is str:
 		with open(CSM_in, 'r') as fin:
 			head = fin.readline().rstrip('\n')
 		# record values with edited mesh
