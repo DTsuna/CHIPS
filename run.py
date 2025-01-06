@@ -55,8 +55,6 @@ def parse_command_line():
 # get command line arguments
 options, filenames = parse_command_line()
 
-# specify exponent
-exponent = -1.
 
 # store parameters
 dt_now = datetime.datetime.now()
@@ -139,7 +137,6 @@ r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
 profile_at_cc = 'EruptionFiles/atCCSN.txt'
-profile_at_cc = [exponent, 1.0, 5e15]
 if SNType == 'IIn':
 # obtain opacity
 	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, analytical_CSM = options.analytical_CSM, steady_wind=options.steady_wind)
@@ -165,7 +162,9 @@ else:
 
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, D)
-utils.interpolate_self_similar_solution(n, exponent)
+# the inner CSM is assumed to be a power-law of rho \propto r^(-1.5) (general for eruption-generated CSM).
+inner_exponent = -1.5
+utils.interpolate_self_similar_solution(n, inner_exponent)
 
 # if multi-band is called, generate frequency-dependent opacity table as well
 if options.calc_multiband and SNType=='IIn':
@@ -180,7 +179,7 @@ for Eej in options.Eej:
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
 	shock_file = 'LCFiles/{}_shock_output_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'tinj{:.2f}_'.format(options.tinj)+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej, options.Mni, n, delta, -exponent, CSM_file, shock_file, D)
+	lightcurve.shock(Eej, Mej, options.Mni, n, delta, -inner_exponent, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
@@ -195,7 +194,7 @@ for Eej in options.Eej:
 		else:
 			print('Multi-band light curves are currently enabled only for IIn. Skipping for Ibn/Icn...')
 
-	lightcurve.transfer(Eej, Mej, options.Mni, n, delta, r_out, -exponent, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
+	lightcurve.transfer(Eej, Mej, options.Mni, n, delta, r_out, -inner_exponent, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
