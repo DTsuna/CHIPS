@@ -9,7 +9,7 @@ import re
 import sys
 
 from scipy.optimize import curve_fit
-from scipy.integrate import solve_ivp
+from scipy.integrate import solve_ivp, simpson
 from scipy.interpolate import griddata
 import scipy.interpolate as scipl
 
@@ -271,10 +271,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		r_out = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 
 		yrho = 3.
-		func = lambda rho_break: M_CSM-np.trapezoid(4.*np.pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), r_out)
 		rho_break = 1.e-10
-		rho_break = M_CSM/(np.trapezoid(4.*np.pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), r_out)/rho_break)
-
+		#rho_break = M_CSM/(np.trapz(4.*pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), r_out)/rho_break)
+		rho_break = M_CSM/(simpson(4.*pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), x=r_out)/rho_break)
 		rho_out = CSMprof_func_arb(r_out, r_break, rho_break, s, yrho)
 		# assume velocity is zero, and abundance is the surface abundance
 		v_out = np.zeros(Ncell)
