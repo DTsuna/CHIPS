@@ -24,7 +24,7 @@ except:
 MSUN = 1.989E+33
 RSUN = 6.963E+10
 G = 6.6743e-8
-yr = 3.15576E+07
+yr_to_sec = 3.15576E+07
 pi = np.pi
 
 # for CSM density profile fitting
@@ -133,10 +133,22 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 
 
 # remesh CSM for input to the light curve calculation
-def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False, steady_wind='attach'):
+def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False, steady_wind='RSGwind'):
 	# copy first line
 	data = mr.MesaData(data_file_at_mass_eruption)
-#	if 'atCCSN.txt' in CSM_in:
+	# obtain (low-density) wind parameters, if we set this to be outside the dense CSM (default)
+	if steady_wind == 'RSGwind':
+		if data.star_mdot > 0.0:
+			# use the value from MESA
+			wind_Mdot = -data.star_mdot * MSUN / yr_to_sec
+		else:
+			# Nieuwenhuijzen & de Jager 90
+			wind_Mdot = 5.6e-6 * (data.photosphere_L/1e5)**1.64 * (data.Teff/3500.)**(-1.61) * MSUN / yr_to_sec
+		# wind velocity from galactic RSGs (Mauron+11, Appendix C)
+		v_wind = 2e6 * (data.photosphere_L/1e5)**0.35
+		wind_Mdot_vw = wind_Mdot / v_wind
+
+	# if CSM from eruptive mass loss is used...
 	if type(CSM_in) is str:
 		with open(CSM_in, 'r') as fin:
 			head = fin.readline().rstrip('\n')
@@ -150,16 +162,6 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		X_edge = CSM[-1,5]
 		Y_edge = CSM[-1,6]
 		p_in = CSM[:,7]
-		if steady_wind == 'RSGwind':
-			if data.star_mdot > 0.0:
-				# use the value from MESA
-				wind_Mdot = -data.star_mdot * MSUN / 3.15e7
-			else:
-				# Nieuwenhuijzen & de Jager 90
-				wind_Mdot = 5.6e-6 * (data.photosphere_L/1e5)**1.64 * (data.Teff/3500.)**(-1.61) * MSUN / 3.15e7 
-			# wind velocity from galactic RSGs (Mauron+11, Appendix C)
-			v_wind = 2e6 * (data.photosphere_L/1e5)**0.35
-			wind_Mdot_vw = wind_Mdot / v_wind
 	
 		# find where the CSM contains artificial shock
 		# We identify this to be the outermost radius where the pressure slope suddenly jumps to <-100.
@@ -269,6 +271,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		rho_break = 1.e-10
 		rho_break = M_CSM/(simpson(4.*pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), x=r_out)/rho_break)
 		rho_out = CSMprof_func_arb(r_out, r_break, rho_break, s, yrho)
+		# connect RSG wind if requested
+		if steady_wind == 'RSGwind':
+			rho_out += wind_Mdot_vw / (4.*pi*r_out**2)
 		# assume velocity is zero, and abundance is the surface abundance
 		v_out = np.zeros(Ncell)
 		X_out = np.ones(Ncell)*data.h1[0]
@@ -329,7 +334,7 @@ def discriminantProgModel(progName):
 
 
 def evolv_CSM(tinj):
-	t_final = tinj*yr
+	t_final = tinj * yr_to_sec
 	filename = './EruptionFiles/result99.txt'
 
 	try:
