@@ -262,17 +262,11 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			print('power-law index should be smaller than 3.')
 			sys.exit(1)
 		print(s, M_CSM, r_break)
-		# q is determined by solving M_CSM = \int_{R_in}^{R_out} 4pi r^2 rho_CSM(r)dr, where rho_CSM(r) = qr^s
-		# M_CSM is the CSM mass enclosed between r=R_in and r=R_out.
-		# and we also assume R_out >> R_in.
-		q = (s+3.)/(4.*pi)*M_CSM/(rmax**(s+3.))
 
-		rho_CSM = lambda r: q*r**s
 		r_out = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 
 		yrho = 3.
 		rho_break = 1.e-10
-		#rho_break = M_CSM/(np.trapz(4.*pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), r_out)/rho_break)
 		rho_break = M_CSM/(simpson(4.*pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), x=r_out)/rho_break)
 		rho_out = CSMprof_func_arb(r_out, r_break, rho_break, s, yrho)
 		# assume velocity is zero, and abundance is the surface abundance
@@ -280,7 +274,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		X_out = np.ones(Ncell)*data.h1[0]
 		Y_out = np.ones(Ncell)*data.he4[0]
 		Mr_out = np.zeros(Ncell)
-		dMr = 4.*np.pi*r_out**2*rho_CSM(r_out)*np.gradient(r_out)
+		dMr = 4.*pi*r_out**2*rho_out*np.gradient(r_out)
 		for i in range(1, Ncell):
 			Mr_out[i] = Mr_out[i-1]+dMr[i]
 		print(Mr_out)
