@@ -213,7 +213,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 				fraction = (r - r_in[index]) / (r_in[index+1] - r_in[index])
 				v_out[i] = CSM[index, 3]*(1.-fraction) + CSM[index+1,3]*(fraction)
 				rho_out[i] = CSM[index, 4]**(1.-fraction) * CSM[index+1,4]**(fraction) 
-				Mr_out[i] = last_Mr + 4.*math.pi*r**2*rho_out[i]*(r-r_out[i-1])
+				Mr_out[i] = last_Mr + 4.*pi*r**2*rho_out[i]*(r-r_out[i-1])
 				X_out[i] = CSM[index, 5]*(1.-fraction) + CSM[index+1,5]*(fraction)
 				Y_out[i] = CSM[index, 6]*(1.-fraction) + CSM[index+1,6]*(fraction)
 				# for next step
@@ -221,13 +221,13 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 			else:
 				# use a profile that connects to the wind profile with a Gaussian drop 
 				if steady_wind == 'RSGwind':
-					rho_out[i] = (rho_in[-1]-wind_Mdot_vw/(4.*math.pi*r_in[-1]**2)) * math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*math.pi*r**2)
+					rho_out[i] = (rho_in[-1]-wind_Mdot_vw/(4.*pi*r_in[-1]**2)) * math.exp(1.-(r/r_in[-1])**2)  + wind_Mdot_vw / (4.*pi*r**2)
 					v_out[i] = v_wind
 				# or connect a wind profile to the edge of the erupted CSM profile
 				elif steady_wind == 'attach':
 					rho_out[i] = rho_in[-1] * (r_in[-1]/r)**2
 					v_out[i] = v_edge 
-				Mr_out[i] = last_Mr + 4.*math.pi*r**2*rho_out[i]*(r-r_out[i-1])
+				Mr_out[i] = last_Mr + 4.*pi*r**2*rho_out[i]*(r-r_out[i-1])
 				# X, Y are the edge value
 				X_out[i] = X_edge 
 				Y_out[i] = Y_edge 
@@ -236,7 +236,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		
 		# obtain Mr at r < rstop
 		for i in range(counter, -1, -1):
-			Mr_out[i] = Mr_out[i+1] - 4.*math.pi*r_out[i+1]**2*rho_out[i+1]*(r_out[i+1]-r_out[i])
+			Mr_out[i] = Mr_out[i+1] - 4.*pi*r_out[i+1]**2*rho_out[i+1]*(r_out[i+1]-r_out[i])
 		# plot CSM profile
 		if matplotlib_exists:
 			plt.rcParams["font.size"] = 14
@@ -265,7 +265,7 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		# q is determined by solving M_CSM = \int_{R_in}^{R_out} 4pi r^2 rho_CSM(r)dr, where rho_CSM(r) = qr^s
 		# M_CSM is the CSM mass enclosed between r=R_in and r=R_out.
 		# and we also assume R_out >> R_in.
-		q = (s+3.)/(4.*np.pi)*M_CSM/(rmax**(s+3.))
+		q = (s+3.)/(4.*pi)*M_CSM/(rmax**(s+3.))
 
 		rho_CSM = lambda r: q*r**s
 		r_out = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
@@ -404,7 +404,6 @@ def evolv_CSM(tinj):
 
 
 def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000):
-	pi = np.pi
 	result = evolv_CSM(tinj)
 	data = mr.MesaData(data_file_at_mass_eruption)
 	rho = result[:,2]
