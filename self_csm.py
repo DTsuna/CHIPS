@@ -15,7 +15,7 @@ import lightcurve
 
 def parse_command_line():
 	parser = OptionParser(
-		description = '''Execution script in the case of a custom-set CSM (currently enabled for only IIn-types). Instead of the --tinj, --finj etc. in run.py, this script allows to set by hand CSM with a (double) power-law density profile. For example, to calculate an 1e51erg supernova of a (ZAMS) 15Msun, solar metallicity RSG with CSM of total mass 1Msun, density profile of r^(-1.5) and an extent of 1e15cm, run the following:\n
+		description = '''Execution script in the case of a custom-set CSM. Instead of the --tinj, --finj etc. in run.py, this script allows to set by hand CSM with a (double) power-law density profile. For example, to calculate an 1e51erg supernova of a (ZAMS) 15Msun, solar metallicity RSG with CSM of total mass 1Msun, density profile of r^(-1.5) and an extent of 1e15cm, run the following:\n
 		python self_csm.py --break-radius 1e15 --Eej 1e51 --stellar-model input/mesa_models_rsg/15Msun_Z0.014_preccsn.data --CSM-mass 1 --inner-exponent -1.5 --break-radius 1e15
 		'''
 	)
