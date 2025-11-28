@@ -113,8 +113,9 @@ lightcurve.opacTable(D)
 
 # outer extent of the CSN to feed into the LC calculation
 r_out = 3e16
-# remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
+# in this script profile_at_cc is not a file -- it is a parameter set with the desired CSM parameters
+# FIXME only works for IIn case now,
 profile_at_cc = [options.inner_exponent, options.outer_exponent, options.CSM_mass, options.break_radius]
 if SNType == 'IIn':
 # obtain opacity
@@ -124,11 +125,13 @@ if SNType == 'IIn':
 	opacity_file = 'LCFiles/kappa_p.txt'
 	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 elif SNType == 'Ibn':
+	# FIXME only works for IIn case now,
 	raise ValueError('custom CSM model currently not supported for SNType: %s' % SNType)
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	subprocess.call(["cp", "./input/rosseland/opacity_X0000Y0986Z0014.txt", "./LCFiles/opacity.txt"])
 	subprocess.call(["cp", "./input/planck/opacity_X0000Y0986Z0014.txt", "./LCFiles/kappa_p.txt"])
 elif SNType == 'Icn':
+	# FIXME only works for IIn case now,
 	raise ValueError('custom CSM model currently not supported for SNType: %s' % SNType)
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	i = options.stellar_model.find('Msun')
