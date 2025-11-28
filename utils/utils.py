@@ -33,9 +33,8 @@ def CSMprof_func(r, r_break, rho_break, yrho):
 	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nmax/yrho) ) /2. )**(-yrho) )
 
 # for arbitrary CSM density profile fitting
-def CSMprof_func_arb(r, r_break, rho_break, nin, yrho):
-	nmax = 12.
-	return rho_break * ((( r / r_break)**(-nin/yrho) + ( r / r_break)**(nmax/yrho) ) /2. )**(-yrho) 
+def CSMprof_func_arb(r, r_break, rho_break, nin, nout, yrho):
+	return rho_break * ((( r / r_break)**(-nin/yrho) + ( r / r_break)**(nout/yrho) ) /2. )**(-yrho)
 
 # for CSM density profile (Type Ibn/Icn)
 def CSMprof_func_stripped(r, r_break, rho_break, nout):
@@ -256,11 +255,12 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 
 	else:
 		print('The density profile of CSM is given by hand.')
-		s = CSM_in[0]
-		M_CSM = CSM_in[1]*MSUN
-		r_break = CSM_in[2]
+		sin = CSM_in[0]
+		sout = CSM_in[1]
+		M_CSM = CSM_in[2]*MSUN
+		r_break = CSM_in[3]
 		rmin = data.photosphere_r*RSUN*2.
-		if s < -2.5:
+		if sin < -2.5:
 			print('power-law index should be shallower than 2.5')
 			sys.exit(1)
 
@@ -268,8 +268,8 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 
 		yrho = 3.
 		rho_break = 1.e-10
-		rho_break = M_CSM/(simpson(4.*pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, s, yrho), x=r_out)/rho_break)
-		rho_out = CSMprof_func_arb(r_out, r_break, rho_break, s, yrho)
+		rho_break = M_CSM/(simpson(4.*pi*r_out**2.*CSMprof_func_arb(r_out, r_break, rho_break, sin, sout, yrho), x=r_out)/rho_break)
+		rho_out = CSMprof_func_arb(r_out, r_break, rho_break, sin, sout, yrho)
 		# connect RSG wind if requested
 		if steady_wind == 'RSGwind':
 			rho_out += wind_Mdot_vw / (4.*pi*r_out**2)

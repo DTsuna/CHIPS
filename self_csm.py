@@ -15,8 +15,8 @@ import lightcurve
 
 def parse_command_line():
 	parser = OptionParser(
-		description = '''Execution script in the case of a custom-set CSM. Instead of the --tinj, --finj etc. in run.py, this script allows to set by hand CSM with a (double) power-law density profile. For example, to calculate an 1e51erg supernova of a (ZAMS) 15Msun, solar metallicity star with CSM of total mass 1Msun, density profile of r^(-1.5) and an extent of 1e15cm, run the following:\n
-		python self_csm.py --CSM-mass 1 --inner-exponent -1.5 --break-radius 1e15 --Eej 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data
+		description = '''Execution script in the case of a custom-set CSM. Instead of the --tinj, --finj etc. in run.py, this script allows to set by hand CSM with a (double) power-law density profile. For example, to calculate an 1e51erg supernova of a (ZAMS) 15Msun, solar metallicity RSG with CSM of total mass 1Msun, density profile of r^(-1.5) and an extent of 1e15cm, run the following:\n
+		python self_csm.py --break-radius 1e15 --Eej 1e51 --stellar-model input/mesa_models_rsg/15Msun_Z0.014_preccsn.data --CSM-mass 1 --inner-exponent -1.5 --break-radius 1e15
 		'''
 	)
 	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
@@ -115,7 +115,7 @@ lightcurve.opacTable(D)
 r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
-profile_at_cc = [options.inner_exponent, options.CSM_mass, options.break_radius]
+profile_at_cc = [options.inner_exponent, options.outer_exponent, options.CSM_mass, options.break_radius]
 if SNType == 'IIn':
 # obtain opacity
 	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, steady_wind=options.steady_wind)
