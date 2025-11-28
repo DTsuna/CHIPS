@@ -34,7 +34,7 @@ def CSMprof_func(r, r_break, rho_break, yrho):
 
 # for arbitrary CSM density profile fitting
 def CSMprof_func_arb(r, r_break, rho_break, nin, nout, yrho):
-	return rho_break * ((( r / r_break)**(-nin/yrho) + ( r / r_break)**(nout/yrho) ) /2. )**(-yrho)
+	return rho_break * ((( r / r_break)**(-nin/yrho) + ( r / r_break)**(-nout/yrho) ) /2. )**(-yrho)
 
 # for CSM density profile (Type Ibn/Icn)
 def CSMprof_func_stripped(r, r_break, rho_break, nout):
@@ -132,7 +132,7 @@ def calculate_ejecta(data_file, file_at_cc, file_CSM, D):
 
 
 # remesh CSM for input to the light curve calculation
-def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False, steady_wind='RSGwind'):
+def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, analytical_CSM=False, steady_wind='RSGwind', custom_CSM=False):
 	# copy first line
 	data = mr.MesaData(data_file_at_mass_eruption)
 	# obtain (low-density) wind parameters, if we set this to be outside the dense CSM (default)
@@ -148,7 +148,8 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		wind_Mdot_vw = wind_Mdot / v_wind
 
 	# if CSM from eruptive mass loss is used...
-	if type(CSM_in) is str:
+	if custom_CSM==False:
+		assert type(CSM_in) is str
 		with open(CSM_in, 'r') as fin:
 			head = fin.readline().rstrip('\n')
 		# record values with edited mesh
@@ -375,7 +376,7 @@ def evolv_CSM(tinj):
 			dr = v_c
 			dv = -G*Mr0/r_c**2
 			return [dr,dv]
-    
+	
 		sol = solve_ivp(func,t_span,init,method='RK45',atol = 1e-8,rtol = 1e-10)
 
 		t_f[i] = sol.t[-1]
@@ -400,51 +401,80 @@ def evolv_CSM(tinj):
 	return result
 
 
-def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000):
-	result = evolv_CSM(tinj)
+def remesh_evolv_CSM(tinj, rout, CSM_out, data_file_at_mass_eruption, Ncell=1000, custom_CSM=False):
 	data = mr.MesaData(data_file_at_mass_eruption)
-	rho = result[:,2]
-	r = result[:,0]
-	v = result[:,1]
 	v_esc = np.sqrt(2.*G*data.star_mass*MSUN/data.photosphere_r/RSUN)
-	Mr = np.empty(Ncell)
-	try:
-		spline_v = scipl.CubicSpline(r, v)
-	except: # there is a radius inversion in some of the cells.
-		# remove that region, and let the interpolator take care of interpolation with the surrounding sane cells
-		warnings.warn("Radius inversion in the CSM cells found. Fitting profile by interpolation with the surrounding sane cells...")
-		dr = np.diff(r)
-		dr_upd = np.append(dr,1.0)
-		r = r[dr_upd>0.]
-		v = v[dr_upd>0.]
-		rho = rho[dr_upd>0.]
+	if custom_CSM==False:
+		result = evolv_CSM(tinj)
+		rho = result[:,2]
+		r = result[:,0]
+		v = result[:,1]
+		Mr = np.empty(Ncell)
 		try:
 			spline_v = scipl.CubicSpline(r, v)
-		except:
-			return ValueError("CSM profile generation failed, with excessive radius inversion in CSM cells. Try smaller --tinj (with --skip-eruption to avoid re-running the eruption calculation from scratch).")
-	nsize = len(r)
-	(rmin, rmax) = (r[0], r[-1])
-	# initial guess for outer CSM power-law index (Tsuna & Takei 23, PASJ 75, L19)
-	nout_init = 9.
+		except: # there is a radius inversion in some of the cells.
+			# remove that region, and let the interpolator take care of interpolation with the surrounding sane cells
+			warnings.warn("Radius inversion in the CSM cells found. Fitting profile by interpolation with the surrounding sane cells...")
+			dr = np.diff(r)
+			dr_upd = np.append(dr,1.0)
+			r = r[dr_upd>0.]
+			v = v[dr_upd>0.]
+			rho = rho[dr_upd>0.]
+			try:
+				spline_v = scipl.CubicSpline(r, v)
+			except:
+				return ValueError("CSM profile generation failed, with excessive radius inversion in CSM cells. Try smaller --tinj (with --skip-eruption to avoid re-running the eruption calculation from scratch).")
+		nsize = len(r)
+		(rmin, rmax) = (r[0], r[-1])
+		# initial guess for outer CSM power-law index (Tsuna & Takei 23, PASJ 75, L19)
+		nout_init = 9.
 
-	popt, pcov = curve_fit(CSMprof_func_stripped, np.log(r), np.log(rho), p0 = [1e15, 1e-15, nout_init])
-	(r_star, rho_star, nout) = (popt[0], popt[1], popt[2])
-	r_remesh = np.logspace(np.log10(rmin*1.001), np.log10(rout*1.001), Ncell)
-	rho_remesh = np.zeros(Ncell)
-	v_remesh = np.zeros(Ncell)
+		popt, pcov = curve_fit(CSMprof_func_stripped, np.log(r), np.log(rho), p0 = [1e15, 1e-15, nout_init])
+		(r_star, rho_star, nout) = (popt[0], popt[1], popt[2])
+		r_remesh = np.logspace(np.log10(rmin*1.001), np.log10(rout*1.001), Ncell)
+		rho_remesh = np.zeros(Ncell)
+		v_remesh = np.zeros(Ncell)
 
-	for i, x in enumerate(r_remesh):
-		if x <= rmax:
-			rho_remesh[i] = np.exp(CSMprof_func_stripped(np.log(x), r_star, rho_star, nout))
-			v_remesh[i] = spline_v(x)
-		else:
-			v_remesh[i] = v_esc
-			rho_remesh[i] = rho_remesh[i-1]*(x/r_remesh[i-1])**(-2.0)
-		if i == 0:
-			Mr[i] = 0.0
-		else:
-			Mr[i] = Mr[i-1]+4.0*pi*r_remesh[i]**2.0*rho_remesh[i]*(r_remesh[i]-r_remesh[i-1])
-	head = 'CSM profile created by scipy.curve_fit'
+		for i, x in enumerate(r_remesh):
+			if x <= rmax:
+				rho_remesh[i] = np.exp(CSMprof_func_stripped(np.log(x), r_star, rho_star, nout))
+				v_remesh[i] = spline_v(x)
+			else:
+				v_remesh[i] = v_esc
+				rho_remesh[i] = rho_remesh[i-1]*(x/r_remesh[i-1])**(-2.0)
+			if i == 0:
+				Mr[i] = 0.0
+			else:
+				Mr[i] = Mr[i-1]+4.0*pi*r_remesh[i]**2.0*rho_remesh[i]*(r_remesh[i]-r_remesh[i-1])
+		head = 'CSM profile created by scipy.curve_fit'
+	else:
+		print('The density profile of CSM is given by hand.')
+		# in this case variable "tinj" is overriden by an array of desired CSM parameters.
+		# FIXME make this a more desireable name
+		CSM_in = tinj
+		sin = CSM_in[0]
+		sout = CSM_in[1]
+		M_CSM = CSM_in[2]*MSUN
+		r_break = CSM_in[3]
+		rmin = data.photosphere_r*RSUN*2.
+		if sin < -2.5:
+			print('power-law index should be shallower than 2.5')
+			sys.exit(1)
+
+		r_remesh = np.logspace(math.log10(rmin*1.001), math.log10(rout*1.001), Ncell)
+
+		yrho = 3.
+		rho_break = 1.e-10
+		rho_break = M_CSM/(simpson(4.*pi*r_remesh**2.*CSMprof_func_arb(r_remesh, r_break, rho_break, sin, sout, yrho), x=r_remesh)/rho_break)
+		rho_remesh = CSMprof_func_arb(r_remesh, r_break, rho_break, sin, sout, yrho)
+		# assume velocity is escape velocity, and abundance is the surface abundance
+		v_remesh = np.ones(Ncell)*v_esc
+		Mr = np.zeros(Ncell)
+		dMr = 4.*pi*r_remesh**2*rho_remesh*np.gradient(r_remesh)
+		for i in range(1, Ncell):
+			Mr[i] = Mr[i-1]+dMr[i]
+		head = 'The density profile of CSM created using arguments given by user'
+
 	np.savetxt(CSM_out, np.transpose([list(range(1,Ncell+1)), Mr, r_remesh, v_remesh, rho_remesh, data.h1[0]*np.ones(Ncell), data.he4[0]*np.ones(Ncell)]), fmt=['%d','%.8e','%.8e','%.8e','%.8e','%.8e','%.8e'], header=head)
 
 

@@ -115,25 +115,20 @@ lightcurve.opacTable(D)
 r_out = 3e16
 CSM_file = 'LCFiles/CSM.txt'
 # in this script profile_at_cc is not a file -- it is a parameter set with the desired CSM parameters
-# FIXME only works for IIn case now,
 profile_at_cc = [options.inner_exponent, options.outer_exponent, options.CSM_mass, options.break_radius]
 if SNType == 'IIn':
 # obtain opacity
-	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, steady_wind=options.steady_wind)
+	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, steady_wind=options.steady_wind, custom_CSM=True)
 	opacity_file = 'LCFiles/opacity.txt'
 	gen_op_tbl.gen_op_tbl_sct(Y_He, opacity_file)
 	opacity_file = 'LCFiles/kappa_p.txt'
 	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 elif SNType == 'Ibn':
-	# FIXME only works for IIn case now,
-	raise ValueError('custom CSM model currently not supported for SNType: %s' % SNType)
-	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
+	utils.remesh_evolv_CSM(profile_at_cc, r_out, CSM_file, file_cc, Ncell=1000, custom_CSM=True)
 	subprocess.call(["cp", "./input/rosseland/opacity_X0000Y0986Z0014.txt", "./LCFiles/opacity.txt"])
 	subprocess.call(["cp", "./input/planck/opacity_X0000Y0986Z0014.txt", "./LCFiles/kappa_p.txt"])
 elif SNType == 'Icn':
-	# FIXME only works for IIn case now,
-	raise ValueError('custom CSM model currently not supported for SNType: %s' % SNType)
-	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
+	utils.remesh_evolv_CSM(profile_at_cc, r_out, CSM_file, file_cc, Ncell=1000, custom_CSM=True)
 	i = options.stellar_model.find('Msun')
 	Msun = options.stellar_model[i-2:i]
 	opac_name = "./input/rosseland/opacity_Icn"+Msun+"Msun.txt"
