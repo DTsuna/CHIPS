@@ -260,10 +260,9 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		M_CSM = CSM_in[1]*MSUN
 		r_break = CSM_in[2]
 		rmin = data.photosphere_r*RSUN*2.
-		if s <= -3.:
-			print('power-law index should be smaller than 3.')
+		if s < -2.5:
+			print('power-law index should be shallower than 2.5')
 			sys.exit(1)
-		print(s, M_CSM, r_break)
 
 		r_out = np.logspace(math.log10(rmin*1.001), math.log10(rmax*1.001), Ncell)
 
@@ -282,7 +281,6 @@ def remesh_CSM(rmax, CSM_in, CSM_out, data_file_at_mass_eruption, Ncell=1000, an
 		dMr = 4.*pi*r_out**2*rho_out*np.gradient(r_out)
 		for i in range(1, Ncell):
 			Mr_out[i] = Mr_out[i-1]+dMr[i]
-		print(Mr_out)
 		head = 'The density profile of CSM created using arguments given by user'
 
 
