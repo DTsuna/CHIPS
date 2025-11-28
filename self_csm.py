@@ -15,7 +15,7 @@ import lightcurve
 
 def parse_command_line():
 	parser = OptionParser(
-		description = '''Execution script in the case of a custom-set CSM. Instead of the --tinj, --finj etc. in run.py, this script allows to set by hand CSM with a (double) power-law density profile. For example, to calculate an 1e51erg supernova of a (ZAMS) 15Msun, solar metallicity RSG with CSM of total mass 1Msun, density profile of r^(-1.5) and an extent of 1e15cm, run the following:\n
+		description = '''Execution script in the case of a custom-set CSM (currently enabled for only IIn-types). Instead of the --tinj, --finj etc. in run.py, this script allows to set by hand CSM with a (double) power-law density profile. For example, to calculate an 1e51erg supernova of a (ZAMS) 15Msun, solar metallicity RSG with CSM of total mass 1Msun, density profile of r^(-1.5) and an extent of 1e15cm, run the following:\n
 		python self_csm.py --break-radius 1e15 --Eej 1e51 --stellar-model input/mesa_models_rsg/15Msun_Z0.014_preccsn.data --CSM-mass 1 --inner-exponent -1.5 --break-radius 1e15
 		'''
 	)
@@ -124,10 +124,12 @@ if SNType == 'IIn':
 	opacity_file = 'LCFiles/kappa_p.txt'
 	gen_op_tbl.gen_op_tbl_abs(Y_He, opacity_file)
 elif SNType == 'Ibn':
+	raise ValueError('custom CSM model currently not supported for SNType: %s' % SNType)
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	subprocess.call(["cp", "./input/rosseland/opacity_X0000Y0986Z0014.txt", "./LCFiles/opacity.txt"])
 	subprocess.call(["cp", "./input/planck/opacity_X0000Y0986Z0014.txt", "./LCFiles/kappa_p.txt"])
 elif SNType == 'Icn':
+	raise ValueError('custom CSM model currently not supported for SNType: %s' % SNType)
 	utils.remesh_evolv_CSM(options.tinj, r_out, CSM_file, file_cc, Ncell=1000)
 	i = options.stellar_model.find('Msun')
 	Msun = options.stellar_model[i-2:i]
