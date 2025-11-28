@@ -4,6 +4,7 @@
 typedef struct{
 	double n;
 	double delta;
+	double s;
 	double E_ej;
 	double M_ej;
 	double M_ni;
@@ -12,6 +13,6 @@ typedef struct{
 	double v_t;
 }pars;
 
-pars setpars(double, double, double, double, double, double, double);
+pars setpars(double, double, double, double, double, double, double, double);
 
 #endif
