@@ -33,7 +33,8 @@ def CSMprof_func(r, r_break, rho_break, yrho):
 	return np.log( rho_break * (( (np.exp(r) / r_break)**(1.5/yrho) + (np.exp(r) / r_break)**(nmax/yrho) ) /2. )**(-yrho) )
 
 # for arbitrary CSM density profile fitting
-def CSMprof_func_arb(r, r_break, rho_break, nin, nmax=12., yrho):
+def CSMprof_func_arb(r, r_break, rho_break, nin, yrho):
+	nmax = 12.
 	return rho_break * ((( r / r_break)**(-nin/yrho) + ( r / r_break)**(nmax/yrho) ) /2. )**(-yrho) 
 
 # for CSM density profile (Type Ibn/Icn)
