@@ -15,21 +15,21 @@ import lightcurve
 
 def parse_command_line():
 	parser = OptionParser(
-		description = '''Execution script. The MESA calculation will be conducted by running the code with ZAMS mass/Z and inlist file as arguments, For example, to calculate the interaction-powered supernova of a ZAMS 15Msun, solar metallicity star with tinj=10yrs, finj=0.5, and explosion energy 1e51 ergs, run the following:\n
-		python run.py --tinj 10 --finj 0.5 --Eej 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data --analytical-CSM
+		description = '''Execution script in the case of a custom-set CSM. Instead of the --tinj, --finj etc. in run.py, this script allows to set by hand CSM with a (double) power-law density profile. For example, to calculate an 1e51erg supernova of a (ZAMS) 15Msun, solar metallicity star with CSM of total mass 1Msun, density profile of r^(-1.5) and an extent of 1e15cm, run the following:\n
+		python self_csm.py --CSM-mass 1 --inner-exponent -1.5 --break-radius 1e15 --Eej 1e51 --stellar-model input/mesa_models/15Msun_Z0.014_preccsn.data
 		'''
 	)
 	parser.add_option("--Eej", metavar = "float", type = "float", action = "append", help = "Explosion energy in erg. This option can be given multiple times (default: 1e51, 3e51, 1e52).")
 	parser.add_option("--Mni", metavar = "float", type = "float", default = 0., help = "Radioactive nickel 56 mass, in units of solar mass (default: 0 Msun).")
-	parser.add_option("--exponent", metavar = "float", type = "float", default = -2., help = "power-law index of CSM (default: stellar wind: -2).")
 	parser.add_option("--CSM-mass", metavar = "float", type = "float", help = "CSM mass, in units of solar mass.")
-	parser.add_option("--break-point", metavar = "float", type = "float", help = "CSM mass, in units of solar mass.")
+	parser.add_option("--inner-exponent", metavar = "float", type = "float", default = -1.5, help = "power-law index of inner CSM (default: -1.5). This has to be set between -2.5 and 0.")
+	parser.add_option("--outer-exponent", metavar = "float", type = "float", default = -10., help = "power-law index of inner CSM (default: -10). When assuming a CSM with a single power-law, set this to be the same value as the --inner-exponent. This has to be equal to or less (i.e. same slope or steeper) than the inner exponent.")
+	parser.add_option("--break-radius", metavar = "float", type = "float", help = "Radius where the double power-law transitions in cm. For a single power-law profile, the profile extends to the outer edge of the calculation (3e16cm) regardless of the value set here.")
 	parser.add_option("--stellar-model", metavar = "filename", help = "Path to the input stellar model (required). This should be one of the stellar model files created after running MESA (which usually end with '.data'.). If --run-mesa is called, this needs to be the stellar model file that you want to provide as input of the CHIPS code (e.g. the file provided by the input 'filename_for_profile_when_terminate' in one of the inlist files.).")
 	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
 	parser.add_option("--mesa-path", metavar = "string", type = "string", help = "Path to the execution files of MESA.")
 	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Specify how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind' (default: RSGwind). 'attach' simply connects a wind profile to the outermost cell profile, while 'RSGwind' smoothly connects a red supergiant wind to the erupted material.")
 	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve. For now this feature is only enabled for Type IIn cases.")
-	parser.add_option("--opacity-table",  metavar = "filename", help = "A custom opacity table used for the mass eruption calculation. If not called, analytical opacity formula (Kuriyama & Shigeyama 20) is used. The opacity file should have the format like the files in the input/rosseland directory.")
 
 	options, filenames = parser.parse_args()
 
@@ -37,11 +37,16 @@ def parse_command_line():
 	assert options.stellar_model is not None, "A stellar model file for input to CHIPS has to be provided."
 	if options.run_mesa:
 		assert options.mesa_path is not None, "A valid existing directory has to be given for --mesa-path if --run-mesa is called."
+	# checks for CSM parameters
+	if options.inner_exponent < -2.5 or options.inner_exponent > 0.0:
+		raise ValueError("inner CSM power-law index should be in the range -2.5 ~ 0")
+	if options.outer_exponent > options.inner_exponent:
+		raise ValueError("outer CSM must be the same slope or steeper than the inner CSM")
+	if options.CSM_mass is None or options.break_radius is None:
+		raise ValueError("Parameters CSM-mass and break-radius need to be provided.")
 	# set default value if explosion energy is empty
 	if not options.Eej:
 		options.Eej = [1e51, 3e51, 1e52]
-	if options.CSM_mass is None or options.break_point is None:
-		raise ValueError("Parameters CSM-mass and break-point need to be provided.")
 
 	return options, filenames
 
@@ -55,7 +60,7 @@ s='{:02d}{:02d}{:02d}_{:02d}{:02d}{:02d}'.format(dt_now.year%100,dt_now.month,dt
 with open('params/params_'+s+'.dat', mode='w') as f:
 	s = '#The latest parameters used in the calculation are listed.\n'
 	f.write(s)
-	s = 'power-law index = {:.2f}\nCSM mass = {:.2f} Msun\nNickel mass = {:.3f} Msun\nmesa model = '.format(options.exponent, options.CSM_mass, options.Mni)+options.stellar_model+'\n'
+	s = 'inner power-law index = {:.2f}\nCSM mass = {:.2f} Msun\nNickel mass = {:.3f} Msun\nmesa model = '.format(options.inner_exponent, options.CSM_mass, options.Mni)+options.stellar_model+'\n'
 	Eej_str = ['%g erg' % E for E in options.Eej]
 	s = s+'Eej = '+str(Eej_str)+'\n'
 	s = s+'multi_band = '+str(options.calc_multiband)
@@ -110,8 +115,7 @@ lightcurve.opacTable(D)
 r_out = 3e16
 # remesh CSM in order to correct for shocks in the hydro simulation and extend to r_out.
 CSM_file = 'LCFiles/CSM.txt'
-profile_at_cc = 'EruptionFiles/atCCSN.txt'
-profile_at_cc = [options.exponent, options.CSM_mass, options.break_point]
+profile_at_cc = [options.inner_exponent, options.CSM_mass, options.break_radius]
 if SNType == 'IIn':
 # obtain opacity
 	Y_He = utils.remesh_CSM(r_out, profile_at_cc, CSM_file, file_cc, steady_wind=options.steady_wind)
@@ -137,7 +141,7 @@ else:
 
 # extract the ejecta parameters
 Mej, n, delta, CSM_mass = utils.calculate_ejecta(file_cc, profile_at_cc, CSM_file, D)
-utils.interpolate_self_similar_solution(n, options.exponent)
+utils.interpolate_self_similar_solution(n, options.inner_exponent)
 
 # if multi-band is called, generate frequency-dependent opacity table as well
 if options.calc_multiband and SNType=='IIn':
@@ -151,23 +155,23 @@ for Eej in options.Eej:
 
 	# luminosity at shock
 	dir_Lnu = "LCFiles/SpecFiles_"+str(Eej)
-	shock_file = 'LCFiles/{}_shock_output_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'CSM_mass{:.2f}Msun_exponent{:.2f}_breakpoint{:.1e}cm_'.format(options.CSM_mass, options.exponent, options.break_point)+str(Eej)+'erg.txt'
-	lightcurve.shock(Eej, Mej, options.Mni, n, delta, -options.exponent, CSM_file, shock_file, D)
+	shock_file = 'LCFiles/{}_shock_output_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'CSM_mass{:.2f}Msun_inner_exp{:.2f}_breakradius{:.1e}cm_'.format(options.CSM_mass, options.inner_exponent, options.break_radius)+str(Eej)+'erg.txt'
+	lightcurve.shock(Eej, Mej, options.Mni, n, delta, -options.inner_exponent, CSM_file, shock_file, D)
 
 	# radiation transfer
 	# bolometric light curve
-	lc_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'CSM_mass{:.2f}Msun_exponent{:.2f}_breakpoint{:.1e}cm_'.format(options.CSM_mass, options.exponent, options.break_point)+str(Eej)+'erg.txt'
+	lc_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'CSM_mass{:.2f}Msun_inner_exp{:.2f}_breakradius{:.1e}cm_'.format(options.CSM_mass, options.inner_exponent, options.break_radius)+str(Eej)+'erg.txt'
 	# multi-band light curve if requested
 	lc_band_file = ''
 	if options.calc_multiband:
 		if SNType=='IIn':
-			lc_band_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'CSM_mass{:.2f}Msun_exponent{:.2f}_breakpoint{:.1e}cm_'.format(options.CSM_mass, options.exponent, options.break_point)+str(Eej)+'erg_mag.txt'
+			lc_band_file = 'LCFiles/{}_lightcurve_'.format(SNType)+'Mni{:.3f}_'.format(options.Mni)+'CSM_mass{:.2f}Msun_inner_exp{:.2f}_breakradius{:.1e}cm_'.format(options.CSM_mass, options.inner_exponent, options.break_radius)+str(Eej)+'erg_mag.txt'
 			subprocess.call(["rm", "-r", dir_Lnu])
 			subprocess.call(["mkdir", dir_Lnu])
 		else:
 			print('Multi-band light curves are currently enabled only for IIn. Skipping for Ibn/Icn...')
 
-	lightcurve.transfer(Eej, Mej, options.Mni, n, delta, r_out, -options.exponent, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
+	lightcurve.transfer(Eej, Mej, options.Mni, n, delta, r_out, -options.inner_exponent, CSM_file, shock_file, lc_file, lc_band_file, dir_Lnu, D)
 
 	# obtain peak luminosity and rise/decay time in days
 	# the rise (decay) time is defined by between peak time and the time when the luminosity first rises(decays) to 1% of the peak.
