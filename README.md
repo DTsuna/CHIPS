@@ -39,7 +39,7 @@ For installation of mesa_reader, please see [here](https://docs.mesastar.org/en/
 run the following command:
 
 
-	unzip input/mesa_models_rsg/1Zsun.zip  (for the first time)
+	cd input/mesa_models_rsg && unzip 1Zsun.zip && cd ../../ (for the first time)
 	python run.py --tinj 5 --finj 0.3 --Eej 1e51 --stellar-model input/mesa_models_rsg/15Msun_Z0.014_preccsn.data --analytical-CSM
 
 
