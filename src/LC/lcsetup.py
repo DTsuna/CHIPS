@@ -1,4 +1,7 @@
-from distutils.core import setup, Extension
+try:
+    from distutils.core import setup, Extension
+except ImportError: # distutils not supported from python 3.12
+    from setuptools import setup, Extension
 import glob
 
 shock_src = glob.glob('./shock/src/*')
