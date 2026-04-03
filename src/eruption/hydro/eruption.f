@@ -373,14 +373,14 @@ c     stop when timestep becomes too small (currently conservative)
      $        6h ihyd ,i8)')
      $        time, dt, ihyd
          if(ejectaCut.eq.0)then
-           write(*,'(5h no.  ,8h  mr    ,9hradius   9hdensity  ,
+           write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $        9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $        9h    L   ,/,(i5,1p8e9.2))')
      $        (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
      $        ,temp(j),lum(j),j=max(1,jw-10),max(10,min(jw+10,n)))
          end if
          if(ejectaCut.eq.1)then
-           write(*,'(5h no.  ,8h  mr    ,9hradius   9hdensity  ,
+           write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $        9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $        9h    u   ,/,(i5,1p8e9.2))')
      $        (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
