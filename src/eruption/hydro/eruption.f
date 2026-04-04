@@ -379,13 +379,13 @@ c      write(*,*)"timetocc=",time_to_cc
 
            ! show first 5 cells and last 5 cells
            if(ejectaCut.eq.0)then
-             write(*,'(5h no.  ,8h  mr    ,9hradius   ,9hdensity  ,
+             write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    L   ,/,(i5,1p8e9.2))')
      $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
      $          ,temp(j),lum(j),j=max(3,jw-10),max(10,min(jw+10,n)))
              write(*,*) "------------------------"
-             write(*,'(5h no.  ,8h  mr    ,9hradius   ,9hdensity  ,
+             write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    L   ,/,(i5,1p8e9.2))')
      $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
@@ -394,14 +394,14 @@ c      write(*,*)"timetocc=",time_to_cc
 
            ! after cutting innermost region at late times
            if(ejectaCut.eq.1)then
-             write(*,'(5h no.  ,8h  mr    ,9hradius   ,9hdensity  ,
+             write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    u   ,/,(i5,1p8e9.2))')
      $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
      $          ,temp(j),u(j),
      $          j=max(fixedCell,jw-10),max(10+fixedCell,min(jw+10,n)))
              write(*,*) "------------------------"
-             write(*,'(5h no.  ,8h  mr    ,9hradius   ,9hdensity  ,
+             write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    u   ,/,(i5,1p8e9.2))')
      $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
