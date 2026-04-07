@@ -31,7 +31,7 @@
 
       e_in_cell = 10
 
-      write(*,*)"innerCell in advanc.f =",innerCell
+c      write(*,*)"innerCell in advanc.f =",innerCell
 
       rad(2) = 1d-15
 

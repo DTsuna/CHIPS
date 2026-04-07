@@ -281,7 +281,7 @@ double Lum_nu(double r_init, double r_out, double nu, double F_ini, double r[], 
 	
 	I[0] = integ_ray_tracing(b[0], nu, &tau_nu[0], F_ini, r, rho, T, n, op0);
 
-#pragma omp parallel for
+//#pragma omp parallel for
 	for(i = 1; i < NB-1; i++){
 		I[i] = integ_ray_tracing(b[i], nu, &tau_nu[i], F_ini, r, rho, T, n, op0);
 	}

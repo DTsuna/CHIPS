@@ -28,23 +28,22 @@ void init_E_U(double, double, double[], double[], double[], double[], double[], 
 void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double delta, double r_out, double s, 
 	const char *file_csm, const char *file_inp, const char *file_outp, const char *file_outp_band, const char *dir_shockprofiles)
 {
-	FILE *fp, *fl, *fnu_time;
+	FILE *fp, *fl, *fnu_time=tmpfile();
 	double F_max = 0., F_out = 0.;
-	double r_eff, v_eff, r_eff_interp, T_color;
-	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], E_old[NSIZE], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
-	double T_g[NSIZE], mu[NSIZE], F[NSIZE];
+	double r_eff, v_eff, T_color;
+	double E[2*NSIZE], U[2*NSIZE], r[NSIZE+1], rho[NSIZE], v_w[NSIZE], E0[NSIZE], U0[NSIZE];
+	double T_g[NSIZE], mu[NSIZE];
 	double kappa_s, kappa_a;
 	double r_ini, F_ini, u_ini, E_ini;
 	double t, dt = 4.;
 	double err = 0., tol = 1.e-08;
 	double rho_ed[2];
 	double tf[20000], rf[20000], Ff[20000], Ef[20000], uf[20000];
-	int count_e, count = 0;
+	int count = 0;
 	int output_flag = 0;
 	int i = 0, ii = 0, j = 0, jj = 0, k, n = NSIZE, fsize, flag = 0;
 	int F_neg_flag = 0;
 	int loc;
-	int c = 0, cmax = 100;
 	int L_outp_flag = 0, count_nu = 0;
 	int FLNU;
 	int count_all = 0;
@@ -61,12 +60,15 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	double E_rev, E_for;
 	double t_diff;
 	double E_to_T;
-	double F_mean;
 	double abmag[5];
 	double F_from_shocked;
 	double time_interval = 86400.;
 	int outp_date_int = 0, outp_date_min;
 	pars pdt;
+	// unused variables
+	// int count_e, c, cmax;
+	// double r_eff_interp, F_mean;
+	// double E_old[NSIZE], F[NSIZE];
 
 	int num_of_threads, i_threads;
 
@@ -104,7 +106,10 @@ void rad_transfer_csm(double Eej, double Mej, double Mni, double nej, double del
 	sprintf(csm, "%s", file_csm);
 	sprintf(filename, "%s", file_inp);
 	fp = fopen(filename, "r");
-	fgets(buf, 256, fp);
+	if (fgets(buf, 256, fp) == NULL) {
+		printf("reading shock output file failed..\n");
+		exit(EXIT_FAILURE);
+	}
 	set_abundance();
 
 	if(FLNU == 1) {
@@ -341,9 +346,9 @@ Here, iteration is needed to complete the calculation.
 /*
 E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimated.
 */
-		for(i = 0; i < n; i++){
+		/* for(i = 0; i < n; i++){
 			E_old[i] = E[2*i];
-		}
+		} */
 
 		integ_adv_eadtra(F_ini, E, T_g, r, dt, n+1, &flag, &loc, &err);
 		
@@ -358,7 +363,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			continue;
 		}
 		else{
-			c = 0;
+			//c = 0;
 			flag = 0;
 		}
 
@@ -384,9 +389,9 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			saha(rho[i], U[2*i], mu+i, T_g+i);
 			kappa_s = kappa_r(rho[i], T_g[i]);
 			kappa_a = kappa_p(rho[i], T_g[i]);
-			if(i != 0){
+			/* if(i != 0){
 				F[i-1] = calc_flux_i(r_ini, r, E, U, rho, dt, i, n);
-			}
+			} */
 			tau_eff[i] = sqrt(kappa_a*kappa_s)*rho[i]*(r[i+1]-r[i]);
 			tau[i] = kappa_s*rho[i]*(r[i+1]-r[i]);
 		}
@@ -412,8 +417,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 			T_color = (T_g[ii-2]-T_g[ii])/2./tau_eff[ii-1]*(1.-tau_eff_tot)+(T_g[ii-1]+T_g[ii])/2.;
 		}
 		else{
-			r_eff_interp = r_eff;
-			F_mean = F_ini;
+			//r_eff_interp = r_eff;
 			T_color = pow(E_to_T/(P_A), 0.25);
 			if(fabs(T_color) < 1.e-20){
 				T_color = NAN;
@@ -428,6 +432,7 @@ E_old[n] must keep values of E[2*i+1] before iteration, so that error is estimat
 		}
 		else{
 			r_eff = r_ini;
+			v_eff = u_ini;
 		}
 /********************************************************************/
 

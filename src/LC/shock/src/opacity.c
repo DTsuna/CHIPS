@@ -23,7 +23,10 @@ void set_opacity(const char *openfile, opacity *op)
 	else{
 //		printf("Opacity file \"%s\" was set.\n", filename);
 	}
-	fgets(buf, 256, fp);
+	if (fgets(buf, 256, fp) == NULL) {
+		printf("reading opacity table failed..\n");
+		exit(EXIT_FAILURE);
+	}
 	ascii = strtok(buf, " ");
 	op->R[0] = atof(strtok(NULL, " "));
 	i = 1;
@@ -38,7 +41,10 @@ void set_opacity(const char *openfile, opacity *op)
 		}
 	}
 	op->jmax = i;
-	fgets(buf, 256, fp);
+	if (fgets(buf, 256, fp) == NULL) {
+		printf("reading opacity table failed..\n");
+		exit(EXIT_FAILURE);
+	}
 	if(strcmp(buf, "0\n") == 0){
 		op->Discriminant = 0;
 	}

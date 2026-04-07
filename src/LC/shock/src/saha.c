@@ -9,7 +9,7 @@ void get_num_density(double rho, double T,  double ndens[])
 {
 	double mu_tmp[2] = {};
 	double x, x_to_3ov2;
-	double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
+	double n_e, n_H, n_He, n_HII, n_HeI, n_HeII, n_HeIII;
 	double Boltz_HI, Boltz_HeI, Boltz_HeII;
 
 	mu_tmp[0] = 0.5;
@@ -27,7 +27,7 @@ void get_num_density(double rho, double T,  double ndens[])
 		n_He = Y/4.*rho/MH;
 		n_e = rho/(mu_tmp[0]*MH)-(X+Y/4.)*rho/MH;
 		n_HII = x_to_3ov2 * Boltz_HI / (n_e + x_to_3ov2 * Boltz_HI) * n_H;
-		n_HI = n_H-n_HII;
+		//n_HI = n_H-n_HII;
 		n_HeI = n_He / (1.+4./n_e*x_to_3ov2*Boltz_HeI+4./(n_e*n_e)*x_to_3ov2*x_to_3ov2*Boltz_HeI*Boltz_HeII);
 		n_HeII = 4.*n_HeI/n_e* x_to_3ov2 * Boltz_HeI;
 		n_HeIII = n_He - n_HeI - n_HeII;
@@ -115,7 +115,10 @@ void set_tables(const char *openfile, double rho[], double U[], double mu[], int
 	else{
 //		printf("Opacity file \"%s\" was set.\n", filename);
 	}
-	fgets(buf, 256, fp);
+	if (fgets(buf, 256, fp) == NULL) {
+		printf("reading opacity file failed..\n");
+		exit(EXIT_FAILURE);
+	}
 	U[0] = atof(strtok(buf, " "));
 	i = 1;
 	while(1){

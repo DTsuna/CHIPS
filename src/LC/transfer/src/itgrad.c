@@ -67,14 +67,13 @@ double output_R(double E[], double T_g[], double kappa[], double r[], int i)
 double Flux(double F_ini, double E[], double T_g[], double kappa[], double r[], int i, const int n)
 {
 	double R, lambda;
-	double r_r, r_l;
 	double F;
 
 	if(i != 0 && i != n-1){
 		R = output_R(E, T_g, kappa, r, i);
 		lambda = (2.+R)/(6.+3.*R+R*R);
-		r_r = pow((r[i+1]*r[i+1]*r[i+1]+r[i]*r[i]*r[i])/2., 1./3.);
-		r_l = pow((r[i-1]*r[i-1]*r[i-1]+r[i]*r[i]*r[i])/2., 1./3.);
+		//r_r = pow((r[i+1]*r[i+1]*r[i+1]+r[i]*r[i]*r[i])/2., 1./3.);
+		//r_l = pow((r[i-1]*r[i-1]*r[i-1]+r[i]*r[i]*r[i])/2., 1./3.);
 
 		F = (P_C)*lambda*(E[2*i+1]+E[2*(i-1)+1])/2.*R;
 	}

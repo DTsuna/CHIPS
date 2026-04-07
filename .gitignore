@@ -3,8 +3,9 @@ src/eruption/hydro/obj/
 src/eruption/eos/obj/
 src/eruption/hydro/eruptPara.d
 src/eruption/hydro/inclmn.f
+src/eruption/eos/obj/
 input/mesa_models_*/*.data
-input/abundance/
+input/abundance/abundance_for_tablegen.txt
 EruptionFiles/
 LCFiles/
 params/

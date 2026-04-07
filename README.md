@@ -1,5 +1,7 @@
 <img width="400" alt="CHIPS" src="https://user-images.githubusercontent.com/20248820/142557110-6e2a3032-aaf1-4f62-8d49-bb0364b20173.png">
 
+# NOTE: This is a repository for the CHIPS workshop in Jan 2026, incorporating updates in speed, terminal output etc.
+
 # Complete History of Interaction-Powered Supernovae (CHIPS)
 
 CHIPS is a tool for simulating the circumstellar matter and light curves of
@@ -12,7 +14,7 @@ The PDF documentation of the code is available in the repository.
 
 ## What can CHIPS do?
 
-CHIPS can generate a realistic CSM from a model-agnostic mass eruption calculation (reference 2), which can serve as a reference for observers to compare with various observations of the CSM. It can also generate light curves from CSM interaction (reference 3), which can also be compared with observed light curves. For our sample red supergiant models, the calculation of mass eruption and light curve typically takes respectively half a day and half an hour on modern CPUs. For stripped stars, both the eruption and light curve typically takes around an hour.
+CHIPS can generate a realistic CSM from a model-agnostic mass eruption calculation (reference 2), which can serve as a reference for observers to compare with various observations of the CSM. It can also generate light curves from CSM interaction (reference 3), which can also be compared with observed light curves. For our sample red supergiant models, the calculation of mass eruption (with 3000 cells) and light curve typically takes respectively an hour and half an hour on modern CPUs. For stripped stars, both the eruption and light curve typically takes around an hour.
 
 ## Pre-reqs
 
@@ -23,7 +25,7 @@ For installation of mesa_reader, please see [here](https://docs.mesastar.org/en/
 ## Steps for running CHIPS:
 1. git clone this repository
 
-	`git clone https://github.com/DTsuna/CHIPS.git`
+	`git clone https://github.com/DTsunacodes/CHIPS_for_workshop.git`
 
 2. At the top directory, compile the scripts for the mass eruption and light curve.
 
@@ -37,6 +39,7 @@ For installation of mesa_reader, please see [here](https://docs.mesastar.org/en/
 run the following command:
 
 
+	cd input/mesa_models_rsg && unzip 1Zsun.zip && cd ../../ (for the first time)
 	python run.py --tinj 5 --finj 0.3 --Eej 1e51 --stellar-model input/mesa_models_rsg/15Msun_Z0.014_preccsn.data --analytical-CSM
 
 
@@ -52,7 +55,7 @@ Our sample models cover
 The pre-SN models are in zip files in the directories input/mesa_models_XXX. Once you un-zip these files, you will find MESA data files with the naming showing the mass and metallicity at ZAMS. 
 **For the light curve module, the currently available opacity tables support only solar metallicity (Z=0.014) input progenitor models for IIn/Ibn, and the above four models for Icn. Work is under way to enable more flexibility in the progenitors.**
 
-Although this is not the recommended way, one can also do the MESA calculation inside run.py with additional arguments --run-mesa and --mesa-path
+Although this is not recommended, one can also do the MESA calculation inside run.py with additional arguments --run-mesa and --mesa-path
 
 
 	python run.py --tinj 5 --finj 0.3 --Eej 1e51 --stellar-model /output/MESA/model --run-mesa --mesa-path /path/to/execution/directory --analytical-CSM 

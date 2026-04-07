@@ -61,9 +61,6 @@ double Lbol_before(double Mni, double Mej, double Eej, double kappa, double t)
 
 double Lbol_after(double Mni, double Mej, double Eej, double kappa, double t)
 {
-	const double beta = 13.8;
-	double tau_m;
-	double x;
 	double L;
 	double eps;
 	double S_Ni_gamma, S_Co_gamma, S_Co_posi_gamma, S_Co_posi_ke;
@@ -76,9 +73,6 @@ double Lbol_after(double Mni, double Mej, double Eej, double kappa, double t)
 	G = 16.1*F;
 	eps = Mni*(EPS_CO)*(exp(-t/(TAU_CO))-exp(-t/(TAU_NI)));
 	S_Ni_gamma = Mni*(EPS_NI)*exp(-t/(TAU_NI));
-
-	tau_m = sqrt(kappa/beta/(P_C))*pow(6.*Mej*Mej*Mej/5./Eej, 0.25);
-	x = t/tau_m;
 
 	one_minus_exp_F = 1.-exp(-(F/t)*(F/t));
 	one_minus_exp_G = 1.-exp(-(G/t)*(G/t));
@@ -100,15 +94,12 @@ void search_smooth_point(double Mni, double Mej, double Eej, double kappa, doubl
 	const double day = 86400.;
 	double a, b, c;
 	double tau_m;
-	double x;
 	double L;
-	double t = day;
 	double L1, L2;
 	double tol = 1.e-06;
 	int count = 0;
 	
 	tau_m = sqrt(kappa/beta/(P_C))*pow(6.*Mej*Mej*Mej/5./Eej, 0.25);
-	x = t/tau_m;
 
 	a = 0.01*tau_m;
 	b = 10.*tau_m;
@@ -145,11 +136,8 @@ void search_smooth_point(double Mni, double Mej, double Eej, double kappa, doubl
 //Mni [g], Mej [g]
 double rad_from_decay_of_nico(double Mni, double Mej, double Eej, double kappa, double t)
 {
-	const double beta = 13.8;
-	double tau_m, L, point;
+	double L, point;
 	
-	tau_m = sqrt(kappa/beta/(P_C))*pow(6.*Mej*Mej*Mej/5./Eej, 0.25);
-
 	search_smooth_point(Mni, Mej, Eej, kappa, &point);
 	
 	if(point > 0.0001){

@@ -299,7 +299,7 @@ c     iteration starts here
 
       if(test.gt.epsl)then
          open(84,file='EruptionFiles/rtReport.d', access='append')
-         write(84,*),test,istep,time,which,error_n,which_temp
+         write(84,*) test,istep,time,which,error_n,which_temp
          close(84)
       end if
       if(test.gt.10000.d0)then!epsl to 10000

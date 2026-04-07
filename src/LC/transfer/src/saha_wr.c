@@ -113,7 +113,10 @@ void Saha_wr_U(double rho, double U, double *mu_outp, double *T_outp)
 	int i = 0, count = 0;
 
 	fp = fopen("input/abundance/abundance_for_tablegen.txt", "r");
-	fgets(buf, 256, fp);
+	if (fgets(buf, 256, fp) == NULL) {
+		printf("reading abundance file failed..\n");
+		exit(EXIT_FAILURE);
+	}
 	while(fscanf(fp, "%s %lf", buf, X_dummy+i) != EOF){
 		i++;
 	}
@@ -257,12 +260,15 @@ void Saha_U(double rho, double U, double *mu, double *T)
         double mu_tmp[2] = {};
         double x;
         double T_tmp = 2000.;
-        double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
+        double n_e, n_H, n_He, n_HII, n_HeI, n_HeII, n_HeIII;
 	double X_H, X_He, X_dummy[4];
 	int i = 0;
 
 	fp = fopen("input/abundance/abundance_for_tablegen.txt", "r");
-	fgets(buf, 256, fp);
+	if (fgets(buf, 256, fp) == NULL) {
+		printf("reading abundance file failed..\n");
+		exit(EXIT_FAILURE);
+	}
 	while(fscanf(fp, "%s %lf", buf, X_dummy+i) != EOF){
 		i++;
 	}
@@ -282,7 +288,7 @@ void Saha_U(double rho, double U, double *mu, double *T)
                 	x = 2.*M_PI*P_E*P_K*T_tmp/(P_H*P_H);
                 	n_e = rho/(mu_tmp[0]*MH)-(X_H+X_He/4.)*rho/MH;
                 	n_HII = pow(x, 1.5)*exp(-CHI_HI/((P_K)*T_tmp))/(n_e+pow(x, 1.5)*exp(-CHI_HI/((P_K)*T_tmp)))*n_H;
-                	n_HI = n_H-n_HII;
+                	//n_HI = n_H-n_HII;
                 	n_HeI = pow(1.+4./n_e*pow(x, 1.5)*exp(-CHI_HeI/((P_K)*T_tmp))+4./(n_e*n_e)*pow(x, 3.)*exp(-(CHI_HeI+CHI_HeII)/((P_K)*T_tmp)), -1.)*n_He;
                 	n_HeII = 4.*n_HeI/n_e*pow(x, 1.5)*exp(-CHI_HeI/((P_K)*T_tmp));
                 	n_HeIII = n_HeII/n_e*pow(x, 1.5)*exp(-CHI_HeII/((P_K)*T_tmp));

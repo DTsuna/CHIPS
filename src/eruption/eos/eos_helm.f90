@@ -67,7 +67,7 @@
 
 
 !      call omp_set_num_threads(12)
-      write(*,*)"innerCell in eoshelm", innerCell
+!      write(*,*)"innerCell in eoshelm", innerCell
       do k = innerCell, n
        do j = 1, ionmax
         xmass(j) = x_ar(k,j)
@@ -113,7 +113,7 @@
        error = 0
        call helmeos(k,error)
        if(error.ne.0)then
-!         write(*,*)"error",error,"before itteration at cell",k
+!         write(*,*)"error",error,"before iteration at cell",k
        end if
 
 
@@ -125,8 +125,8 @@
           if(error.ne.0)exit
           temp_row(1) = temp_row(1) + d_temp
           call helmeos(k,error)
-          if(error.ne.0)then
-            write(*,*)"error",error ,"during itteration at cell",k
+          if(error.ne.0 .and. error.ne.2)then
+            write(*,*)"error",error ,"during iteration at cell",k
           end if
           d_temp = (e_th - etot_row(1))/(det_row(1))
           i = i + 1
@@ -153,6 +153,7 @@
           dt = 1.d9
           te = temp_trial
           muie = 1.d0/abar + 0.5
+!          write(*,*) "calculating using custom EOS..."
           do while(abs(dt/te).gt.1.d-6)
             dt = (e_th-1.5d0*dkh*te*muie-arad*(te**4)/den_row(1))/ &
                   (4*arad*(te**3)/den_row(1) + 1.5d0*dkh*muie)
@@ -160,7 +161,7 @@
             kk = kk + 1
             if(kk.gt.100)then
                 open(81,file='EruptionFiles/eos_Report.d', access='append')
-                write(81,*),k,time,"iter does not converge"
+                write(81,*) k,time,"iter does not converge"
                 close(81)
                 exit
             end if
@@ -710,10 +711,10 @@
          return
         end if
         if (temp .lt. t(1)) then
-         write(6,01) 'temp=',temp,' t(1)=',t(1), 'den=',den
-         write(6,*) 'temp too cold, off gridi at',kk
+!         write(6,01) 'temp=',temp,' t(1)=',t(1), 'den=',den
+!         write(6,*) 'temp too cold, off gridi at',kk
          error = 2
-         write(6,*) 'setting eosfail to true and returning'
+!         write(6,*) 'setting eosfail to true and returning'
          eosfail = .true.
          return
         end if

@@ -190,7 +190,7 @@ double *calc_dist(double array[], double E_ej, double M_ej, double M_ni, double 
 	double dtau = 0.50;
 	double err, tol = 1.00e-08;
 	double r_ini;
-	double egn_old[4], egn[4], degn[nsize], egnfd[4], p[4] = {};
+	double egn_old[4], egn[4] = {}, degn[nsize], egnfd[4], p[4] = {};
 	double phys[2*4], physfd[4];
 	double J[16];
 	static double outp_egn[6];

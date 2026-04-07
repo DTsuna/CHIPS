@@ -187,7 +187,6 @@
          encm(n+1) = encm(n)+dmass(n)
          ar(1) = -ar(4)
          ar(2) = -ar(3)
-         pause
          !call eos(n,1,cv,kap)
 
       end if

@@ -23,11 +23,11 @@
 !      write(*,*)'Time step is decided by mesh',mesh
 
       dtc = min(dtcfac/dtcc,1/dtcr)
-      if(dtcfac/dtcc.lt.1/dtcr)then
-        write(*,*)'Time step is decided by mesh',meshc
-      end if
-      if(dtcfac/dtcc.gt.1/dtcr)then
-        write(*,*)'Time step is decided by mesh',meshr
-      end if
+!      if(dtcfac/dtcc.lt.1/dtcr)then
+!        write(*,*)'Time step is decided by mesh',meshc
+!      end if
+!      if(dtcfac/dtcc.gt.1/dtcr)then
+!        write(*,*)'Time step is decided by mesh',meshr
+!      end if
       return
       end

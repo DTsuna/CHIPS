@@ -28,7 +28,7 @@ def parse_command_line():
 	parser.add_option("--run-mesa", action = "store_true", help = "Call to run MESA in this script and get a new stellar model.")
 	parser.add_option("--mesa-path", metavar = "string", type = "string", help = "Path to the execution files of MESA.")
 	parser.add_option("--eruption-innerMr", metavar = "float", type = "float", default=-1.0, help = "The innermost mass coordinate where the energy is injected. If no argument or a negative value is given, it sets by default to just outside the inner core.")
-	parser.add_option("--eruption-Ncell", metavar = "int", type = "int", default = 10000, help = "Number of cells in the eruption calculation (default: 10000).")
+	parser.add_option("--eruption-Ncell", metavar = "int", type = "int", default = 3000, help = "Number of cells in the eruption calculation (default: 3000).")
 	parser.add_option("--analytical-CSM", action = "store_true", default=False, help = "Calibrate CSM by analytical profile given in Tsuna et al (2021). The adiabatic CSM profile is extrapolated to the inner region, correcting the profile obtained from adiabatic calculation that includes artificial shock-compression.")
 	parser.add_option("--steady-wind", metavar = "string", type = "string", default='RSGwind', help = "Specify how the steady wind CSM is attached to the erupted material. Must be 'attach' or 'RSGwind' (default: RSGwind). 'attach' simply connects a wind profile to the outermost cell profile, while 'RSGwind' smoothly connects a red supergiant wind to the erupted material.")
 	parser.add_option("--calc-multiband", action = "store_true", default=False, help = "Additionally conduct ray-tracing calculations to obtain multi-band light curves (default: false). This calculation is computationally heavier than obtaining just the bolometric light curve. For now this feature is only enabled for Type IIn cases.")
@@ -122,7 +122,7 @@ if not options.skip_eruption:
 		print('cell number and/or opacity table shape has changed. recompiling the code...')
 		subprocess.call(["make", "clean"])
 		subprocess.call("make")
-	subprocess.call("./eruption", stdout=open(os.devnull,'wb'))
+	subprocess.call("./eruption")
 
 
 #################################################################

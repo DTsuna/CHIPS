@@ -45,11 +45,10 @@ void itg_src(double E[], double U[], double rho, double dt, double tol)
 	double err;
 	double x[2], p[2] = {}, J[4], func[2];
 	double dtau = 0.5;
-	double mu, T, kappa;
+	double mu, T;
 	int count = 0, count_max = 300;
 
 	saha(rho, U[0], &mu, &T);
-	kappa = kappa_p(rho, T);
 	do{
 		diff_eq_src(E, U, rho, dt, func);
 		jacob(E[1], U[1], rho, dt, J);

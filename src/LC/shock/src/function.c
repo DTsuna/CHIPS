@@ -68,7 +68,10 @@ double rho_csm(double r)
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
-		fgets(filename, sizeof(filename), fp);
+		if (fgets(filename, sizeof filename, fp) == NULL) {
+			printf("reading CSM density profile failed..\n");
+			exit(EXIT_FAILURE);
+		}
 		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &r_c[i], &dummy[2], &rho_c[i], &dummy[3], &dummy[4]) != EOF){
 			i++;
 		}
@@ -99,8 +102,16 @@ double set_r_ini(const char *file_csm)
 	char filename[256];
 	double dummy[7];
 	fp = fopen(file_csm, "r");
-	fgets(filename, sizeof(filename), fp);
-	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6]);
+	if (fgets(filename, sizeof filename, fp) == NULL) {
+		printf("reading CSM density profile failed..\n");
+		exit(EXIT_FAILURE);
+	}
+	// fscanf returns > 0: read successfully
+	// fscanf returns EOF, 0: read failed
+	if (!(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &dummy[2], &dummy[3], &dummy[4], &dummy[5], &dummy[6]) >0 )){
+		printf("scanning CSM density profile failed..\n");
+		exit(EXIT_FAILURE);	
+	}
 
 	fclose(fp);
 	return dummy[2];
@@ -114,6 +125,7 @@ double set_r_diff(const char *file_csm)
 	double n, s, delta, M_ej, E_ej, kappa, q;
 	double A, g_to_n;
 	double v_sh;
+	double result;
 	double *rho, *r, *dr, *tau, tau_tot = 0.;
 	int i = 0, j;
 
@@ -123,7 +135,10 @@ double set_r_diff(const char *file_csm)
 	dr = (double*)calloc(20000, sizeof(double));
 
 	fp = fopen(file_csm, "r");
-	fgets(filename, sizeof(filename), fp);
+	if (fgets(filename, sizeof filename, fp) == NULL) {
+		printf("reading CSM density profile failed..\n");
+		exit(EXIT_FAILURE);
+	}
 	while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &r[i], &dummy[3], &rho[i], &dummy[5], &dummy[6]) != EOF){
 		if(i != 0){
 			kappa = 0.2 * (1.+dummy[5]);
@@ -150,12 +165,14 @@ double set_r_diff(const char *file_csm)
 		}
 	}
 
+	result = r[j];
+
 	free(rho);
 	free(tau);
 	free(r);
 	free(dr);
 	fclose(fp);
-	return r[j];
+	return result;
 }
 
 double rho_ej(double r, double t)
@@ -209,10 +226,16 @@ double func_M_csm(double r, double t)
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
-		fgets(filename, sizeof(filename), fp);
+		if (fgets(filename, sizeof filename, fp) == NULL) {
+			printf("reading CSM density profile failed..\n");
+			exit(EXIT_FAILURE);
+		}
 		printf("%s\n", filename);
 		for(i = 0; i < 3; i++){
-			fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]);
+			if (!(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[i], &dammy[2], &rho_c[i], &dammy[3], &dammy[4]) >0 )){
+				printf("scanning CSM density profile failed..\n");
+				exit(EXIT_FAILURE);	
+			}
 		}
 		s = pdt.s;
 		fclose(fp);
@@ -245,7 +268,10 @@ double v_wind(double r)
 		FILE *fp;
 		char filename[256];
 		fp = fopen(csm, "r");
-		fgets(filename, sizeof(filename), fp);
+		if (fgets(filename, sizeof filename, fp) == NULL) {
+			printf("reading CSM density profile failed..\n");
+			exit(EXIT_FAILURE);
+		}
 		while(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dummy[0], &dummy[1], &r_c[i], &v_c[i], &dummy[2], &dummy[3], &dummy[4]) != EOF){
 			i++;
 		}
@@ -272,7 +298,10 @@ void interp_self_similar_values(double *A, double *E_rev, double *E_for)
 {
 	FILE *fp;
 	fp = fopen("LCFiles/interp_self_similar_values.txt", "r");
-	fscanf(fp, "%lf %lf %lf", A, E_rev, E_for);
+	if (!(fscanf(fp, "%lf %lf %lf", A, E_rev, E_for) >0 )){
+		printf("scanning self similar solution file failed..\n");
+		exit(EXIT_FAILURE);	
+	}
 	fclose(fp);
 }
 
@@ -284,8 +313,14 @@ void set_abundance(void)
 	char filename[256];
 
 	fp = fopen(csm, "r");
-	fgets(filename, sizeof(filename), fp);
-	fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[0], &dammy[2], &rho_c[0], &dammy[3], &dammy[4]);
+	if (fgets(filename, sizeof filename, fp) == NULL) {
+		printf("reading CSM file failed..\n");
+		exit(EXIT_FAILURE);
+	}
+	if (!(fscanf(fp, "%lf %lf %lf %lf %lf %lf %lf", &dammy[0], &dammy[1], &r_c[0], &dammy[2], &rho_c[0], &dammy[3], &dammy[4]) >0 )){
+		printf("scanning CSM density profile failed..\n");
+		exit(EXIT_FAILURE);	
+	}
 	X = dammy[3];
 	Y = dammy[4];
 //	gen_opacity_sc();
@@ -338,7 +373,7 @@ double sigma_saha(double R, double T)
 	double rho = R*pow(T*1.e-06, 3.);
 	double mu_tmp[2] = {};
 	double x;
-	double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
+	double n_e, n_H, n_He, n_HII, n_HeI, n_HeII, n_HeIII;
 	mu_tmp[0] = 0.5;
 	mu_tmp[1] = 1.;
 	while(fabs(mu_tmp[1]-mu_tmp[0]) > 1.e-15){
@@ -348,7 +383,7 @@ double sigma_saha(double R, double T)
 		n_He = Y/4.*rho/MH;
 		n_e = rho/(mu_tmp[0]*MH)-(X+Y/4.)*rho/MH;
 		n_HII = pow(x, 1.5)*exp(-CHI_HI/(P_K*T))/(n_e+pow(x, 1.5)*exp(-CHI_HI/(P_K*T)))*n_H;
-		n_HI = n_H-n_HII;
+		//n_HI = n_H-n_HII;
 		n_HeI = pow(1.+4./n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T))+4./(n_e*n_e)*pow(x, 3.)*exp(-(CHI_HeI+CHI_HeII)/(P_K*T)), -1.)*n_He;
 		n_HeII = 4.*n_HeI/n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T));
 		n_HeIII = n_HeII/n_e*pow(x, 1.5)*exp(-CHI_HeII/(P_K*T));
@@ -364,7 +399,7 @@ void sigma_mu_saha(double R, double T, double *sigma, double *mu)
 	double rho = R*pow(T*1.e-06, 3.);
 	double mu_tmp[2] = {};
 	double x;
-	double n_e, n_H, n_He, n_HI, n_HII, n_HeI, n_HeII, n_HeIII;
+	double n_e, n_H, n_He, n_HII, n_HeI, n_HeII, n_HeIII;
 	mu_tmp[0] = 0.5;
 	mu_tmp[1] = 1.;
 	while(fabs(mu_tmp[1]-mu_tmp[0]) > 1.e-15){
@@ -374,7 +409,7 @@ void sigma_mu_saha(double R, double T, double *sigma, double *mu)
 		n_He = Y/4.*rho/MH;
 		n_e = rho/(mu_tmp[0]*MH)-(X+Y/4.)*rho/MH;
 		n_HII = pow(x, 1.5)*exp(-CHI_HI/(P_K*T))/(n_e+pow(x, 1.5)*exp(-CHI_HI/(P_K*T)))*n_H;
-		n_HI = n_H-n_HII;
+		//n_HI = n_H-n_HII;
 		n_HeI = pow(1.+4./n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T))+4./(n_e*n_e)*pow(x, 3.)*exp(-(CHI_HeI+CHI_HeII)/(P_K*T)), -1.)*n_He;
 		n_HeII = 4.*n_HeI/n_e*pow(x, 1.5)*exp(-CHI_HeI/(P_K*T));
 		n_HeIII = n_HeII/n_e*pow(x, 1.5)*exp(-CHI_HeII/(P_K*T));
