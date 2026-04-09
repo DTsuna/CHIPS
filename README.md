@@ -60,7 +60,7 @@ The argument --stellar-model should be the output file from this MESA calculatio
 
 For modeling Type IIn SNe using the RSG model, we strongly advise to use an analytical CSM model (reference 4) that corrects the artifical shock-compressions that arise from the adiabatic mass eruption code. This can be done with the argument --analytical-CSM. Such CSM model is already being taken into account for the stripped stars.
 
-### Using a custom opacity table 
+### Using a custom opacity table for eruption calculation 
 For the opacity in the eruption calculations, a simple analytical formula in Kuriyama & Shigeyama (2020) is used by default. One can instead give a custom opacity table (like those made by OPAL, AESOPUS, etc.), by adding the argument --opacity-table. There are two notes of caution: 
 - The table must be rectangular with a format given as the sample in input/rosseland, and
 - when values outside the table is requested, the closest edge values are used.
@@ -75,6 +75,9 @@ The file given as profile-at-cc argument specifies how much time elapsed between
 
 ### Using an already obtained CSM for light curve calculation (for stripped models)
 For stripped star models, files called intermediateXXyr.txt are not created as the eruption calculations are done for timescales much shorter than a year. The extrapolation to the time specified by --tinj is done by an internal analytical calculation (see our paper). By adding the --skip-eruption argument in run.py, the code skips the eruption calculation and uses the file ``EruptionFiles/result99.txt" (which must be already generated) to model the CSM for an arbitrary --tinj.
+
+### Using a CSM profile set by hand
+CHIPS also supports CSM profiles set by hand, using the code self_CSM.py instead of run.py. The profile can either be a single power-law or a double power-law.
 
 ### Multi-band light curves
 For the hydrogen-rich IIn models, the code can obtain multi-band light curves if ray-tracing radiation transfer is turned on. To do this, add the argument --calc-multiband when running run.py or after_eruption.py. Work is under way to develop opacity tables to enable multi-band for the Ibc models.
