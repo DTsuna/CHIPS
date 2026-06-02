@@ -21,7 +21,7 @@ The requirement for running CHIPS is quite minimal. One needs only the standard 
 ## Steps for running CHIPS:
 1. git clone this repository
 
-	`git clone https://github.com/DTsunacodes/CHIPS_for_workshop.git`
+	`git clone https://github.com/DTsuna/CHIPS.git`
 
 2. At the top directory, compile the scripts for the mass eruption and light curve.
 
