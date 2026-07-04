@@ -168,8 +168,9 @@ c      print *,e(3)
       write(*,'(''total energy ='',1pe12.4,''erg, etherm =''
      $     ,e12.4,'' erg'')')te, tet
 
-      write(*,66)(j,encm(j)/msol,rad(j),1.d0/tau(j),p(j),u(j),e(j)
-     &            ,temp(j),j=max(1,jw-10),max(10,min(jw+10,n)))
+      write(*,66)(j,(encm(j)+tmns)/msol,rad(j),1.d0/tau(j),
+     &            p(j),u(j),e(j),temp(j),
+     &            j=max(1,jw-10),max(10,min(jw+10,n)))
  66    format(' no.',4x,'mr',4x,'rad',8x,'rho',6x,'p',5x,'vel'
      &       ,8x,'e',8x,'temp',/,(i4,1p7e9.2))
 
@@ -382,14 +383,16 @@ c      write(*,*)"timetocc=",time_to_cc
              write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    L   ,/,(i5,1p8e9.2))')
-     $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
-     $          ,temp(j),lum(j),j=max(3,jw-10),max(10,min(jw+10,n)))
+     $          (j,(encm(j)+tmns)/msol,rad(j),1.d0/tau(j),
+     $           ps(j),us(j),e(j),temp(j),lum(j),
+     $           j=max(3,jw-10),max(10,min(jw+10,n)))
              write(*,*) "------------------------"
              write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    L   ,/,(i5,1p8e9.2))')
-     $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
-     $          ,temp(j),lum(j),j=n-4,n)
+     $          (j,(encm(j)+tmns)/msol,rad(j),1.d0/tau(j),
+     $           ps(j),us(j),e(j),temp(j),lum(j),
+     $           j=n-4,n)
            end if
 
            ! after cutting innermost region at late times
@@ -397,15 +400,16 @@ c      write(*,*)"timetocc=",time_to_cc
              write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    u   ,/,(i5,1p8e9.2))')
-     $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
-     $          ,temp(j),u(j),
-     $          j=max(fixedCell,jw-10),max(10+fixedCell,min(jw+10,n)))
+     $          (j,(encm(j)+tmns)/msol,rad(j),1.d0/tau(j),
+     $           ps(j),us(j),e(j),temp(j),u(j),
+     $           j=max(fixedCell,jw-10),max(10+fixedCell,min(jw+10,n)))
              write(*,*) "------------------------"
              write(*,'(5h no.  ,8h  mr    ,9hradius   ,   9hdensity  ,
      $          9hpressure ,9hvelocity ,9h     e   ,9h temp    ,
      $          9h    u   ,/,(i5,1p8e9.2))')
-     $          (j,encm(j)/msol,rad(j),1.d0/tau(j),ps(j),us(j),e(j)
-     $          ,temp(j),u(j),j=n-4,n)
+     $          (j,(encm(j)+tmns)/msol,rad(j),1.d0/tau(j),
+     $           ps(j),us(j),e(j),temp(j),u(j),
+     $           j=n-4,n)
            end if
          end if
 
